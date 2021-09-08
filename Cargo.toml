@@ -1,0 +1,8 @@
+[package]
+name = "runsh"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+structopt = "0.3.13"
+colored = "2"
