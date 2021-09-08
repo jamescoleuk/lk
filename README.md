@@ -1,3 +1,14 @@
+# runsh
+
+A utility that parses scripts and pretty prints the functions it finds. Use it to create a friendly interface to your scripts.
+
+## Installation
+`cargo install runsh`
+
+## Use
+Add the following to the end of your script:
+```runsh $(basename "$0") "$@" || "$@"```
+
 ## Challenges
 
 Executing a bash function from rust:
@@ -6,7 +17,7 @@ Executing a bash function from rust:
 
 It's easier to have the script invoke itself, and that's what the last line does. This means runsh doesn't actually run anything, it's just a pretty-printer for bash scripts. I'd rather have it run the functions becuase I want to keep the bash simple, so if anyone reading this has any better ideas please do get in touch.
 
-## Why not run_lib
+## Why not run_lib?
 
 A Rust executable is easier to distribute via cargo. It's easier for people to update. Integration with a script is more or less the same. The processing is much easier in Rust than it is in bash, i.e. finding and displaying multi-line comments. 
 
