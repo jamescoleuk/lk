@@ -6,3 +6,4 @@ edition = "2018"
 [dependencies]
 structopt = "0.3.13"
 colored = "2"
+regex = "1.5.4"
