@@ -11,7 +11,7 @@ struct Cli {
     /// The path to the script to describe or run.
     #[structopt(parse(from_os_str))]
     script: std::path::PathBuf,
-    /// The name of the function to run.
+    /// The name of the function to run. This will not run the function, it will just validate that it exists.
     function: Option<String>,
 }
 

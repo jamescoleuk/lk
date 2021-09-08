@@ -1,6 +1,6 @@
 # runsh
 
-A utility that parses scripts and pretty prints the functions it finds. Use it to create a friendly interface to your scripts.
+A utility that parses scripts and pretty prints the functions it finds. Use it to create a friendly interface to your scripts. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier.
 
 ## Installation
 `cargo install runsh`
@@ -19,12 +19,18 @@ It's easier to have the script invoke itself, and that's what the last line does
 
 ## Why not run_lib?
 
-A Rust executable is easier to distribute via cargo. It's easier for people to update. Integration with a script is more or less the same. The processing is much easier in Rust than it is in bash, i.e. finding and displaying multi-line comments. 
+I already wrote this in bash and called it [run_lib](https://github.com/jamescoleuk/run_lib). There are a few reasons why this is better. Here are some considerations:
+1. A Rust executable is easier to distribute via `cargo`. It's easier for people to update. 
+2. Integration with a script is more or less the same. 
+3. The processing is much easier in Rust than it is in bash, i.e. finding and displaying multi-line comments. 
+4. Rust so hot right now.
 
 ## How the integration works
 Integration looks like this:
 ```runsh $(basename "$0") "$@" || "$@"```
 
 There are two parts to this:
-1. `runsh $(basename "$0") "$0"`: this executes runsh, passing two parameters: the name of the script being run (`$(basename "$0")`) and the parameters to the shell command as issued by the user (`"$@"`). This will be the function name and args, e.g. in `./script.sh some_function` it will be `some_function`.
-2. `|| "$@"` is the fall back for when runsh returns a non-zero exit code. It'll return a non-zero exit code when it has identified the function being run, i.e. when it's validated the function as actually exisitng in the target script. So when this happens `"$@"` will execute, which is a very quick way of running the actual function.
+1. `runsh $(basename "$0") "$0"`: this executes runsh, passing two parameters: 
+   1. The name of the script being run (`$(basename "$0")`). E.g. in `./script som_function` it will be `script`.
+   2. The parameters to the shell command as issued by the user (`"$@"`). This will be the function name and args, e.g. in `./script.sh some_function some_args` it will be `some_function some_args`.
+2. `|| "$@"` is the fall back for when `runsh` returns a non-zero exit code. This is suppsoed to happen and how the function ends up getting run. `runsh` will validate the function name and return a non-zero exit code if it exists. When this happens `"$@"` will execute, which is a quick bash way to run the actual function.
