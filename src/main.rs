@@ -25,6 +25,7 @@ struct Function {
 /// TODO: I think there's probably a better way to do this. Revisit when I've got more rust experience.
 #[derive(PartialEq, Debug)]
 enum RunshError {
+    BadFunctionName,
     BadScriptPath,
 }
 
@@ -90,24 +91,8 @@ fn get_functions(script: &std::path::PathBuf) -> Result<Vec<Function>, RunshErro
                     } else if !line.starts_with('#') {
                         // Find lines that start a function
                         if line.contains("(){") || line.contains("() {") {
-                            let name = line.split("()").next();
-                            match name {
-                                Some(actual_name) => {
-                                    let cleaned_comments = comments
-                                        .iter()
-                                        .map(|comment| comment.trim_start_matches("#"))
-                                        .map(|comment| comment.trim_start())
-                                        .map(|comment| String::from(comment));
-                                    let this_function = Function {
-                                        name: String::from(actual_name),
-                                        comment: cleaned_comments.collect(),
-                                    };
-                                    functions.push(this_function);
-                                }
-                                None => {
-                                    println!("{} {} ","There is some kind of formatting error with the name of this function:".red(), &line);
-                                }
-                            }
+                            let function = get_function(line, &comments)?;
+                            functions.push(function);
                         }
                         comments.clear();
                     }
@@ -116,6 +101,34 @@ fn get_functions(script: &std::path::PathBuf) -> Result<Vec<Function>, RunshErro
             Result::Ok(functions)
         }
         Err(_) => Result::Err(RunshError::BadScriptPath),
+    }
+}
+
+/// Gets a `Function` from a line that contains a function name. Uses accumulated comments.
+fn get_function(line: String, comments_found_so_far: &Vec<String>) -> Result<Function, RunshError> {
+    let name = line.split("()").next();
+    match name {
+        Some(actual_name) => {
+            let cleaned_comments = comments_found_so_far
+                .iter()
+                .map(|comment| comment.trim_start_matches("#"))
+                .map(|comment| comment.trim_start())
+                .map(|comment| String::from(comment));
+            let cleaned_name = actual_name.trim();
+            let this_function = Function {
+                name: String::from(cleaned_name),
+                comment: cleaned_comments.collect(),
+            };
+            return Ok(this_function);
+        }
+        None => {
+            println!(
+                "{} {} ",
+                "There is some kind of formatting error with the name of this function:".red(),
+                &line
+            );
+            Result::Err(RunshError::BadFunctionName)
+        }
     }
 }
 
@@ -147,5 +160,45 @@ blow_mind() {
                 println!("    {}", line);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_function() {
+        // Given
+        let line = String::from("some_function(){");
+        let comments = vec![String::from("# First line"), String::from("# Second line")];
+
+        // When
+        let result = get_function(line, &comments);
+
+        // Then
+        assert_eq!(result.is_ok(), true);
+        let function = result.ok().unwrap();
+        assert_eq!(function.name, "some_function");
+        assert_eq!(function.comment, vec!["First line", "Second line"]);
+    }
+
+    #[test]
+    fn test_get_function_edge() {
+        // Given
+        let line = String::from("   some_function   ()   {");
+        let comments = vec![
+            String::from("#### First line"),
+            String::from("# Second # line"),
+        ];
+
+        // When
+        let result = get_function(line, &comments);
+
+        // Then
+        assert_eq!(result.is_ok(), true);
+        let function = result.ok().unwrap();
+        assert_eq!(function.name, "some_function");
+        assert_eq!(function.comment, vec!["First line", "Second # line"]);
     }
 }
