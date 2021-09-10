@@ -1,4 +1,5 @@
 use colored::*;
+use pad::{Alignment, PadStr};
 use regex::Regex;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -142,17 +143,29 @@ blow_mind() {
         println!("{}", example_function.green());
     } else {
         let example_command = format!("./{} {}", script, functions[0].name);
-        println!(
-            "{} has found the following functions in {}. Execute them like this: \n   {}\n",
-            "Runsh",
-            script.bright_blue(),
-            example_command.green()
-        );
+        print!("{}", script.on_blue());
+        println!(" - Usage: {}\n", example_command.green());
+
         for function in functions {
-            println!("  {}", function.name.on_blue());
-            for line in function.comment {
-                println!("    {}", line);
+            // First print the function name
+            let to_print = function
+                .name
+                .pad_to_width_with_alignment(20, Alignment::Right)
+                .green();
+            if function.comment.len() > 0 {
+                print!("{}", to_print);
+            } else {
+                println!("{}", to_print);
             }
+
+            // Then follow up with the comment lines
+            function.comment.iter().enumerate().for_each(|(i, line)| {
+                if i == 0 {
+                    println!(" {}", line);
+                } else {
+                    println!(" {:20}{}", "", line);
+                }
+            });
         }
     }
 }

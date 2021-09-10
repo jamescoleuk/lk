@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # This function is very clever and awesome and does a lot of neat stuff.
-#
 # And here is some more detailed description about this funciton. Isn't it great?
 some_function() {
     echo "hello world from a script"
@@ -11,6 +10,16 @@ some_function() {
 }
 
 another_function() {
+    echo "hello from another function"
+}
+
+# More functions
+yet_more_functions() {
+    echo "hello from another function"
+}
+
+# This function has a stupidly long name and it won't render that well.
+really_really_really_really_really_really_long_function_name() {
     echo "hello from another function"
 }
 
