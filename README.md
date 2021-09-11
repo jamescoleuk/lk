@@ -6,7 +6,9 @@ Parses scripts and pretty prints the functions it finds. Similar to [run_lib](ht
 
 ## Installation
 From [the crate](https://crates.io/crates/runsh):
-`cargo install runsh`
+```bash
+cargo install runsh
+```
 
 ### Update
 ```bash
