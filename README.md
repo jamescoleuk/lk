@@ -4,6 +4,39 @@ A CLI frontend for your bash scripts.
 
 Parses scripts and pretty prints the functions it finds. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier.
 
+Say you have a script called `script.sh` that looks like this:
+
+```
+#!/usr/bin/env bash
+
+# This function is very clever and awesome and does a lot of neat stuff.
+# And here is some more detailed description about this funciton. Isn't it great?
+some_function() {
+    echo "hello world from a script"
+    echo "foobar"
+    sleep 1
+    echo "ending function now"
+}
+
+# More functions
+yet_more_functions() {
+    echo "hello from another function"
+}
+```
+
+You can append the follwing the the file:
+```bash
+runsh $(basename "$0") "$@" || "$@"
+```
+
+Then when you execute `./script.sh` you'll see this:
+![A screenshot showing the output of running ./script.sh, showing a list of functions and their comments](/docs/example01.png)
+
+Then you can run something like this to execute the function:
+```bash
+./script.sh some_function
+```
+
 ## Installation
 From [the crate](https://crates.io/crates/runsh):
 ```bash
