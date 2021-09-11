@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#
+# This project doesn't have any complicated scripting
+# needs so there's not much here. But some dog-fooding
+# seems appropriate...
+
+# Push to cargo repo
+publish() {
+  cargo publish
+}
+
+# Run against test/script.sh
+test_no_param() {
+  cargo run test/script.sh
+}
+
+runsh $(basename "$0") "$@" || "$@"
