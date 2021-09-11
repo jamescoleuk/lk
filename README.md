@@ -55,6 +55,10 @@ Add the following to the end of your script:
 runsh $(basename "$0") "$@" || "$@"
 ```
 
+The just execute your script and follow the usage instructions.
+
+On some projects I find myself having many scripts. E.g. `ops`, `test`, `aws`, `twitter`.
+
 ## Challenges
 
 Executing a bash function from rust:
