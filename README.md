@@ -18,7 +18,9 @@ cargo install runsh
 
 ## Use
 Add the following to the end of your script:
-```runsh $(basename "$0") "$@" || "$@"```
+```bash
+runsh $(basename "$0") "$@" || "$@"
+```
 
 ## Challenges
 
