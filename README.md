@@ -5,6 +5,7 @@ A CLI frontend for your bash scripts.
 Parses scripts and pretty prints the functions it finds. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier.
 
 ## Installation
+From [the crate](https://crates.io/crates/runsh):
 `cargo install runsh`
 
 ### Update
