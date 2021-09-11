@@ -1,9 +1,17 @@
 # runsh
 
-A utility that parses scripts and pretty prints the functions it finds. Use it to create a friendly interface to your scripts. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier.
+A CLI frontend for your bash scripts. 
+
+Parses scripts and pretty prints the functions it finds. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier.
 
 ## Installation
 `cargo install runsh`
+
+### Update
+```bash
+cargo uninstall runsh
+cargo install runsh
+```
 
 ## Use
 Add the following to the end of your script:
