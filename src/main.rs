@@ -16,6 +16,10 @@ struct Cli {
     script: std::path::PathBuf,
     /// The name of the function to run. This will not run the function, it will just validate that it exists.
     function: Option<String>,
+    /// Optional params for the function. We're not processing them yet (e.g. validating) but
+    /// they need to be permitted as a param to runsh.
+    #[allow(dead_code)]
+    params: Vec<String>,
 }
 
 fn main() {

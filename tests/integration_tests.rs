@@ -57,7 +57,6 @@ fn test_function_params() {
         .expect("failed to execute process");
     // Should return a non-0 exit code, allowing bash to || "$@",
     // thereby running the script's function itself.
-    assert_eq!(output.status.success(), false);
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(stdout.contains("USAGE"), false);
 }
@@ -72,7 +71,6 @@ fn bad_script_path() {
         .expect("failed to execute process");
     assert_eq!(output.status.success(), true);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    println!("{}", stdout);
     assert_eq!(
         stdout.contains("Unable to get functions from bad_script_path.sh"),
         true
