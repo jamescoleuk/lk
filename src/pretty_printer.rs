@@ -35,7 +35,7 @@ blow_mind() {
                 .name
                 .pad_to_width_with_alignment(padding, Alignment::Right)
                 .green();
-            if function.comment.is_empty() {
+            if !function.comment.is_empty() {
                 print!("{}", to_print);
             } else {
                 println!("{}", to_print);

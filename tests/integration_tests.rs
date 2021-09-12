@@ -12,6 +12,7 @@ fn test_no_function() {
     assert_eq!(output.status.success(), true);
     assert_eq!(stdout.contains("script.sh"), true);
     assert_eq!(stdout.contains("Usage"), true);
+    assert_eq!(stdout.contains("some_function This function"), true);
     assert_eq!(stdout.contains("This function is very clever and"), true);
     assert_eq!(stdout.contains("And here is some more detailed"), true);
     assert_eq!(stdout.contains("some_function"), true);
@@ -57,4 +58,6 @@ fn test_function_params() {
     // Should return a non-0 exit code, allowing bash to || "$@",
     // thereby running the script's function itself.
     assert_eq!(output.status.success(), false);
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.contains("USAGE"), false);
 }
