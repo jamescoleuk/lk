@@ -40,9 +40,21 @@ fn test_with_bad_function_name() {
         .arg("bad_function_name")
         .output()
         .expect("failed to execute process");
-    // Should return a non-0 exit code, allowing bash to || "$@",
-    // thereby running the script's function itself.
     assert_eq!(output.status.success(), true);
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(stdout.contains("Function does not exist"), true);
+}
+
+#[test]
+fn test_function_params() {
+    let output = Command::new("cargo")
+        .arg("run")
+        .arg("tests/script.sh")
+        .arg("another_function")
+        .arg("a_param")
+        .output()
+        .expect("failed to execute process");
+    // Should return a non-0 exit code, allowing bash to || "$@",
+    // thereby running the script's function itself.
+    assert_eq!(output.status.success(), false);
 }
