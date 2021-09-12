@@ -2,11 +2,10 @@ use crate::Function;
 use colored::*;
 use pad::{Alignment, PadStr};
 
-pub fn print_functions(functions: Vec<Function>, script: &String) {
-    if functions.len() == 0 {
+pub fn print_functions(functions: Vec<Function>, script: &str) {
+    if functions.is_empty() {
         println!(
-            "{} has found no functions in {}. You could add some like this:",
-            "Runsh",
+            "Runsh has found no functions in {}. You could add some like this:",
             script.bright_blue()
         );
         let example_function = r#"# Some great comment
@@ -36,7 +35,7 @@ blow_mind() {
                 .name
                 .pad_to_width_with_alignment(padding, Alignment::Right)
                 .green();
-            if function.comment.len() > 0 {
+            if function.comment.is_empty() {
                 print!("{}", to_print);
             } else {
                 println!("{}", to_print);

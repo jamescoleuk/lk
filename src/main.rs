@@ -23,10 +23,7 @@ fn main() {
     match get_functions(&args.script) {
         Ok(functions) => match &args.function {
             Some(function_to_run) => {
-                match functions
-                    .iter()
-                    .find(|&n| n.name == String::from(function_to_run))
-                {
+                match functions.iter().find(|&n| &n.name == function_to_run) {
                     Some(_) => {
                         // Found a valid function. We're going to return a non-0 exit code
                         // so the script knows that it can go ahead and run the function.

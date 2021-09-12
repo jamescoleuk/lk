@@ -5,25 +5,23 @@ use std::io::{self, BufRead};
 use std::path::Path;
 
 // Takes in a script path and returns a list of Functions.
-pub fn get_functions(script: &std::path::PathBuf) -> Result<Vec<Function>, std::io::Error> {
+pub fn get_functions(script: &std::path::Path) -> Result<Vec<Function>, std::io::Error> {
     let mut functions: Vec<Function> = Vec::new();
     match read_lines(script) {
         Ok(lines) => {
             // `comments` accumulates comments until we find a function header line, and then they're cleared.
             let mut comments: Vec<String> = Vec::new();
-            for maybe_line in lines {
-                if let Ok(line) = maybe_line {
-                    // Find lines that are part of the same comment block
-                    if line.starts_with('#') {
-                        comments.push(line);
-                    } else if !line.starts_with('#') {
-                        // Find lines that start a function
-                        if is_function_header_line(&line) {
-                            let function = get_function(line, &comments);
-                            functions.push(function);
-                        }
-                        comments.clear();
+            for line in lines.flatten() {
+                // Find lines that are part of the same comment block
+                if line.starts_with('#') {
+                    comments.push(line);
+                } else if !line.starts_with('#') {
+                    // Find lines that start a function
+                    if is_function_header_line(&line) {
+                        let function = get_function(line, &comments);
+                        functions.push(function);
                     }
+                    comments.clear();
                 }
             }
             Result::Ok(functions)
@@ -32,28 +30,26 @@ pub fn get_functions(script: &std::path::PathBuf) -> Result<Vec<Function>, std::
     }
 }
 
-fn is_function_header_line(line: &String) -> bool {
+fn is_function_header_line(line: &str) -> bool {
     let function_header_regex = Regex::new(r"^.*\(\).*\{$").unwrap();
     function_header_regex.is_match(line)
 }
 
 /// Gets a `Function` from a line that contains a function name. Uses accumulated comments.
-fn get_function(line: String, comments_found_so_far: &Vec<String>) -> Function {
+fn get_function(line: String, comments_found_so_far: &[String]) -> Function {
     let name = line.split("()").next();
     match name {
         Some(actual_name) => {
             let cleaned_comments = comments_found_so_far
                 .iter()
-                .map(|comment| comment.trim_start_matches("#"))
+                .map(|comment| comment.trim_start_matches('#'))
                 .map(|comment| comment.trim_start())
-                .map(|comment| String::from(comment));
+                .map(String::from);
             let cleaned_name = actual_name.trim();
-            let this_function = Function {
+            Function {
                 name: String::from(cleaned_name),
                 comment: cleaned_comments.collect(),
-            };
-            // return Ok(this_function);
-            return this_function;
+            }
         }
         None => {
             panic!("There is some kind of formatting error with the name of this function:");

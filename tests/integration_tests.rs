@@ -1,4 +1,3 @@
-use std::io::{self, Write};
 use std::process::Command;
 
 #[test]
