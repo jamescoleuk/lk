@@ -9,9 +9,9 @@ publish() {
   cargo publish
 }
 
-# Run against test/script.sh
+# Run against tests/script.sh
 test_no_param() {
-  cargo run test/script.sh
+  cargo run tests/script.sh
 }
 
 runsh $(basename "$0") "$@" || "$@"
