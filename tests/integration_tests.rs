@@ -61,3 +61,20 @@ fn test_function_params() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(stdout.contains("USAGE"), false);
 }
+
+#[test]
+fn bad_script_path() {
+    let output = Command::new("cargo")
+        .arg("run")
+        .arg("bad_script_path.sh")
+        .arg("another_function")
+        .output()
+        .expect("failed to execute process");
+    assert_eq!(output.status.success(), true);
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    println!("{}", stdout);
+    assert_eq!(
+        stdout.contains("Unable to get functions from bad_script_path.sh"),
+        true
+    );
+}
