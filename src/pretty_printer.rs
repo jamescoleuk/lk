@@ -24,7 +24,7 @@ blow_mind() {
         let padding = functions
             .iter()
             .max_by(|x, y| x.name.len().cmp(&y.name.len()))
-            .unwrap()
+            .unwrap() // Will always be Some because the name String must exist.
             .name
             .len()
             + INDENT;
