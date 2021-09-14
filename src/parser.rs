@@ -7,27 +7,23 @@ use std::path::Path;
 // Takes in a script path and returns a list of Functions.
 pub fn get_functions(script: &std::path::Path) -> Result<Vec<Function>, std::io::Error> {
     let mut functions: Vec<Function> = Vec::new();
-    match read_lines(script) {
-        Ok(lines) => {
-            // `comments` accumulates comments until we find a function header line, and then they're cleared.
-            let mut comments: Vec<String> = Vec::new();
-            for line in lines.flatten() {
-                // Find lines that are part of the same comment block
-                if line.starts_with('#') {
-                    comments.push(line);
-                } else if !line.starts_with('#') {
-                    // Find lines that start a function
-                    if is_function_header_line(&line) {
-                        let function = get_function(line, &comments);
-                        functions.push(function);
-                    }
-                    comments.clear();
-                }
+    let lines = read_lines(script)?;
+    // `comments` accumulates comments until we find a function header line, and then they're cleared.
+    let mut comments: Vec<String> = Vec::new();
+    for line in lines.flatten() {
+        // Find lines that are part of the same comment block
+        if line.starts_with('#') {
+            comments.push(line);
+        } else if !line.starts_with('#') {
+            // Find lines that start a function
+            if is_function_header_line(&line) {
+                let function = get_function(line, &comments);
+                functions.push(function);
             }
-            Result::Ok(functions)
+            comments.clear();
         }
-        Err(err) => Result::Err(err),
     }
+    Ok(functions)
 }
 
 fn is_function_header_line(line: &str) -> bool {
