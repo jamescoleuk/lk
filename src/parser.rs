@@ -27,8 +27,13 @@ pub fn get_functions(script: &std::path::Path) -> Result<Vec<Function>, std::io:
 }
 
 fn is_function_header_line(line: &str) -> bool {
-    let function_header_regex = Regex::new(r"^.*\(\).*\{$").unwrap();
-    function_header_regex.is_match(line)
+    if line.trim().starts_with('_') {
+        false
+    }
+    else {
+        let function_header_regex = Regex::new(r"^.*\(\).*\{$").unwrap();
+        function_header_regex.is_match(line)
+    }
 }
 
 /// Gets a `Function` from a line that contains a function name. Uses accumulated comments.

@@ -16,6 +16,11 @@ another_function() {
 # More functions
 yet_more_functions() {
     echo "hello from another function"
+    _hidden_function
+}
+
+_hidden_function() {
+    echo "blah blah"
 }
 
 runsh $(basename "$0") "$@" || "$@"

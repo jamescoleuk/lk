@@ -59,6 +59,13 @@ The just execute your script and follow the usage instructions.
 
 On some projects I find myself having many scripts. E.g. `ops`, `test`, `aws`, `twitter`.
 
+### Hidden functions
+Prefix '_' to a function to have `runsh` ignore it and not pretty print it. This is useful for helper functions. "Private" functions I guess. E.g.:
+```bash
+_hidden_function() {
+    echo "blah blah"
+}
+```
 ## Challenges
 
 Executing a bash function from rust:
