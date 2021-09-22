@@ -25,7 +25,7 @@ pub fn get_functions(script: &std::path::Path) -> Result<Script, std::io::Error>
                 // If we don't yet have any comments, and this comment has 0 length
                 // then we're probably dealing with a spacing line between the hashbang
                 // and the actual file header. So we'll ignore this line.
-                if script.comment.len() == 0 && comment.len() != 0 {
+                if script.comment.is_empty() && !comment.is_empty() {
                     script.comment.push(comment);
                 }
             } else {
