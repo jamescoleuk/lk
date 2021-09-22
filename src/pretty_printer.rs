@@ -21,9 +21,14 @@ blow_mind() {
         print!("{}", script_path.on_blue());
         println!(" - Usage: {}\n", example_command.blue());
 
+        script.comment.iter().for_each(|comment_line| {
+            println!("{}", comment_line);
+        });
+
         // Get the longest function name
         const INDENT: usize = 2;
-        let padding = script.functions
+        let padding = script
+            .functions
             .iter()
             .max_by(|x, y| x.name.len().cmp(&y.name.len()))
             .unwrap() // Will always be Some because the name String must exist.
