@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
-# No functions yet
+#
+# No functions in this script
 
 runsh $(basename "$0") "$@" || "$@"

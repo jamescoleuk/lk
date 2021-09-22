@@ -21,6 +21,18 @@ fn test_no_function() {
 }
 
 #[test]
+fn test_with_empty_script() {
+    let output = Command::new("cargo")
+        .arg("run")
+        .arg("tests/empty_script.sh")
+        .output()
+        .expect("failed to execute process");
+    assert_eq!(output.status.success(), true);
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.contains("Runsh has found no functions "), true);
+}
+
+#[test]
 fn test_with_function() {
     let output = Command::new("cargo")
         .arg("run")
