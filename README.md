@@ -66,6 +66,16 @@ _hidden_function() {
     echo "blah blah"
 }
 ```
+
+### File headers
+`runsh` will extract comments in the file header, if it finds any, and display them alongside all your runnable functions. It relies on these comments following the form in the [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html#s4.1-file-header), i.e. like this:
+```bash
+#!/usr/bin/env bash
+#
+# Some comments.
+# And some more.
+```
+
 ## Challenges
 
 Executing a bash function from rust:

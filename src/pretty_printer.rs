@@ -18,12 +18,12 @@ blow_mind() {
         println!("{}", example_function.green());
     } else {
         let example_command = format!("./{} {}", script_path, script.functions[0].name);
-        print!("{}", script_path.on_blue());
-        println!(" - Usage: {}\n", example_command.blue());
+        println!("{}", script_path.on_blue());
 
         script.comment.iter().for_each(|comment_line| {
-            println!("{}", comment_line);
+            println!("  {}", comment_line);
         });
+        println!("  Usage: {}\n", example_command.blue());
 
         // Get the longest function name
         const INDENT: usize = 2;
