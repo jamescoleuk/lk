@@ -1,12 +1,14 @@
-use crate::Function;
+use crate::models::Script;
 use colored::*;
 use pad::{Alignment, PadStr};
 
-pub fn print_functions(functions: Vec<Function>, script: &str) {
-    if functions.is_empty() {
+// TODO: make this a Display impl on Script?
+pub fn print_script(script: Script) {
+    let script_path = script.path.into_os_string().into_string().unwrap();
+    if script.functions.is_empty() {
         println!(
             "Runsh has found no functions in {}. You could add some like this:",
-            script.bright_blue()
+            script_path.bright_blue()
         );
         let example_function = r#"# Some great comment
 # More insightful and fascinating insights into bash scripting
@@ -15,20 +17,20 @@ blow_mind() {
 } "#;
         println!("{}", example_function.green());
     } else {
-        let example_command = format!("./{} {}", script, functions[0].name);
-        print!("{}", script.on_blue());
+        let example_command = format!("./{} {}", script_path, script.functions[0].name);
+        print!("{}", script_path.on_blue());
         println!(" - Usage: {}\n", example_command.blue());
 
         // Get the longest function name
         const INDENT: usize = 2;
-        let padding = functions
+        let padding = script.functions
             .iter()
             .max_by(|x, y| x.name.len().cmp(&y.name.len()))
             .unwrap() // Will always be Some because the name String must exist.
             .name
             .len()
             + INDENT;
-        for function in functions {
+        for function in script.functions {
             // We'll pad right so everything aligns nicely.
             // First print the function name
             let to_print = function

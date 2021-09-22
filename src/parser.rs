@@ -1,13 +1,15 @@
-use crate::models::Function;
+use crate::models::{Function, Script};
 use regex::Regex;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
 
 // Takes in a script path and returns a list of Functions.
-pub fn get_functions(script: &std::path::Path) -> Result<Vec<Function>, std::io::Error> {
-    let mut functions: Vec<Function> = Vec::new();
-    let lines = read_lines(script)?;
+pub fn get_functions(script: &std::path::PathBuf) -> Result<Script, std::io::Error> {
+    let mut script: Script = Script::new(script.to_owned());
+
+    let lines = read_lines(&script.path)?;
+
     // `comments` accumulates comments until we find a function header line, and then they're cleared.
     let mut comments: Vec<String> = Vec::new();
     for line in lines.flatten() {
@@ -18,19 +20,18 @@ pub fn get_functions(script: &std::path::Path) -> Result<Vec<Function>, std::io:
             // Find lines that start a function
             if is_function_header_line(&line) {
                 let function = get_function(line, &comments);
-                functions.push(function);
+                script.functions.push(function);
             }
             comments.clear();
         }
     }
-    Ok(functions)
+    Ok(script)
 }
 
 fn is_function_header_line(line: &str) -> bool {
     if line.trim().starts_with('_') {
         false
-    }
-    else {
+    } else {
         let function_header_regex = Regex::new(r"^.*\(\).*\{$").unwrap();
         function_header_regex.is_match(line)
     }

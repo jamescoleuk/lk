@@ -2,9 +2,8 @@ mod models;
 mod parser;
 mod pretty_printer;
 
-use crate::models::Function;
+use crate::pretty_printer::print_script;
 use crate::parser::get_functions;
-use crate::pretty_printer::print_functions;
 use colored::*;
 use structopt::StructOpt;
 
@@ -25,24 +24,22 @@ struct Cli {
 fn main() {
     let args = Cli::from_args();
     match get_functions(&args.script) {
-        Ok(functions) => match &args.function {
+        Ok(script) => match &args.function {
             Some(function_to_run) => {
-                match functions.iter().find(|&n| &n.name == function_to_run) {
+                match script.functions.iter().find(|&n| &n.name == function_to_run) {
                     Some(_) => {
                         // Found a valid function. We're going to return a non-0 exit code
                         // so the script knows that it can go ahead and run the function.
                         std::process::exit(78);
                     }
                     None => {
-                        let script = &args.script.into_os_string().into_string().unwrap();
                         println!("{}", "Function does not exist!\n".red());
-                        print_functions(functions, script);
+                        print_script(script);
                     }
                 }
             }
             None => {
-                let script = &args.script.into_os_string().into_string().unwrap();
-                print_functions(functions, script);
+                print_script(script);
             }
         },
         Err(_) => {

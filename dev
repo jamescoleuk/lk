@@ -14,4 +14,8 @@ test_no_param() {
   cargo run tests/script.sh
 }
 
+test_with_param() {
+  cargo run tests/script.sh some_function
+}
+
 runsh $(basename "$0") "$@" || "$@"
