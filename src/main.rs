@@ -2,8 +2,8 @@ mod models;
 mod parser;
 mod pretty_printer;
 
-use crate::pretty_printer::print_script;
 use crate::parser::get_functions;
+use crate::pretty_printer::print_script;
 use colored::*;
 use structopt::StructOpt;
 
@@ -26,7 +26,11 @@ fn main() {
     match get_functions(&args.script) {
         Ok(script) => match &args.function {
             Some(function_to_run) => {
-                match script.functions.iter().find(|&n| &n.name == function_to_run) {
+                match script
+                    .functions
+                    .iter()
+                    .find(|&n| &n.name == function_to_run)
+                {
                     Some(_) => {
                         // Found a valid function. We're going to return a non-0 exit code
                         // so the script knows that it can go ahead and run the function.

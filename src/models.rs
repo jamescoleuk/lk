@@ -15,7 +15,7 @@ pub struct Script {
 impl Script {
     pub const fn new(path: std::path::PathBuf) -> Self {
         Script {
-            path: path,
+            path,
             comment: Vec::new(),
             functions: Vec::new(),
         }
