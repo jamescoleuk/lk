@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # This is a comment on the file.
+# Here's a second line.
 
 # This function is very clever and awesome and does a lot of neat stuff.
 # And here is some more detailed description about this funciton. Isn't it great?

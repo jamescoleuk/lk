@@ -22,10 +22,11 @@ pub fn get_functions(script: &std::path::Path) -> Result<Script, std::io::Error>
                 in_header_comments = true;
             } else if in_header_comments {
                 let comment = clean_comment_line(&line);
-                // If we don't yet have any comments, and this comment has 0 length
-                // then we're probably dealing with a spacing line between the hashbang
-                // and the actual file header. So we'll ignore this line.
-                if script.comment.is_empty() && !comment.is_empty() {
+                if script.comment.is_empty() && comment.is_empty() {
+                    // If we don't yet have any comments, and this comment has 0 length
+                    // then we're probably dealing with a spacing line between the hashbang
+                    // and the actual file header. So we'll ignore this line.
+                } else {
                     script.comment.push(comment);
                 }
             } else {

@@ -11,6 +11,8 @@ fn test_no_function() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(output.status.success(), true);
     assert_eq!(stdout.contains("script.sh"), true);
+    assert_eq!(stdout.contains("First line of file header comment"), true);
+    assert_eq!(stdout.contains("Second line of file header comment"), true);
     assert_eq!(stdout.contains("Usage"), true);
     assert_eq!(stdout.contains("some_function This function"), true);
     assert_eq!(stdout.contains("This function is very clever and"), true);
