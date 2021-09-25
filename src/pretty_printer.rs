@@ -1,6 +1,21 @@
-use crate::models::Script;
+use std::{fs::DirEntry, path::PathBuf};
+
+use crate::{models::Script, script_manager::Executable};
 use colored::*;
 use pad::{Alignment, PadStr};
+
+/// Pretty-prints the executables we found on the path, so the
+/// user can select one to run.
+pub fn print_executables(executables: Vec<Executable>) {
+    println!("Runsh has found the following executables. Execute runsh <executable_name> to see what functions it offers.");
+    executables.iter().for_each(|executable| {
+        println!(
+            "{} -- {}",
+            executable.short_name,
+            executable.path.as_os_str().to_string_lossy().to_string()
+        );
+    })
+}
 
 // TODO: make this a Display impl on Script?
 pub fn print_script(script: Script) {

@@ -3,13 +3,15 @@
 # First line of file header comment
 # Second line of file header comment
 
+val="foobar"
+
 # This function is very clever and awesome and does a lot of neat stuff.
 # And here is some more detailed description about this funciton. Isn't it great?
 some_function() {
     echo "hello world from a script"
     echo "foobar"
     sleep 1
-    echo "ending function now"
+    echo "ending function now: ${val}"
 }
 
 another_function() {
@@ -25,5 +27,3 @@ yet_more_functions() {
 _hidden_function() {
     echo "blah blah"
 }
-
-runsh $(basename "$0") "$@" || "$@"
