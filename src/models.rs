@@ -21,3 +21,8 @@ impl Script {
         }
     }
 }
+
+pub struct ValidatedRequest {
+    pub script_name: String,
+    pub function_to_run: Option<String>,
+}

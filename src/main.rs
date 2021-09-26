@@ -2,11 +2,9 @@ mod models;
 mod parser;
 mod pretty_printer;
 mod script_manager;
+use anyhow::{anyhow, Result};
 
-use std::fs::File;
-use std::io::Error;
 use std::path::PathBuf;
-use std::process::exit;
 use std::process::Command;
 use std::process::Stdio;
 
@@ -14,11 +12,10 @@ use crate::parser::get_functions;
 use crate::pretty_printer::print_script;
 use crate::script_manager::find_executables;
 use colored::*;
+use models::ValidatedRequest;
 use pretty_printer::print_executables;
-use regex::internal::Exec;
 use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
-use std::os::unix::fs::PermissionsExt;
 use structopt::StructOpt;
 
 /// Run or list the contents of a script. Run by itself it will try and find scripts it can run.
@@ -34,7 +31,7 @@ struct Cli {
     params: Vec<String>,
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> Result<()> {
     let args = Cli::from_args();
 
     let executables = find_executables();
@@ -47,7 +44,19 @@ fn main() -> std::io::Result<()> {
                 .find(|&executable| executable.short_name == script_name);
             match executable {
                 // If the user passed a valid function then we want to run it.
-                Some(e) => process_script_request(&e.path, args.function),
+                Some(e) => {
+                    let validated_request = process_script_request(&e.path, args.function)?;
+                    match write_runsh_file(validated_request) {
+                        Ok(_) => execute_runsh_file(),
+                        Err(e) => {
+                            eprintln!(
+                                "Unable to write out runsh's temporary file! The error was {}",
+                                e.to_string()
+                            );
+                            Err(e)
+                        }
+                    }
+                }
                 // If the user did not pass a valid function then we want to let them know.
                 None => {
                     println!("Couldn't find a script called '{}'", script_name);
@@ -64,43 +73,35 @@ fn main() -> std::io::Result<()> {
     }
 }
 
-fn process_script_request(script: &PathBuf, function: Option<String>) -> std::io::Result<()> {
+fn process_script_request(script: &PathBuf, function: Option<String>) -> Result<ValidatedRequest> {
     let script_name: String = script.as_path().to_string_lossy().to_string();
-    match get_functions(script.as_path()) {
-        Ok(script) => {
-            match function {
-                Some(function_to_run) => {
-                    match script.functions.iter().find(|&n| n.name == function_to_run) {
-                        Some(_) => {
-                            // Found a valid function.
-                            match write_runsh_file(&script_name, &function_to_run) {
-                                Ok(_) => execute_runsh_file(),
-                                Err(e) => {
-                                    eprintln!( "Unable to write out runsh's temporary file! The error was {}", e.to_string());
-                                    Err(e)
-                                }
-                            }
-                        }
-                        None => {
-                            println!("{}", "Function does not exist!\n".red());
-                            print_script(script);
-                            Ok(())
-                        }
-                    }
+    let script = get_functions(script.as_path())?;
+    match function {
+        Some(function_to_run) => {
+            match script.functions.iter().find(|&n| n.name == function_to_run) {
+                Some(_) => {
+                    return Ok(ValidatedRequest {
+                        script_name: script_name,
+                        function_to_run: Option::Some(function_to_run),
+                    });
                 }
                 None => {
+                    println!("{}", "Function does not exist!\n".red());
                     print_script(script);
-                    Ok(())
+
+                    Err(anyhow!(
+                        "Function does not exist! Requested function was: {}",
+                        function_to_run
+                    ))
                 }
             }
         }
-        Err(e) => {
-            println!(
-                "{} {}",
-                "Unable to get functions from".red(),
-                script_name.green()
-            );
-            Err(e)
+        None => {
+            print_script(script);
+            Ok(ValidatedRequest {
+                script_name: script_name,
+                function_to_run: Option::None,
+            })
         }
     }
 }
@@ -109,7 +110,7 @@ fn process_script_request(script: &PathBuf, function: Option<String>) -> std::io
 /// sources the script we're going to execute and then it can run the function because it'll
 /// have been loaded into the shell. `std::process::Command` has no way to do this. An alternative
 /// would be adding `"$@"` to the end of the scripts but I'd rather avoid this stipulation.
-fn write_runsh_file(script_name: &String, function_to_run: &String) -> std::io::Result<()> {
+fn write_runsh_file(validated_request: ValidatedRequest) -> Result<()> {
     let mut file = std::fs::OpenOptions::new()
         .create(true)
         .write(true)
@@ -124,13 +125,15 @@ fn write_runsh_file(script_name: &String, function_to_run: &String) -> std::io::
     writeln!(
         file,
         "{} source {} && {}",
-        runsh_file, script_name, function_to_run
+        runsh_file,
+        validated_request.script_name,
+        validated_request.function_to_run.unwrap()
     )?;
     Ok(())
 }
 
 /// This executes the runsh file, and then removes it.
-fn execute_runsh_file() -> std::io::Result<()> {
+fn execute_runsh_file() -> Result<()> {
     let mut cmd = Command::new("./~runsh")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
