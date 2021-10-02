@@ -1,6 +1,5 @@
-use anyhow::{anyhow, Result};
 use content_inspector::{inspect, ContentType};
-use std::{os::unix::fs::PermissionsExt, path::PathBuf};
+use std::{io::Read, os::unix::fs::PermissionsExt, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
 pub struct Executable {
@@ -24,7 +23,7 @@ impl Executables {
                 Ok(entry) => entry,
                 Err(_) => panic!("Couldn't read dir!"),
             };
-            if !entry.file_type().is_dir() && is_executable(&entry) {
+            if !entry.file_type().is_dir() && is_executable(&entry) && !is_binary(&entry) {
                 executables.push(Executable {
                     short_name: entry.file_name().to_string_lossy().to_string(),
                     path: entry.into_path(),
@@ -70,6 +69,18 @@ fn is_executable(entry: &DirEntry) -> bool {
         Ok(metadata) => metadata.permissions(),
         Err(_) => panic!("Couldn't get file metadata!"),
     };
-    let is_executable = permissions.mode() & 0o111 != 0;
-    is_executable
+    permissions.mode() & 0o111 != 0
+}
+
+fn is_binary(entry: &DirEntry) -> bool {
+    // We're testing for executable permissions before we check for binary or text
+    // because we don't want to attempt to read any files we don't have to.
+    let file = std::fs::File::open(entry.path()).unwrap();
+    // We're only going to read a smidgen of the file because that's all we need
+    // for using content_inspector.
+    let mut buffer = [0; 10];
+    std::io::BufReader::new(file)
+        .read_exact(&mut buffer)
+        .unwrap();
+    inspect(&buffer) == ContentType::BINARY
 }

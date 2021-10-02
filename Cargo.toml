@@ -20,3 +20,4 @@ faccess = "0.2.3"
 # Anyhow makes application error handling easier.
 # If I was writing a library I'd use thiserror.
 anyhow = "1.0.44"
+content_inspector = "0.2.4"
