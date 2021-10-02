@@ -101,3 +101,11 @@ There are two parts to this:
    1. The name of the script being run (`$(basename "$0")`). E.g. in `./script some_function` it will be `script`.
    2. The parameters to the shell command as issued by the user (`"$@"`). This will be the function name and args, e.g. in `./script.sh some_function some_args` it will be `some_function some_args`. This is for validation.
 2. `|| "$@"` is the fall back for when `runsh` returns a non-zero exit code. This is suppsoed to happen. It is how the function ends up getting run. `runsh` will validate the function name and return a non-zero exit code if it exists. When this happens `"$@"` will execute, which is a quick bash way to run the actual function.
+
+## Finding bash files
+### Testing for binaries
+We don't want binaries because we won't be reading any functions from them.
+
+For testing I took the smallest binary from my `/usr/bin` and copied it into `./tests/`
+
+### Testing for bash files!
