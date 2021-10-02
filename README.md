@@ -108,4 +108,4 @@ We don't want binaries because we won't be reading any functions from them.
 
 For testing I took the smallest binary from my `/usr/bin` and copied it into `./tests/`
 
-### Testing for bash files!
+### Testing for bash files

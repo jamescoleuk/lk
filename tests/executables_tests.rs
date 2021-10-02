@@ -1,0 +1,27 @@
+use std::process::Command;
+
+#[test]
+fn find_executables() {
+    let output = Command::new("cargo")
+        .arg("run")
+        .output()
+        .expect("failed to execute process");
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    //TODO: I want to enable this but at the moment if we don't
+    // pass a script or function runsh will return non-0.
+    // I think I see runsh as a manager and explorer, and it
+    // shouldn't return non-0 for normal, exploratory use.
+    //     assert_eq!(output.status.success(), true);
+
+    // The scripts should be present
+    assert_eq!(stdout.contains("script01.sh"), true);
+    assert_eq!(stdout.contains("script02.sh"), true);
+
+    // The binary should be ignored
+    assert_eq!(stdout.contains("mkfifo"), false);
+
+    // The script without executable permissions should be ignored
+    assert_eq!(stdout.contains("script03.sh"), false);
+}
