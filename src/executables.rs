@@ -1,3 +1,5 @@
+use anyhow::{anyhow, Result};
+use content_inspector::{inspect, ContentType};
 use std::{os::unix::fs::PermissionsExt, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
@@ -22,19 +24,11 @@ impl Executables {
                 Ok(entry) => entry,
                 Err(_) => panic!("Couldn't read dir!"),
             };
-            // TODO: Why can I not use this in the filter_entry expression?
-            if !entry.file_type().is_dir() {
-                let permissions = match entry.metadata() {
-                    Ok(metadata) => metadata.permissions(),
-                    Err(_) => panic!("Couldn't get file metadata!"),
-                };
-                let is_executable = permissions.mode() & 0o111 != 0;
-                if is_executable {
-                    executables.push(Executable {
-                        short_name: entry.file_name().to_string_lossy().to_string(),
-                        path: entry.into_path(),
-                    })
-                }
+            if !entry.file_type().is_dir() && is_executable(&entry) {
+                executables.push(Executable {
+                    short_name: entry.file_name().to_string_lossy().to_string(),
+                    path: entry.into_path(),
+                })
             }
         }
         Self {
@@ -69,4 +63,13 @@ fn is_ignored(entry: &DirEntry, ignored: &[&str]) -> bool {
         .to_str()
         .map(|s| ignored.contains(&s))
         .unwrap_or(false)
+}
+
+fn is_executable(entry: &DirEntry) -> bool {
+    let permissions = match entry.metadata() {
+        Ok(metadata) => metadata.permissions(),
+        Err(_) => panic!("Couldn't get file metadata!"),
+    };
+    let is_executable = permissions.mode() & 0o111 != 0;
+    is_executable
 }
