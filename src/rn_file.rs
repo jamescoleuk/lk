@@ -15,8 +15,7 @@ use std::os::unix::fs::OpenOptionsExt;
 /// sources the script we're going to execute and then it can run the function because it'll
 /// have been loaded into the shell. `std::process::Command` has no way to do this. An alternative
 /// would be adding `"$@"` to the end of the scripts but I'd rather avoid this stipulation.
-// fn write_runsh_file(validated_request: ValidatedRequest) -> Result<()> {
-pub fn write_runsh_file(script: &Script, function: &Function) -> Result<()> {
+pub fn write_rn_file(script: &Script, function: &Function) -> Result<()> {
     let mut file = std::fs::OpenOptions::new()
         .create(true)
         .write(true)
@@ -39,7 +38,7 @@ pub fn write_runsh_file(script: &Script, function: &Function) -> Result<()> {
 }
 
 /// This executes the runsh file, and then removes it.
-pub fn execute_runsh_file() -> Result<()> {
+pub fn execute_rn_file() -> Result<()> {
     let mut cmd = Command::new("./~runsh")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())

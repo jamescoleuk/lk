@@ -1,8 +1,8 @@
-# runsh
+# rn
 
 A CLI frontend for your bash scripts. 
 
-Parses scripts and pretty prints the functions it finds. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier.
+Parses scripts and pretty prints the functions it finds. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier, and to [runsh](https://github.com/jamescoleuk/runsh) but better.
 
 Say you have a script called `script.sh` that looks like this:
 
@@ -24,65 +24,34 @@ yet_more_functions() {
 }
 ```
 
-You can append the follwing the the file:
+You can access it by executing `rn`, and it'll find the script and should you what functions are available. Then you can run something like this to execute the function:
 ```bash
-runsh $(basename "$0") "$@" || "$@"
-```
-
-Then when you execute `./script.sh` you'll see this:
-![A screenshot showing the output of running ./script.sh, showing a list of functions and their comments](/docs/example01.png)
-
-Then you can run something like this to execute the function:
-```bash
-./script.sh some_function
+rn script.sh some_function
 ```
 
 ## Installation
-From [the crate](https://crates.io/crates/runsh):
+From [the crate](https://crates.io/crates/rn):
 ```bash
-cargo install runsh
+cargo install rn
 ```
 
 ### Update
 ```bash
-cargo uninstall runsh
-cargo install runsh
+cargo install --force rn
 ```
 
 ## Use
-Add the following to the end of your script:
-```bash
-runsh $(basename "$0") "$@" || "$@"
-```
+Just execute `rn` and follow the instructions.
 
-The just execute your script and follow the usage instructions.
-
-On some projects I find myself having many scripts. E.g. `ops`, `test`, `aws`, `twitter`.
-
-### Hidden functions
-Prefix '_' to a function to have `runsh` ignore it and not pretty print it. This is useful for helper functions. "Private" functions I guess. E.g.:
-```bash
-_hidden_function() {
-    echo "blah blah"
-}
-```
 
 ### File headers
-`runsh` will extract comments in the file header, if it finds any, and display them alongside all your runnable functions. It relies on these comments following the form in the [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html#s4.1-file-header), i.e. like this:
+`rn` will extract comments in the file header, if it finds any, and display them alongside all your runnable functions. It relies on these comments following the form in the [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html#s4.1-file-header), i.e. like this:
 ```bash
 #!/usr/bin/env bash
 #
 # Some comments.
 # And some more.
 ```
-
-## Challenges
-
-Executing a bash function from rust:
-1. [Command](https://doc.rust-lang.org/std/process/struct.Command.html) executes the program directly and does not create a shell, so you can't source a script and then invoke it.
-2. One could use [shellfn](https://github.com/synek317/shellfn) to source and execute but one loses the ability to see what the script is doing as it runs. This has to support long-running scripts so that isn't any good.
-
-It's easier to have the script invoke itself and that's what the last line does. This means runsh doesn't actually run anything, it's just a pretty-printer for bash scripts. I'd rather have it run the functions becuase I want to keep the bash simple, so if anyone reading this has any better ideas please do get in touch.
 
 ## Why not run_lib?
 
@@ -92,20 +61,14 @@ I already wrote this in bash and called it [run_lib](https://github.com/jamescol
 3. The processing is much easier in Rust than it is in bash, i.e. finding and displaying multi-line comments. 
 4. Rust so hot right now.
 
-## How the integration works
-Integration looks like this:
-```runsh $(basename "$0") "$@" || "$@"```
-
-There are two parts to this:
-1. `runsh $(basename "$0") "$0"`: this executes `runsh`, passing two parameters: 
-   1. The name of the script being run (`$(basename "$0")`). E.g. in `./script some_function` it will be `script`.
-   2. The parameters to the shell command as issued by the user (`"$@"`). This will be the function name and args, e.g. in `./script.sh some_function some_args` it will be `some_function some_args`. This is for validation.
-2. `|| "$@"` is the fall back for when `runsh` returns a non-zero exit code. This is suppsoed to happen. It is how the function ends up getting run. `runsh` will validate the function name and return a non-zero exit code if it exists. When this happens `"$@"` will execute, which is a quick bash way to run the actual function.
-
 ## Finding bash files
 ### Testing for binaries
 We don't want binaries because we won't be reading any functions from them.
 
 For testing I took the smallest binary from my `/usr/bin` and copied it into `./tests/`
 
-### Testing for bash files
+## TODO
+
+- [ ] Test for bash files. At the moment it will attemp to display any executable text file.
+- [ ] Add syntax to allow functions to be ignored, e.g. an `_` prefix.
+- [ ] Don't return a non-0 exit code when exploring scripts, i.e. running without valid script and function arguments. This is a hangup from `runsh`, where it used non-0 exit codes to run the scripts.

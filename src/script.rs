@@ -84,7 +84,7 @@ impl Script {
         let script_path = self.path.to_owned().into_os_string().into_string().unwrap();
         if self.functions.is_empty() {
             println!(
-                "Runsh has found no functions in {}. You could add some like this:",
+                "rn has found no functions in {}. You could add some like this:",
                 script_path.bright_blue()
             );
             let example_function = r#"# Some great comment

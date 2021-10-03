@@ -1,10 +1,10 @@
 mod executables;
-mod runsh_file;
+mod rn_file;
 mod script;
 use anyhow::{anyhow, Result};
 use executables::Executables;
-use runsh_file::execute_runsh_file;
-use runsh_file::write_runsh_file;
+use rn_file::execute_rn_file;
+use rn_file::write_rn_file;
 
 use crate::script::Script;
 use structopt::StructOpt;
@@ -17,7 +17,7 @@ struct Cli {
     /// The name of the function to run. This will not run the function, it will just validate that it exists.
     function: Option<String>,
     /// Optional params for the function. We're not processing them yet (e.g. validating) but
-    /// they need to be permitted as a param to runsh.
+    /// they need to be permitted as a param to rn.
     #[allow(dead_code)]
     params: Vec<String>,
 }
@@ -57,7 +57,7 @@ fn main() -> Result<()> {
         }
     }?;
 
-    write_runsh_file(&script, &function)?;
-    execute_runsh_file()?;
+    write_rn_file(&script, &function)?;
+    execute_rn_file()?;
     Ok(())
 }

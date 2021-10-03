@@ -10,8 +10,8 @@ fn finds_executables() {
     let stdout = String::from_utf8(output.stdout).unwrap();
 
     //TODO: I want to enable this but at the moment if we don't
-    // pass a script or function runsh will return non-0.
-    // I think I see runsh as a manager and explorer, and it
+    // pass a script or function rn will return non-0.
+    // I think I see rn as a manager and explorer, and it
     // shouldn't return non-0 for normal, exploratory use.
     //     assert_eq!(output.status.success(), true);
 
