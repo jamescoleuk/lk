@@ -2,6 +2,7 @@ mod executables;
 mod rn_file;
 mod script;
 use anyhow::Result;
+use colored::Colorize;
 use executables::Executables;
 use rn_file::execute_rn_file;
 use rn_file::write_rn_file;
@@ -32,7 +33,11 @@ fn main() -> Result<()> {
         Some(script) => match executables.get(&script) {
             Some(executable) => Some(Script::new(executable)),
             None => {
-                println!("Didn't find a script with name {}", script);
+                println!(
+                    "{} {}!\n",
+                    "Didn't find a script with name".red(),
+                    script.blue()
+                );
                 executables.pretty_print();
                 None
             }
@@ -49,7 +54,11 @@ fn main() -> Result<()> {
             Some(function) => match script.get(&function) {
                 Some(function) => Some(function),
                 None => {
-                    println!("Didn't find a function with name {}", function);
+                    println!(
+                        "{} {}!\n",
+                        "Didn't find a function with name".red(),
+                        function.blue()
+                    );
                     script.pretty_print();
                     None
                 }
