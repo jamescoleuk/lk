@@ -1,7 +1,7 @@
 mod executables;
 mod rn_file;
 mod script;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use executables::Executables;
 use rn_file::execute_rn_file;
 use rn_file::write_rn_file;
@@ -30,34 +30,41 @@ fn main() -> Result<()> {
     // Have they requested a script, and if they did does it exist?
     let script = match args.script {
         Some(script) => match executables.get(&script) {
-            Some(executable) => Ok(Script::new(executable)),
+            Some(executable) => Some(Script::new(executable)),
             None => {
+                println!("Didn't find a script with name {}", script);
                 executables.pretty_print();
-                Err(anyhow!("Didn't find script with name {}.", script))
+                None
             }
         },
         None => {
             executables.pretty_print();
-            Err(anyhow!("You didn't pass a script name"))
+            None
         }
-    }?;
+    };
 
-    // Have they requested a function, and if theyt have does it exist?
-    let function = match args.function {
-        Some(function) => match script.get(&function) {
-            Some(function) => Ok(function),
+    if script.is_some() {
+        let script = script.unwrap();
+        let function = match args.function {
+            Some(function) => match script.get(&function) {
+                Some(function) => Some(function),
+                None => {
+                    println!("Didn't find a function with name {}", function);
+                    script.pretty_print();
+                    None
+                }
+            },
+
             None => {
                 script.pretty_print();
-                Err(anyhow!("Didn't find function with name {}.", function))
+                None
             }
-        },
-        None => {
-            script.pretty_print();
-            Err(anyhow!("You didn't pass a function name"))
-        }
-    }?;
+        };
 
-    write_rn_file(&script, &function)?;
-    execute_rn_file()?;
+        if function.is_some() {
+            write_rn_file(&script, &function.unwrap())?;
+            execute_rn_file()?;
+        }
+    }
     Ok(())
 }
