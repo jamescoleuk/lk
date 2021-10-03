@@ -45,7 +45,7 @@ impl Executables {
     /// Pretty-prints the executables we found on the path, so the
     /// user can select one to run.
     pub fn pretty_print(&self) {
-        println!("Runsh has found the following executables. Execute runsh <executable_name> to see what functions it offers.");
+        println!("rn has found the following executables. Execute rn <executable_name> to see what functions it offers.");
         self.executables.iter().for_each(|executable| {
             println!(
                 "{} -- {}",

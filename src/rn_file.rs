@@ -11,7 +11,7 @@ use crate::script::Script;
 use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
 
-/// Runsh uses a temporary file in order to execute a function in a script. This temporary file
+/// rn uses a temporary file in order to execute a function in a script. This temporary file
 /// sources the script we're going to execute and then it can run the function because it'll
 /// have been loaded into the shell. `std::process::Command` has no way to do this. An alternative
 /// would be adding `"$@"` to the end of the scripts but I'd rather avoid this stipulation.
@@ -20,26 +20,26 @@ pub fn write_rn_file(script: &Script, function: &Function) -> Result<()> {
         .create(true)
         .write(true)
         .mode(0o700)
-        .open("~runsh")?;
-    let runsh_file = r#"#!/usr/bin/env bash
+        .open("~rn")?;
+    let rn_file = r#"#!/usr/bin/env bash
 # 
-# Temporary runsh file used to execute functions in scripts.
+# Temporary rn file used to execute functions in scripts.
 # If you see it here you can delete it and/or gitignore it.
 
 "#;
     writeln!(
         file,
         "{} source {} && {}",
-        runsh_file,
+        rn_file,
         script.path(),
         function.name
     )?;
     Ok(())
 }
 
-/// This executes the runsh file, and then removes it.
+/// This executes the rn file, and then removes it.
 pub fn execute_rn_file() -> Result<()> {
-    let mut cmd = Command::new("./~runsh")
+    let mut cmd = Command::new("./~rn")
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()
@@ -48,13 +48,13 @@ pub fn execute_rn_file() -> Result<()> {
     let exit_status = cmd.wait()?;
     match exit_status.code() {
         Some(code) => {
-            match std::fs::remove_file("./~runsh") {
+            match std::fs::remove_file("./~rn") {
                 Ok(_) => {
                     // Great, we've tidied up.
                 }
                 Err(e) => {
                     eprintln!(
-                        "Yikes! I couldn't remove my temporary file, './~runsh'! The error was {}",
+                        "Yikes! I couldn't remove my temporary file, './~rn'! The error was {}",
                         e.to_string()
                     )
                 }
