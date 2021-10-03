@@ -52,8 +52,7 @@ fn main() -> Result<()> {
         }
     };
 
-    if script.is_some() {
-        let script = script.unwrap();
+    if let Some(script) = script {
         let function = match args.function {
             Some(function) => match script.get(&function) {
                 Some(function) => Some(function),
