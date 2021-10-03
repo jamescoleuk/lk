@@ -11,6 +11,8 @@ use crate::script::Script;
 use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
 
+static RN_FILE: &str = "./~rn";
+
 /// rn uses a temporary file in order to execute a function in a script. This temporary file
 /// sources the script we're going to execute and then it can run the function because it'll
 /// have been loaded into the shell. `std::process::Command` has no way to do this. An alternative
@@ -20,7 +22,7 @@ pub fn write_rn_file(script: &Script, function: &Function) -> Result<()> {
         .create(true)
         .write(true)
         .mode(0o700)
-        .open("~rn")?;
+        .open(RN_FILE)?;
     let rn_file = r#"#!/usr/bin/env bash
 # 
 # Temporary rn file used to execute functions in scripts.
@@ -39,7 +41,7 @@ pub fn write_rn_file(script: &Script, function: &Function) -> Result<()> {
 
 /// This executes the rn file, and then removes it.
 pub fn execute_rn_file() -> Result<()> {
-    let mut cmd = Command::new("./~rn")
+    let mut cmd = Command::new(RN_FILE)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()
@@ -48,13 +50,14 @@ pub fn execute_rn_file() -> Result<()> {
     let exit_status = cmd.wait()?;
     match exit_status.code() {
         Some(code) => {
-            match std::fs::remove_file("./~rn") {
+            match std::fs::remove_file(RN_FILE) {
                 Ok(_) => {
                     // Great, we've tidied up.
                 }
                 Err(e) => {
                     eprintln!(
-                        "Yikes! I couldn't remove my temporary file, './~rn'! The error was {}",
+                        "Yikes! I couldn't remove my temporary file, '{}'! The error was {}",
+                        RN_FILE,
                         e.to_string()
                     )
                 }
