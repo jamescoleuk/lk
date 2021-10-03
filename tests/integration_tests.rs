@@ -30,7 +30,7 @@ fn test_with_empty_script() {
         .expect("failed to execute process");
     assert_eq!(output.status.success(), true);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert_eq!(stdout.contains("rn has found no functions "), true);
+    assert_eq!(stdout.contains("Could not find any functions!"), true);
 }
 
 #[test]

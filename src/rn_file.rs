@@ -1,5 +1,4 @@
-// mod executables;
-// mod script;
+use colored::Colorize;
 
 use crate::script::Function;
 use anyhow::Result;
@@ -40,7 +39,14 @@ pub fn write_rn_file(script: &Script, function: &Function) -> Result<()> {
 }
 
 /// This executes the rn file, and then removes it.
-pub fn execute_rn_file() -> Result<()> {
+pub fn execute_rn_file(script: &Script, function: &Function) -> Result<()> {
+    println!(
+        "{}{}{}{}",
+        "rn: ".on_blue(),
+        script.path.as_os_str().to_string_lossy().on_blue(),
+        " -> ".on_blue(),
+        function.name.on_blue()
+    );
     let mut cmd = Command::new(RN_FILE)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())

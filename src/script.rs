@@ -82,8 +82,8 @@ impl Script {
 
     pub fn pretty_print(&self) {
         let script_path = self.path.to_owned().into_os_string().into_string().unwrap();
+        println!("{}{}", "rn: ".on_blue(), script_path.on_blue());
         if self.functions.is_empty() {
-            println!("{}{}", "rn: ".on_blue(), script_path.on_blue());
             println!("Could not find any functions! Why not add some. They look like this:");
             let example_function = r#"# Some great comment
 # More insightful and fascinating insights into bash scripting
@@ -92,8 +92,6 @@ blow_mind() {
 } "#;
             println!("{}", example_function.italic());
         } else {
-            println!("{}{}", "rn: ".on_blue(), script_path.on_blue());
-
             self.comment.iter().for_each(|comment_line| {
                 println!("  {}", comment_line);
             });

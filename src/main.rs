@@ -75,7 +75,7 @@ fn main() -> Result<()> {
 
         if function.is_some() {
             write_rn_file(&script, &function.unwrap())?;
-            execute_rn_file()?;
+            execute_rn_file(&script, &function.unwrap())?;
         }
     }
     Ok(())
