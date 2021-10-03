@@ -10,14 +10,18 @@ use rn_file::write_rn_file;
 use crate::script::Script;
 use structopt::StructOpt;
 
-/// Run or list the contents of a script. Run by itself it will try and find scripts it can run.
+/// Use rn to explore and execute scripts in your current directory.
+/// Execute rn without arguments to see what scripts are available.
+/// Execute rn with a script name to see what functions are available
+/// in that script. Execute rn with a script name and a function
+/// name to actually run that function.
 #[derive(StructOpt)]
 struct Cli {
-    /// The name of the script to describe or run.
+    /// Optional: the name of a script to explore or use
     script: Option<String>,
-    /// The name of the function to run. This will not run the function, it will just validate that it exists.
+    /// Optional: the name of the function to run.
     function: Option<String>,
-    /// Optional params for the function. We're not processing them yet (e.g. validating) but
+    /// Optional: params for the function. We're not processing them yet (e.g. validating) but
     /// they need to be permitted as a param to rn.
     #[allow(dead_code)]
     params: Vec<String>,

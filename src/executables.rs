@@ -47,7 +47,7 @@ impl Executables {
     /// Pretty-prints the executables we found on the path, so the
     /// user can select one to run.
     pub fn pretty_print(&self) {
-        println!("{} found:", "rn".blue());
+        println!("{}", "rn: ./".on_blue());
         // Get the longest executable name
         const INDENT: usize = 2;
         let padding = self
@@ -70,7 +70,6 @@ impl Executables {
                 executable.path.as_os_str().to_string_lossy().to_string()
             );
         });
-        println!("USAGE: {}", "rn <executable_name>".blue());
     }
 }
 
