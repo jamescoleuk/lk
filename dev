@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# Use this to build, test, and run rn
+
+# Runs test in a single thread because they use the same temporary file.
+test() {
+    cargo test -- --test-threads=1
+}

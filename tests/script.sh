@@ -24,6 +24,10 @@ yet_more_functions() {
     _hidden_function
 }
 
+printing_function() {
+    echo "You said $1"
+}
+
 _hidden_function() {
     echo "blah blah"
 }
