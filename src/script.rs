@@ -83,16 +83,14 @@ impl Script {
     pub fn pretty_print(&self) {
         let script_path = self.path.to_owned().into_os_string().into_string().unwrap();
         if self.functions.is_empty() {
-            println!(
-                "rn has found no functions in {}. You could add some like this:",
-                script_path.bright_blue()
-            );
+            println!("{}{}", "rn: ".on_blue(), script_path.on_blue());
+            println!("Could not find any functions! Why not add some. They look like this:");
             let example_function = r#"# Some great comment
 # More insightful and fascinating insights into bash scripting
 blow_mind() {
     echo "OMG so cool"
 } "#;
-            println!("{}", example_function.green());
+            println!("{}", example_function.italic());
         } else {
             println!("{}{}", "rn: ".on_blue(), script_path.on_blue());
 
