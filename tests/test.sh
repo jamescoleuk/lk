@@ -25,5 +25,3 @@ yet_more_functions() {
 _hidden_function() {
     echo "blah blah"
 }
-
-cargo run $(basename "$0") "$@" || "$@"
