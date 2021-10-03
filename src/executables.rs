@@ -1,4 +1,6 @@
+use colored::Colorize;
 use content_inspector::{inspect, ContentType};
+use pad::{Alignment, PadStr};
 use std::{io::Read, os::unix::fs::PermissionsExt, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
@@ -46,10 +48,25 @@ impl Executables {
     /// user can select one to run.
     pub fn pretty_print(&self) {
         println!("rn has found the following executables. Execute rn <executable_name> to see what functions it offers.");
+        // Get the longest executable name
+        const INDENT: usize = 2;
+        let padding = self
+            .executables
+            .iter()
+            .max_by(|x, y| x.short_name.len().cmp(&y.short_name.len()))
+            .unwrap() // Will always be Some because the name String must exist.
+            .short_name
+            .len()
+            + INDENT;
         self.executables.iter().for_each(|executable| {
+            // We'll pad right so everything aligns nicely.
+            let to_print = executable
+                .short_name
+                .pad_to_width_with_alignment(padding, Alignment::Right)
+                .green();
             println!(
-                "{} -- {}",
-                executable.short_name,
+                "{} - {}",
+                to_print,
                 executable.path.as_os_str().to_string_lossy().to_string()
             );
         })
