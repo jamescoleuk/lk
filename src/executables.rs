@@ -17,7 +17,7 @@ pub struct Executables {
 impl Executables {
     pub fn new(root: &str) -> Self {
         // TODO: Load this from .gitignore/other ignore files
-        let ignored = vec!["target", ".github", ".vscode", ".git"];
+        let ignored = vec!["target", ".github", ".vscode", ".git", "node_modules"];
         let walker = WalkDir::new(root).into_iter();
         let mut executables: Vec<Executable> = Vec::new();
         for result in walker.filter_entry(|e| (!is_ignored(e, &ignored))) {
