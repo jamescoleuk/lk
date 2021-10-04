@@ -11,9 +11,6 @@ use nanoid::nanoid;
 use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
 
-// TODO: use nanoid and append to the end of this file, and use that. This'll allow test to work!
-// static RN_FILE: &str = "./~rn";
-
 pub struct RnFile {
     location: String,
     script: Script,
