@@ -3,7 +3,6 @@ use colored::Colorize;
 use crate::script::Function;
 use anyhow::Result;
 
-use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
 
