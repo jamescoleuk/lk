@@ -1,9 +1,9 @@
 [package]
-name = "rn"
+name = "lk"
 version = "0.1.0"
 authors = ["James Cole <jamescole.uk@gmail.com>"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/jamescoleuk/rn"
+repository = "https://github.com/jamescoleuk/lk"
 description = "A cli frontend for your bash scripts"
 readme = "README.md"
 keywords = ["bash", "cli"]
@@ -11,7 +11,7 @@ categories = ["command-line-interface", "command-line-utilities"]
 edition = "2018"
 
 [dependencies]
-# To handle rn arguments.
+# To handle lk arguments.
 structopt = "0.3.13"
 # To display colour on the terminal.
 colored = "2"
@@ -25,5 +25,5 @@ faccess = "0.2.3"
 anyhow = "1.0.44"
 # To detect and ignore binary executables.
 content_inspector = "0.2.4"
-# To generate unique suffixes for the rn file.
+# To generate unique suffixes for the lk file.
 nanoid = "0.4.0"

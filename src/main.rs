@@ -1,18 +1,18 @@
+mod bash_file;
 mod executables;
-mod rn_file;
 mod script;
 use anyhow::Result;
+use bash_file::BashFile;
 use colored::Colorize;
 use executables::Executables;
-use rn_file::RnFile;
 
 use crate::script::Script;
 use structopt::StructOpt;
 
-/// Use rn to explore and execute scripts in your current directory.
-/// Execute rn without arguments to see what scripts are available.
-/// Execute rn with a script name to see what functions are available
-/// in that script. Execute rn with a script name and a function
+/// Use lk to explore and execute scripts in your current directory.
+/// Execute lk without arguments to see what scripts are available.
+/// Execute lk with a script name to see what functions are available
+/// in that script. Execute lk with a script name and a function
 /// name to actually run that function.
 #[derive(StructOpt)]
 struct Cli {
@@ -21,7 +21,7 @@ struct Cli {
     /// Optional: the name of the function to run.
     function: Option<String>,
     /// Optional: params for the function. We're not processing them yet (e.g. validating) but
-    /// they need to be permitted as a param to rn.
+    /// they need to be permitted as a param to lk.
     #[allow(dead_code)]
     params: Vec<String>,
 }
@@ -73,9 +73,9 @@ fn main() -> Result<()> {
         };
 
         if let Some(function) = function {
-            let rn_file = RnFile::new(script.to_owned(), function.to_owned());
-            rn_file.write_rn_file()?;
-            rn_file.execute_rn_file()?;
+            let bash_file = BashFile::new(script.to_owned(), function.to_owned());
+            bash_file.write()?;
+            bash_file.execute()?;
         }
     }
     Ok(())

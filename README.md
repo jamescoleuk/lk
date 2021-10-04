@@ -1,4 +1,4 @@
-# rn
+# lk
 
 A CLI frontend for your bash scripts. 
 
@@ -24,28 +24,31 @@ yet_more_functions() {
 }
 ```
 
-You can access it by executing `rn`, and it'll find the script and should you what functions are available. Then you can run something like this to execute the function:
+You can access it by executing `lk`, and it'll find the script and should you what functions are available. Then you can run something like this to execute the function:
 ```bash
-rn script.sh some_function
+lk script.sh some_function
 ```
 
+## Why "lk"
+This is a tool that I use a lot, and "lk" is short and ergonomic. As long as you're reasting on the home keys.
+
 ## Installation
-From [the crate](https://crates.io/crates/rn):
+From [the crate](https://crates.io/crates/lk):
 ```bash
-cargo install rn
+cargo install lk
 ```
 
 ### Update
 ```bash
-cargo install --force rn
+cargo install --force lk
 ```
 
 ## Use
-Just execute `rn` and follow the instructions.
+Just execute `lk` and follow the instructions.
 
 
 ### File headers
-`rn` will extract comments in the file header, if it finds any, and display them alongside all your runnable functions. It relies on these comments following the form in the [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html#s4.1-file-header), i.e. like this:
+`lk` will extract comments in the file header, if it finds any, and display them alongside all your runnable functions. It relies on these comments following the form in the [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html#s4.1-file-header), i.e. like this:
 ```bash
 #!/usr/bin/env bash
 #

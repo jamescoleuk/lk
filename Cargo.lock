@@ -137,6 +137,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3cb00336871be5ed2c8ed44b60ae9959dc5b9f08539422ed43f09e34ecaeba21"
 
 [[package]]
+name = "lk"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "colored",
+ "content_inspector",
+ "faccess",
+ "nanoid",
+ "pad",
+ "regex",
+ "structopt",
+ "walkdir",
+]
+
+[[package]]
 name = "memchr"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -264,21 +279,6 @@ name = "regex-syntax"
 version = "0.6.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
-
-[[package]]
-name = "rn"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "colored",
- "content_inspector",
- "faccess",
- "nanoid",
- "pad",
- "regex",
- "structopt",
- "walkdir",
-]
 
 [[package]]
 name = "same-file"
