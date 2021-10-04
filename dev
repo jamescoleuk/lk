@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 #
-# Use this to build, test, and run rn
+# This projet is too simple to need any bash scripts,
+# but it might one day.
 
-# Runs test in a single thread because they use the same temporary file.
-test() {
-    cargo test -- --test-threads=1
-}
+# Haiku to dog-fooding
+#
+# My eyes are dry
+# But I have the tools I need
+# And no real work got done

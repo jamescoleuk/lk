@@ -11,13 +11,19 @@ categories = ["command-line-interface", "command-line-utilities"]
 edition = "2018"
 
 [dependencies]
+# To handle rn arguments.
 structopt = "0.3.13"
+# To display colour on the terminal.
 colored = "2"
 regex = "1.5.4"
+# To display script and function names in center justified fashion.
 pad = "0.1.6"
 walkdir = "2.3.2"
 faccess = "0.2.3"
 # Anyhow makes application error handling easier.
 # If I was writing a library I'd use thiserror.
 anyhow = "1.0.44"
+# To detect and ignore binary executables.
 content_inspector = "0.2.4"
+# To generate unique suffixes for the rn file.
+nanoid = "0.4.0"

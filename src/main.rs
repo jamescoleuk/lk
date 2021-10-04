@@ -4,8 +4,7 @@ mod script;
 use anyhow::Result;
 use colored::Colorize;
 use executables::Executables;
-use rn_file::execute_rn_file;
-use rn_file::write_rn_file;
+use rn_file::RnFile;
 
 use crate::script::Script;
 use structopt::StructOpt;
@@ -73,9 +72,10 @@ fn main() -> Result<()> {
             }
         };
 
-        if function.is_some() {
-            write_rn_file(&script, &function.unwrap())?;
-            execute_rn_file(&script, &function.unwrap())?;
+        if let Some(function) = function {
+            let rn_file = RnFile::new(script.to_owned(), function.to_owned());
+            rn_file.write_rn_file()?;
+            rn_file.execute_rn_file()?;
         }
     }
     Ok(())
