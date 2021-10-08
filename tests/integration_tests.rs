@@ -68,11 +68,12 @@ fn test_function_params() {
         .arg("script.sh")
         .arg("printing_function")
         .arg("hello")
+        .arg("person")
         .output()
         .expect("failed to execute process");
     assert_eq!(output.status.success(), true);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert_eq!(stdout.contains("You said hello"), true);
+    assert_eq!(stdout.contains("You said hello person"), true);
 }
 
 #[test]

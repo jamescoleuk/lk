@@ -25,7 +25,7 @@ yet_more_functions() {
 }
 
 printing_function() {
-    echo "You said $1"
+    echo "You said $1 $2"
 }
 
 _hidden_function() {
