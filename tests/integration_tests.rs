@@ -72,7 +72,7 @@ fn test_function_params() {
         .expect("failed to execute process");
     assert_eq!(output.status.success(), true);
     let stdout = String::from_utf8(output.stdout).unwrap();
-    assert_eq!(stdout.contains("You said hello"), false);
+    assert_eq!(stdout.contains("You said hello"), true);
 }
 
 #[test]

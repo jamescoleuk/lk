@@ -73,7 +73,7 @@ fn main() -> Result<()> {
         };
 
         if let Some(function) = function {
-            let bash_file = BashFile::new(script.to_owned(), function.to_owned());
+            let bash_file = BashFile::new(script.to_owned(), function.to_owned(), args.params);
             bash_file.write()?;
             bash_file.execute()?;
         }

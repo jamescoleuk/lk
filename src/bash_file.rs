@@ -15,14 +15,16 @@ pub struct BashFile {
     location: String,
     script: Script,
     function: Function,
+    params: Vec<String>,
 }
 
 impl BashFile {
-    pub fn new(script: Script, function: Function) -> Self {
+    pub fn new(script: Script, function: Function, params: Vec<String>) -> Self {
         Self {
             location: format!("./~lk_{}", nanoid!(10)),
             script,
             function,
+            params,
         }
     }
 
@@ -44,10 +46,11 @@ impl BashFile {
 "#;
         writeln!(
             file,
-            "{} source {} && {}",
+            "{} source {} && {} {}",
             bash_file,
             self.script.path(),
-            self.function.name
+            self.function.name,
+            self.params.join(" ")
         )?;
         Ok(())
     }
