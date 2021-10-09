@@ -1,3 +1,5 @@
+/// Tests lk's behaviour when no params are passed, i.e. the finding and
+/// printing of executables.
 use std::process::Command;
 
 #[test]
