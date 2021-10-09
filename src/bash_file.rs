@@ -67,11 +67,14 @@ impl BashFile {
     /// This executes the lk file, and then removes it.
     pub fn execute(&self) -> Result<()> {
         println!(
-            "{}{}{}{}",
+            "{}{}{}{}{}{}{}",
             "lk: ".on_blue(),
             self.script.path.as_os_str().to_string_lossy().on_blue(),
             " -> ".on_blue(),
-            self.function.name.on_blue()
+            self.function.name.on_blue(),
+            " (".on_blue(),
+            self.params.join(" ").on_blue(),
+            ")".on_blue()
         );
         let mut cmd = Command::new(&self.location)
             .stdout(Stdio::inherit())
