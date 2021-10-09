@@ -7,6 +7,7 @@ use std::process::Command;
 use std::process::Stdio;
 
 use crate::script::Script;
+use crate::ui::print_complete_header;
 use nanoid::nanoid;
 use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
@@ -66,16 +67,8 @@ impl BashFile {
 
     /// This executes the lk file, and then removes it.
     pub fn execute(&self) -> Result<()> {
-        println!(
-            "{}{}{}{}{}{}{}",
-            "lk: ".on_blue(),
-            self.script.path.as_os_str().to_string_lossy().on_blue(),
-            " -> ".on_blue(),
-            self.function.name.on_blue(),
-            " (".on_blue(),
-            self.params.join(" ").on_blue(),
-            ")".on_blue()
-        );
+        print_complete_header(&self.script, &self.function, &self.params);
+
         let mut cmd = Command::new(&self.location)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())

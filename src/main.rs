@@ -1,6 +1,7 @@
 mod bash_file;
 mod executables;
 mod script;
+pub mod ui;
 use anyhow::Result;
 use bash_file::BashFile;
 use colored::Colorize;
