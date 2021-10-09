@@ -11,11 +11,7 @@ fn finds_executables() {
 
     let stdout = String::from_utf8(output.stdout).unwrap();
 
-    //TODO: I want to enable this but at the moment if we don't
-    // pass a script or function lk will return non-0.
-    // I think I see lk as a manager and explorer, and it
-    // shouldn't return non-0 for normal, exploratory use.
-    //     assert_eq!(output.status.success(), true);
+    assert_eq!(output.status.success(), true);
 
     // The scripts should be present
     assert_eq!(stdout.contains("script01.sh"), true);
@@ -32,6 +28,7 @@ fn binaries_are_ignored() {
 
     let stdout = String::from_utf8(output.stdout).unwrap();
 
+    assert_eq!(output.status.success(), true);
     // The binary should be ignored
     assert_eq!(stdout.contains("mkfifo"), false);
 }
@@ -45,6 +42,7 @@ fn must_have_executable_permissions() {
 
     let stdout = String::from_utf8(output.stdout).unwrap();
 
+    assert_eq!(output.status.success(), true);
     // The script without executable permissions should be ignored
     assert_eq!(stdout.contains("script03.sh"), false);
 }
