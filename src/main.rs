@@ -35,37 +35,34 @@ fn main() -> Result<()> {
 
     let executables = Executables::new(".");
 
-    // Have they requested a script, and if they did does it exist?
-    let script = match args.script {
-        Some(script) => match executables.get(&script) {
-            Some(executable) => Some(Script::new(executable)),
-            None => {
-                print_bad_script_name(&script, executables);
-                None
-            }
-        },
-        None => {
-            executables.pretty_print();
-            None
-        }
-    };
-
-    // Did we find a script?
-    if let Some(script) = script {
-        // Did the user pass a function?
-        if let Some(function) = args.function {
-            // Is it a function that exists in the script we found?
-            if let Some(function) = script.get(&function) {
-                // Do our thing
-                let bash_file = BashFile::new(script.to_owned(), function.to_owned(), args.params);
-                bash_file.write()?;
-                bash_file.execute()?;
+    // Did the user request a script?
+    if let Some(script) = args.script {
+        // Is it a script that exists on disk?
+        if let Some(executable) = executables.get(&script) {
+            // Yay, confirmed script
+            let script = Script::new(executable);
+            // Did the user pass a function?
+            if let Some(function) = args.function {
+                // Is it a function that exists in the script we found?
+                if let Some(function) = script.get(&function) {
+                    // Do our thing
+                    let bash_file =
+                        BashFile::new(script.to_owned(), function.to_owned(), args.params);
+                    bash_file.write()?;
+                    bash_file.execute()?;
+                } else {
+                    print_bad_function_name(&script, &function);
+                }
             } else {
-                print_bad_function_name(&script, &function);
+                // No function, display a list of what's available
+                script.pretty_print();
             }
         } else {
-            script.pretty_print();
+            print_bad_script_name(&script, executables);
         }
+    } else {
+        // No executable, display a list of what's available
+        executables.pretty_print();
     }
 
     Ok(())
