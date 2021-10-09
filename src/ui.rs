@@ -18,7 +18,7 @@ pub fn print_script_header(script: &Script) {
     println!("{}{}", "lk: ".on_blue(), script_path.on_blue());
 }
 
-pub fn print_complete_header(script: &Script, function: &Function, params: &Vec<String>) {
+pub fn print_complete_header(script: &Script, function: &Function, params: &[String]) {
     println!(
         "{}{}{}{}{}{}{}",
         "lk: ".on_blue(),
@@ -41,7 +41,7 @@ blow_mind() {
     println!("{}", example_function.italic());
 }
 
-pub fn print_bad_script_name(script: &String, executables: Executables) {
+pub fn print_bad_script_name(script: &str, executables: Executables) {
     println!(
         "{} {}!\n",
         "Didn't find a script with name".red(),
@@ -50,7 +50,7 @@ pub fn print_bad_script_name(script: &String, executables: Executables) {
     executables.pretty_print();
 }
 
-pub fn print_bad_function_name(script: &Script, function: &String) {
+pub fn print_bad_function_name(script: &Script, function: &str) {
     println!(
         "{} {}!\n",
         "Didn't find a function with name".red(),

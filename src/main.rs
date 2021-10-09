@@ -4,7 +4,6 @@ mod script;
 pub mod ui;
 use anyhow::Result;
 use bash_file::BashFile;
-use colored::Colorize;
 use executables::Executables;
 
 use crate::{
