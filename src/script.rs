@@ -77,8 +77,18 @@ impl Script {
         self.functions.iter().find(|&n| n.name == function_name)
     }
 
+    pub fn file_name(&self) -> String {
+        if self.path.file_name().is_some() {
+            self.path.file_name().unwrap().to_string_lossy().to_string()
+        } else {
+            panic!("File has no name!")
+        }
+    }
+
     pub fn path(&self) -> String {
-        return self.path.as_os_str().to_string_lossy().to_string();
+        let mut path = self.path.clone();
+        path.pop();
+        return path.as_os_str().to_string_lossy().to_string();
     }
 
     pub fn pretty_print(&self) {

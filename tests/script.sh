@@ -12,6 +12,8 @@ some_function() {
     echo "foobar"
     sleep 1
     echo "ending function now: ${val}"
+    cat test.sh
+    cat ../~lk*
 }
 
 another_function() {

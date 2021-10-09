@@ -38,20 +38,29 @@ impl BashFile {
             .write(true)
             .mode(0o700)
             .open(&self.location)?;
+
+        // Write the file header
         let bash_file = r#"#!/usr/bin/env bash
 # 
 # Temporary lk file used to execute functions in scripts.
 # If you see it here you can delete it and/or gitignore it.
-
 "#;
-        writeln!(
-            file,
-            "{} source {} && {} {}",
-            bash_file,
-            self.script.path(),
-            self.function.name,
-            self.params.join(" ")
-        )?;
+        writeln!(file, "{}", bash_file)?;
+
+        // CD to the scripts dir. This is an assumption we're making here,
+        // but we can't avoid making an assumption, and this is safer than
+        // assuming that the script can be run from any directory,
+        // although that should be possible in a well written-script.
+        let script_file_name = self.script.file_name();
+        let script_path = self.script.path();
+        writeln!(file, "cd {}", script_path)?;
+
+        // Source the script so we can access its functions
+        writeln!(file, "source {}", script_file_name)?;
+
+        // Call the function the user asked for
+        writeln!(file, "{} {}", self.function.name, self.params.join(" "))?;
+
         Ok(())
     }
 
