@@ -50,27 +50,23 @@ fn main() -> Result<()> {
         }
     };
 
+    // Did we find a script?
     if let Some(script) = script {
-        let function = match args.function {
-            Some(function) => match script.get(&function) {
-                Some(function) => Some(function),
-                None => {
-                    print_bad_function_name(&script, &function);
-                    None
-                }
-            },
-
-            None => {
-                script.pretty_print();
-                None
+        // Did the user pass a function?
+        if let Some(function) = args.function {
+            // Is it a function that exists in the script we found?
+            if let Some(function) = script.get(&function) {
+                // Do our thing
+                let bash_file = BashFile::new(script.to_owned(), function.to_owned(), args.params);
+                bash_file.write()?;
+                bash_file.execute()?;
+            } else {
+                print_bad_function_name(&script, &function);
             }
-        };
-
-        if let Some(function) = function {
-            let bash_file = BashFile::new(script.to_owned(), function.to_owned(), args.params);
-            bash_file.write()?;
-            bash_file.execute()?;
+        } else {
+            script.pretty_print();
         }
     }
+
     Ok(())
 }
