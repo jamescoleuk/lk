@@ -7,7 +7,10 @@ use bash_file::BashFile;
 use colored::Colorize;
 use executables::Executables;
 
-use crate::script::Script;
+use crate::{
+    script::Script,
+    ui::{print_bad_function_name, print_bad_script_name},
+};
 use structopt::StructOpt;
 
 /// Use lk to explore and execute scripts in your current directory.
@@ -37,12 +40,7 @@ fn main() -> Result<()> {
         Some(script) => match executables.get(&script) {
             Some(executable) => Some(Script::new(executable)),
             None => {
-                println!(
-                    "{} {}!\n",
-                    "Didn't find a script with name".red(),
-                    script.blue()
-                );
-                executables.pretty_print();
+                print_bad_script_name(&script, executables);
                 None
             }
         },
@@ -57,12 +55,7 @@ fn main() -> Result<()> {
             Some(function) => match script.get(&function) {
                 Some(function) => Some(function),
                 None => {
-                    println!(
-                        "{} {}!\n",
-                        "Didn't find a function with name".red(),
-                        function.blue()
-                    );
-                    script.pretty_print();
+                    print_bad_function_name(&script, &function);
                     None
                 }
             },

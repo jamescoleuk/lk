@@ -1,4 +1,7 @@
-use crate::script::{Function, Script};
+use crate::{
+    executables::Executables,
+    script::{Function, Script},
+};
 use colored::Colorize;
 
 pub fn print_root_header() {
@@ -36,4 +39,22 @@ blow_mind() {
     echo "OMG so cool"
 } "#;
     println!("{}", example_function.italic());
+}
+
+pub fn print_bad_script_name(script: &String, executables: Executables) {
+    println!(
+        "{} {}!\n",
+        "Didn't find a script with name".red(),
+        script.blue()
+    );
+    executables.pretty_print();
+}
+
+pub fn print_bad_function_name(script: &Script, function: &String) {
+    println!(
+        "{} {}!\n",
+        "Didn't find a function with name".red(),
+        function.blue()
+    );
+    script.pretty_print();
 }
