@@ -56,3 +56,19 @@ fn bad_script_path() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(stdout.contains("Didn't find a script with name"), true);
 }
+
+/// If this script isn't executed in its directory then it won't find 'file'
+/// and won't print the correct thing and the test will fail.
+#[test]
+fn executes_in_script_dir() {
+    let output = Command::new("cargo")
+        .arg("run")
+        .arg("depends_on_file.sh")
+        .arg("depends_on_file")
+        .output()
+        .expect("failed to execute process");
+
+    assert_eq!(output.status.success(), true);
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.contains("contents to print"), true);
+}
