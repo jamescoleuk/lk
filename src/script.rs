@@ -6,7 +6,7 @@ use pad::{Alignment, PadStr};
 use regex::bytes::Regex;
 
 use crate::executables::Executable;
-use crate::ui::print_script_header;
+use crate::ui::{print_no_functions_in_script_help, print_script_header};
 
 /// Everything we need to know about a function in a script
 #[derive(PartialEq, Debug, Clone)]
@@ -95,13 +95,7 @@ impl Script {
     pub fn pretty_print(&self) {
         print_script_header(self);
         if self.functions.is_empty() {
-            println!("Could not find any functions! Why not add some. They look like this:");
-            let example_function = r#"# Some great comment
-# More insightful and fascinating insights into bash scripting
-blow_mind() {
-    echo "OMG so cool"
-} "#;
-            println!("{}", example_function.italic());
+            print_no_functions_in_script_help();
         } else {
             self.comment.iter().for_each(|comment_line| {
                 println!("  {}", comment_line);

@@ -27,3 +27,13 @@ pub fn print_complete_header(script: &Script, function: &Function, params: &Vec<
         ")".on_blue()
     );
 }
+
+pub fn print_no_functions_in_script_help() {
+    println!("Could not find any functions! Why not add some. They look like this:");
+    let example_function = r#"# Some great comment
+# More insightful and fascinating insights into bash scripting
+blow_mind() {
+    echo "OMG so cool"
+} "#;
+    println!("{}", example_function.italic());
+}
