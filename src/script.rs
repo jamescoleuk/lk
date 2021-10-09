@@ -6,6 +6,7 @@ use pad::{Alignment, PadStr};
 use regex::bytes::Regex;
 
 use crate::executables::Executable;
+use crate::ui::print_script_header;
 
 /// Everything we need to know about a function in a script
 #[derive(PartialEq, Debug, Clone)]
@@ -92,8 +93,7 @@ impl Script {
     }
 
     pub fn pretty_print(&self) {
-        let script_path = self.path.to_owned().into_os_string().into_string().unwrap();
-        println!("{}{}", "lk: ".on_blue(), script_path.on_blue());
+        print_script_header(self);
         if self.functions.is_empty() {
             println!("Could not find any functions! Why not add some. They look like this:");
             let example_function = r#"# Some great comment

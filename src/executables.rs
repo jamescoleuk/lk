@@ -4,6 +4,8 @@ use pad::{Alignment, PadStr};
 use std::{io::Read, os::unix::fs::PermissionsExt, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
+use crate::ui::print_root_header;
+
 pub struct Executable {
     pub short_name: String,
     pub path: PathBuf,
@@ -47,7 +49,7 @@ impl Executables {
     /// Pretty-prints the executables we found on the path, so the
     /// user can select one to run.
     pub fn pretty_print(&self) {
-        println!("{}", "lk: ./".on_blue());
+        print_root_header();
         // Get the longest executable name
         const INDENT: usize = 2;
         let padding = self
