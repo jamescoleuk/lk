@@ -1,10 +1,9 @@
+use crate::ui::print_root_header;
 use colored::Colorize;
 use content_inspector::{inspect, ContentType};
 use pad::{Alignment, PadStr};
 use std::{io::Read, os::unix::fs::PermissionsExt, path::PathBuf};
 use walkdir::{DirEntry, WalkDir};
-
-use crate::ui::print_root_header;
 
 pub struct Executable {
     pub short_name: String,

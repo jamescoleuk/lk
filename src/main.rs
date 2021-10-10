@@ -2,14 +2,13 @@ mod bash_file;
 mod executables;
 mod script;
 pub mod ui;
-use anyhow::Result;
-use bash_file::BashFile;
-use executables::Executables;
-
 use crate::{
     script::Script,
     ui::{print_bad_function_name, print_bad_script_name},
 };
+use anyhow::Result;
+use bash_file::BashFile;
+use executables::Executables;
 use structopt::StructOpt;
 
 /// Use lk to explore and execute scripts in your current directory.

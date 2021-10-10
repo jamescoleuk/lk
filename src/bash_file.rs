@@ -1,17 +1,14 @@
-use tempfile::TempDir;
-
 use crate::script::Function;
-use anyhow::Result;
-
-use std::path::PathBuf;
-use std::process::Command;
-use std::process::Stdio;
-
 use crate::script::Script;
 use crate::ui::print_complete_header;
+use anyhow::Result;
 use nanoid::nanoid;
 use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
+use std::path::PathBuf;
+use std::process::Command;
+use std::process::Stdio;
+use tempfile::TempDir;
 
 pub struct BashFile {
     // This isn't read but if the TempDir goes out-of-scope it might get deleted by the operating system.

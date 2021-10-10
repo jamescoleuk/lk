@@ -1,12 +1,10 @@
-use std::io::BufRead;
-use std::{fs::File, path::Path};
-
+use crate::executables::Executable;
+use crate::ui::{print_no_functions_in_script_help, print_script_header};
 use colored::Colorize;
 use pad::{Alignment, PadStr};
 use regex::bytes::Regex;
-
-use crate::executables::Executable;
-use crate::ui::{print_no_functions_in_script_help, print_script_header};
+use std::io::BufRead;
+use std::{fs::File, path::Path};
 
 /// Everything we need to know about a function in a script
 #[derive(PartialEq, Debug, Clone)]
