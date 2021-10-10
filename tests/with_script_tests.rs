@@ -1,15 +1,21 @@
 /// Tests lk's behaviour when the user asks for a script
-use std::process::Command;
+use std::process::{Command, Output};
+
+fn run_with_function(script_name: &str) -> Output {
+    Command::new("cargo")
+        .arg("run")
+        .arg(script_name)
+        .output()
+        .expect("failed to execute process")
+}
 
 #[test]
 fn test_no_function() {
-    let output = Command::new("cargo")
-        .arg("run")
-        .arg("script.sh")
-        .output()
-        .expect("failed to execute process");
-
+    // When...
+    let output = run_with_function("script.sh");
     let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // Then...
     assert_eq!(output.status.success(), true);
     assert_eq!(stdout.contains("script.sh"), true);
     assert_eq!(stdout.contains("First line of file header comment"), true);
@@ -24,12 +30,11 @@ fn test_no_function() {
 
 #[test]
 fn test_with_empty_script() {
-    let output = Command::new("cargo")
-        .arg("run")
-        .arg("empty_script.sh")
-        .output()
-        .expect("failed to execute process");
-    assert_eq!(output.status.success(), true);
+    // When...
+    let output = run_with_function("empty_script.sh");
     let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // Then...
+    assert_eq!(output.status.success(), true);
     assert_eq!(stdout.contains("Could not find any functions!"), true);
 }
