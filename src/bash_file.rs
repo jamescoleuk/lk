@@ -1,8 +1,9 @@
-use colored::Colorize;
+use tempfile::TempDir;
 
 use crate::script::Function;
 use anyhow::Result;
 
+use std::path::PathBuf;
 use std::process::Command;
 use std::process::Stdio;
 
@@ -13,7 +14,10 @@ use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
 
 pub struct BashFile {
-    location: String,
+    // This isn't read but if the TempDir goes out-of-scope it might get deleted by the operating system.
+    #[allow(dead_code)]
+    dir: TempDir,
+    full_path: PathBuf,
     script: Script,
     function: Function,
     params: Vec<String>,
@@ -21,8 +25,18 @@ pub struct BashFile {
 
 impl BashFile {
     pub fn new(script: Script, function: Function, params: Vec<String>) -> Self {
+        let dir = tempfile::tempdir().unwrap();
+        let file_name = format!("./~lk_{}", nanoid!(10));
+        let full_path = dir.path().join(&file_name);
+        println!(
+            "{}\n{}\n{}",
+            dir.path().as_os_str().to_string_lossy(),
+            file_name,
+            full_path.to_string_lossy()
+        );
         Self {
-            location: format!("./~lk_{}", nanoid!(10)),
+            dir,
+            full_path,
             script,
             function,
             params,
@@ -38,7 +52,7 @@ impl BashFile {
             .create(true)
             .write(true)
             .mode(0o700)
-            .open(&self.location)?;
+            .open(&self.full_path)?;
 
         // Write the file header
         let bash_file = r#"#!/usr/bin/env bash
@@ -53,7 +67,7 @@ impl BashFile {
         // assuming that the script can be run from any directory,
         // although that should be possible in a well written-script.
         let script_file_name = self.script.file_name();
-        let script_path = self.script.path();
+        let script_path = self.script.working_dir_absolute();
         writeln!(file, "cd {}", script_path)?;
 
         // Source the script so we can access its functions
@@ -69,34 +83,12 @@ impl BashFile {
     pub fn execute(&self) -> Result<()> {
         print_complete_header(&self.script, &self.function, &self.params);
 
-        let mut cmd = Command::new(&self.location)
+        Command::new(&self.full_path)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .spawn()
-            .unwrap();
-        let exit_status = cmd.wait()?;
-        match exit_status.code() {
-            Some(code) => {
-                match std::fs::remove_file(&self.location) {
-                    Ok(_) => {
-                        // Great, we've tidied up.
-                    }
-                    Err(e) => {
-                        if e.to_string().contains("No such file or directory") {
-                            // We don't care about this
-                        } else {
-                            eprintln!(
-                            "Yikes! I couldn't remove my temporary file, '{}'! The error was {}",
-                            self.location,
-                            e.to_string().red()
-                        )
-                        }
-                    }
-                }
-                std::process::exit(code)
-            }
-            None => eprintln!("Your function exited without a status code!"),
-        }
+            .unwrap()
+            .wait()?;
         Ok(())
     }
 }

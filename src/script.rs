@@ -18,14 +18,13 @@ pub struct Function {
 #[derive(PartialEq, Debug, Clone)]
 pub struct Script {
     pub path: std::path::PathBuf,
+    pub absolute_path: std::path::PathBuf,
     pub comment: Vec<String>,
     pub functions: Vec<Function>,
 }
 
 impl Script {
     pub fn new(executable: &Executable) -> Self {
-        // let mut script: Script = Script::new(script.to_owned());
-
         let lines = match read_lines(&executable.path) {
             Ok(lines) => lines,
             Err(e) => panic!("{}", e),
@@ -64,13 +63,13 @@ impl Script {
                 comments.clear();
                 in_header_comments = false;
             }
-            // }
         }
 
         Self {
             comment: included_comments,
             functions: included_functions,
             path: executable.path.to_owned(),
+            absolute_path: executable.absolute_path.to_owned(),
         }
     }
 
@@ -88,6 +87,12 @@ impl Script {
 
     pub fn path(&self) -> String {
         let mut path = self.path.clone();
+        path.pop();
+        return path.as_os_str().to_string_lossy().to_string();
+    }
+
+    pub fn working_dir_absolute(&self) -> String {
+        let mut path = self.absolute_path.clone();
         path.pop();
         return path.as_os_str().to_string_lossy().to_string();
     }

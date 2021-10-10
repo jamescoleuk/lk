@@ -9,6 +9,7 @@ use crate::ui::print_root_header;
 pub struct Executable {
     pub short_name: String,
     pub path: PathBuf,
+    pub absolute_path: PathBuf,
 }
 
 pub struct Executables {
@@ -28,16 +29,16 @@ impl Executables {
                 Err(_) => panic!("Couldn't read dir!"),
             };
             if !entry.file_type().is_dir() && is_executable(&entry) && !is_binary(&entry) {
+                let path = entry.into_path();
+                let absolute_path = std::fs::canonicalize(&path).unwrap();
                 executables.push(Executable {
-                    short_name: entry.file_name().to_string_lossy().to_string(),
-                    path: entry.into_path(),
+                    short_name: path.file_name().unwrap().to_string_lossy().to_string(),
+                    path,
+                    absolute_path,
                 })
             }
         }
-        Self {
-            // root: root.to_string(),
-            executables,
-        }
+        Self { executables }
     }
 
     pub fn get(&self, name: &str) -> Option<&Executable> {
