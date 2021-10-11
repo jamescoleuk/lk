@@ -25,12 +25,6 @@ impl BashFile {
         let dir = tempfile::tempdir().unwrap();
         let file_name = format!("./~lk_{}", nanoid!(10));
         let full_path = dir.path().join(&file_name);
-        println!(
-            "{}\n{}\n{}",
-            dir.path().as_os_str().to_string_lossy(),
-            file_name,
-            full_path.to_string_lossy()
-        );
         Self {
             dir,
             full_path,
