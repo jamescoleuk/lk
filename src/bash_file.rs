@@ -62,7 +62,7 @@ impl BashFile {
         writeln!(file, "cd {}", script_path)?;
 
         // Source the script so we can access its functions
-        writeln!(file, "source {}", script_file_name)?;
+        writeln!(file, "source ./{}", script_file_name)?;
 
         // Call the function the user asked for
         writeln!(file, "{} {}", self.function.name, self.params.join(" "))?;

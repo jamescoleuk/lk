@@ -8,3 +8,11 @@
 # My eyes are dry
 # But I have the tools I need
 # And no real work got done
+
+# Build and install locally, in /usr/local/bin
+# Needs sudo.
+install() {
+    cargo clean
+    cargo build --release
+    cp target/release/lk "${HOME}/.local/bin"
+}
