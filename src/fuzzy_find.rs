@@ -1,33 +1,21 @@
 use anyhow::Result;
+use colored::Colorize;
 use termion::color;
 use termion::input::TermRead;
-use termion::raw::{IntoRawMode, RawTerminal};
+use termion::raw::IntoRawMode;
 use termion::{cursor::DetectCursorPos, event::Key};
 
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 
 use crate::script::{Function, Script};
-use std::io::{stdin, stdout, Stdout, Write};
-use std::thread::current;
+use std::io::{stdin, stdout, Write};
 
 pub fn fuzzy_find_function(scripts: &Vec<Script>) -> Result<()> {
-    // println!("{}Red", color::Fg(color::Red));
-    // println!("{}Blue", color::Fg(color::Blue));
-    // println!("{}Blue'n'Bold{}", style::Bold, style::Reset);
-    // println!("{}Just plain italic", style::Italic);
     let mut fuzzy_functions = scripts_to_flat(scripts);
 
-    // fuzzy_functions
-    //     .iter()
-    //     .for_each(|f| println!("{}", f.long_name));
-    // HERE: I need a flat struct for this, that I can fuzzy find with fuzzy mather by lotabout
     let stdin = stdin();
-
     let mut stdout = stdout().into_raw_mode()?;
-    for _ in 0..10 {
-        println!("");
-    }
 
     render(&"", &fuzzy_functions)?;
 
@@ -51,7 +39,7 @@ pub fn fuzzy_find_function(scripts: &Vec<Script>) -> Result<()> {
 
                 let matcher = SkimMatcherV2::default();
                 for f in &mut fuzzy_functions {
-                    f.score = matcher.fuzzy_match(&f.long_name, &search_term);
+                    f.score = matcher.fuzzy_indices(&f.long_name, &search_term);
                 }
                 render(&search_term, &fuzzy_functions)?;
 
@@ -81,7 +69,7 @@ pub fn fuzzy_find_function(scripts: &Vec<Script>) -> Result<()> {
                     search_term = String::from(&search_term[..search_term.chars().count() - 1]);
                     let matcher = SkimMatcherV2::default();
                     for f in &mut fuzzy_functions {
-                        f.score = matcher.fuzzy_match(&f.long_name, &search_term);
+                        f.score = matcher.fuzzy_indices(&f.long_name, &search_term);
                     }
                     render(&search_term, &fuzzy_functions)?;
                 }
@@ -132,13 +120,27 @@ fn render(search_term: &str, fuzzy_functions: &Vec<FuzzyFunction>) -> Result<()>
     for matching in matches.iter() {
         // Make sure we only show the top
         if lines_to_show > current_line {
+            let fuzzy_indecies = &matching.score.as_ref().unwrap().1;
+
+            // Do some string manipulation to colourise the indexed parts
+            let mut coloured_line = String::from("");
+            let mut start = 0;
+            for i in fuzzy_indecies {
+                let part = &matching.long_name[start..*i];
+                let matching_char = &matching.long_name[*i..*i + 1];
+                coloured_line = format!("{}{}{}", coloured_line, &part, &matching_char.on_blue());
+                start = i + 1;
+            }
+            let remaining_chars = &matching.long_name[start..matching.long_name.chars().count()];
+            coloured_line = format!("{}{}", coloured_line, remaining_chars);
+
             write!(
                 stdout,
                 "{}{}{}{}\n",
                 termion::cursor::Hide,
                 termion::cursor::Goto(1, current_line as u16),
                 termion::clear::CurrentLine,
-                format!("{}- {}", matching.long_name, matching.score.unwrap())
+                format!("{} ", coloured_line,)
             )?;
             current_line += 1;
         }
@@ -169,7 +171,7 @@ struct FuzzyFunction {
     long_name: String,
     script: Script,
     function: Function,
-    score: Option<i64>,
+    score: Option<(i64, Vec<usize>)>,
 }
 
 fn scripts_to_flat(scripts: &Vec<Script>) -> Vec<FuzzyFunction> {
@@ -185,7 +187,10 @@ fn scripts_to_flat(scripts: &Vec<Script>) -> Vec<FuzzyFunction> {
                     script.file_name(),
                     function.name
                 ),
-                score: Option::None,
+                // score: Option::None,
+                // We'll set the search scores to 100 so we get the initial list displayed:
+                // anything that has None has non match and doesn't get rendered.
+                score: Some((100, Vec::new())),
             })
         })
     });
