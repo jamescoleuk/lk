@@ -13,7 +13,7 @@ pub struct Executable {
 
 pub struct Executables {
     // root: String,
-    executables: Vec<Executable>,
+    pub executables: Vec<Executable>,
 }
 
 impl Executables {

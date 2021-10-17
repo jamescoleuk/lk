@@ -1,11 +1,14 @@
 mod bash_file;
 mod executables;
+mod fuzzy_find;
 mod script;
 pub mod ui;
 use crate::{
     script::Script,
     ui::{print_bad_function_name, print_bad_script_name},
 };
+use fuzzy_find::fuzzy_find_function;
+
 use anyhow::Result;
 use bash_file::BashFile;
 use executables::Executables;
@@ -32,6 +35,22 @@ fn main() -> Result<()> {
     let args = Cli::from_args();
 
     let executables = Executables::new(".");
+
+    let scripts: Vec<Script> = executables
+        .executables
+        .iter()
+        .map(|executable| Script::new(executable))
+        .collect();
+
+    // Prints all scripts
+    // scripts.iter().for_each(|script| {
+    //     script
+    //         .functions
+    //         .iter()
+    //         .for_each(|function| println!("{} - {}", script.file_name(), function.name))
+    // });
+
+    // fuzzy_find_function(&scripts)?;
 
     // Did the user request a script?
     if let Some(script) = args.script {
