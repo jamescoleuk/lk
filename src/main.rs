@@ -21,6 +21,8 @@ use structopt::StructOpt;
 /// name to actually run that function.
 #[derive(StructOpt)]
 struct Cli {
+    #[structopt(long, short)]
+    fuzzy: bool,
     /// Optional: the name of a script to explore or use
     script: Option<String>,
     /// Optional: the name of the function to run.
@@ -50,36 +52,38 @@ fn main() -> Result<()> {
     //         .for_each(|function| println!("{} - {}", script.file_name(), function.name))
     // });
 
-    // fuzzy_find_function(&scripts)?;
-
-    // Did the user request a script?
-    if let Some(script) = args.script {
-        // Is it a script that exists on disk?
-        if let Some(executable) = executables.get(&script) {
-            // Yay, confirmed script
-            let script = Script::new(executable);
-            // Did the user pass a function?
-            if let Some(function) = args.function {
-                // Is it a function that exists in the script we found?
-                if let Some(function) = script.get(&function) {
-                    // Do our thing
-                    let bash_file =
-                        BashFile::new(script.to_owned(), function.to_owned(), args.params);
-                    bash_file.write()?;
-                    bash_file.execute()?;
+    if args.fuzzy {
+        fuzzy_find_function(&scripts)?;
+    } else {
+        // Did the user request a script?
+        if let Some(script) = args.script {
+            // Is it a script that exists on disk?
+            if let Some(executable) = executables.get(&script) {
+                // Yay, confirmed script
+                let script = Script::new(executable);
+                // Did the user pass a function?
+                if let Some(function) = args.function {
+                    // Is it a function that exists in the script we found?
+                    if let Some(function) = script.get(&function) {
+                        // Do our thing
+                        let bash_file =
+                            BashFile::new(script.to_owned(), function.to_owned(), args.params);
+                        bash_file.write()?;
+                        bash_file.execute()?;
+                    } else {
+                        print_bad_function_name(&script, &function);
+                    }
                 } else {
-                    print_bad_function_name(&script, &function);
+                    // No function, display a list of what's available
+                    script.pretty_print();
                 }
             } else {
-                // No function, display a list of what's available
-                script.pretty_print();
+                print_bad_script_name(&script, executables);
             }
         } else {
-            print_bad_script_name(&script, executables);
+            // No executable, display a list of what's available
+            executables.pretty_print();
         }
-    } else {
-        // No executable, display a list of what's available
-        executables.pretty_print();
     }
 
     Ok(())
