@@ -15,17 +15,20 @@ struct UiState {
     selected_index: u8,
     lines_to_show: u8,
     fuzzy_functions: Vec<FuzzyFunction>,
-    // find_results: Vec<FuzzyFunction>,
+    matches: Option<Vec<FuzzyFunction>>,
 }
 
 impl UiState {
     pub fn new(functions: Vec<FuzzyFunction>) -> Self {
-        UiState {
+        let mut state = UiState {
             search_term: String::from(""),
             selected_index: 0,
             lines_to_show: 10,
-            fuzzy_functions: functions, // find_results: , // There's no filter yet so our results are everything
-        }
+            fuzzy_functions: functions,
+            matches: Option::None,
+        };
+        state.update_matches();
+        state
     }
 
     pub fn up(&mut self) -> Result<()> {
@@ -34,6 +37,7 @@ impl UiState {
         } else {
             self.selected_index
         };
+        self.update_matches();
         self.render()
     }
 
@@ -43,6 +47,7 @@ impl UiState {
         } else {
             self.selected_index + 1
         };
+        self.update_matches();
         self.render()
     }
 
@@ -54,6 +59,7 @@ impl UiState {
         for f in &mut self.fuzzy_functions {
             f.score = matcher.fuzzy_indices(&f.long_name, &self.search_term);
         }
+        self.update_matches();
         self.render()
     }
 
@@ -66,38 +72,67 @@ impl UiState {
                 f.score = matcher.fuzzy_indices(&f.long_name, &self.search_term);
             }
         }
+        self.update_matches();
         self.render()
     }
 
     /// Gets functions that match our current criteria, sorted by score.
-    fn matches(&self) -> Vec<&FuzzyFunction> {
+    fn update_matches(&mut self) {
         let mut matches = self
             .fuzzy_functions
             .iter()
             .filter(|f| f.score.is_some())
-            .collect::<Vec<&FuzzyFunction>>();
+            .cloned()
+            .collect::<Vec<FuzzyFunction>>();
 
         // We want these in the order of their fuzzy matched score, i.e. closed matches
         matches.sort_by(|a, b| a.score.cmp(&b.score));
-        matches
+        self.matches = Some(matches)
     }
 
-    pub fn render(&self) -> Result<()> {
-        let mut stdout = stdout().into_raw_mode()?;
-        let matches = self.matches();
-
-        // This is how many lines of results we want to show. We might want to make this customisable.
-        // let lines_to_show = 10;
-        let mut current_line = 0;
-
+    /// Gets the number of blank lines we need to display, given the current match set
+    fn blank_lines(&self) -> u8 {
+        let match_count = self.matches.as_ref().unwrap().len() as u8;
         // Figure out how many blank lines we need to show at the top
-        let blank_lines = if self.lines_to_show >= matches.len() as u8 {
-            self.lines_to_show - matches.len() as u8
+        if self.lines_to_show >= match_count {
+            self.lines_to_show - match_count
         } else {
             0
-        };
-        // Render those blank lines
-        for _ in 0..blank_lines {
+        }
+    }
+
+    fn get_coloured_line(
+        fuzzy_indecies: &Vec<usize>,
+        matching: &FuzzyFunction,
+        is_selected: bool,
+    ) -> String {
+        // Do some string manipulation to colourise the indexed parts
+        let mut coloured_line = String::from("");
+        let mut start = 0;
+        for i in fuzzy_indecies {
+            let part = &matching.long_name[start..*i];
+            let matching_char = &matching.long_name[*i..*i + 1];
+            coloured_line = format!(
+                "{}{}{}",
+                coloured_line,
+                &part,
+                &matching_char.on_dark_blue()
+            );
+            start = i + 1;
+        }
+        let remaining_chars = &matching.long_name[start..matching.long_name.chars().count()];
+        coloured_line = format!("{}{}", coloured_line, remaining_chars);
+        coloured_line
+    }
+
+    /// Renders the current result set
+    pub fn render(&self) -> Result<()> {
+        let mut stdout = stdout().into_raw_mode()?;
+
+        let mut current_line = 0;
+
+        // Render the blank lines
+        for _ in 0..self.blank_lines() {
             writeln!(
                 stdout,
                 "{}{}{}",
@@ -109,28 +144,17 @@ impl UiState {
         }
 
         // Render the remaining lines
-        for matching in matches.iter() {
+        for matching in self.matches.as_ref().unwrap().iter() {
             // Make sure we only show the top
             if self.lines_to_show > current_line {
                 let fuzzy_indecies = &matching.score.as_ref().unwrap().1;
 
                 // Do some string manipulation to colourise the indexed parts
-                let mut coloured_line = String::from("");
-                let mut start = 0;
-                for i in fuzzy_indecies {
-                    let part = &matching.long_name[start..*i];
-                    let matching_char = &matching.long_name[*i..*i + 1];
-                    coloured_line = format!(
-                        "{}{}{}",
-                        coloured_line,
-                        &part,
-                        &matching_char.on_dark_blue()
-                    );
-                    start = i + 1;
-                }
-                let remaining_chars =
-                    &matching.long_name[start..matching.long_name.chars().count()];
-                coloured_line = format!("{}{}", coloured_line, remaining_chars);
+                let coloured_line = UiState::get_coloured_line(
+                    fuzzy_indecies,
+                    matching,
+                    current_line == self.selected_index,
+                );
 
                 // if current_line == lines_to_show - 1 {
                 //     write!(
