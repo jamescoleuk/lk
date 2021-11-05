@@ -102,7 +102,7 @@ impl UiState {
     }
 
     fn get_coloured_line(
-        fuzzy_indecies: &Vec<usize>,
+        fuzzy_indecies: &[usize],
         matching: &FuzzyFunction,
         is_selected: bool,
     ) -> String {
@@ -112,16 +112,29 @@ impl UiState {
         for i in fuzzy_indecies {
             let part = &matching.long_name[start..*i];
             let matching_char = &matching.long_name[*i..*i + 1];
-            coloured_line = format!(
-                "{}{}{}",
-                coloured_line,
-                &part,
-                &matching_char.on_dark_blue()
-            );
+            if is_selected {
+                coloured_line = format!(
+                    "{}{}{}",
+                    coloured_line,
+                    &part.on_dark_grey(),
+                    &matching_char.on_dark_blue()
+                );
+            } else {
+                coloured_line = format!(
+                    "{}{}{}",
+                    coloured_line,
+                    &part,
+                    &matching_char.on_dark_blue()
+                );
+            }
             start = i + 1;
         }
         let remaining_chars = &matching.long_name[start..matching.long_name.chars().count()];
-        coloured_line = format!("{}{}", coloured_line, remaining_chars);
+        if is_selected {
+            coloured_line = format!("{}{}", coloured_line, remaining_chars.on_dark_grey());
+        } else {
+            coloured_line = format!("{}{}", coloured_line, remaining_chars);
+        }
         coloured_line
     }
 
