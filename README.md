@@ -4,7 +4,46 @@ A CLI frontend for your bash scripts.
 
 Parses scripts and pretty prints the functions it finds. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier, and to [runsh](https://github.com/jamescoleuk/runsh) but better.
 
-Say you have a script called `script.sh` that looks like this:
+If you ran it on this repo you'd see something like this:
+
+![lk results from this repo](./docs/example02.png)
+
+So it's found all executable bash scripts in this and all sub-directories. You could then do this:
+
+![lk showing functions in script.sh](./docs/example03.png)
+
+That's all all the functions in `script.sh` along with comments. You can execute a function like this:
+
+![lk executing a function in script.sh](./docs/example04.png)
+
+That's it.
+
+## Features 
+ - `lk` finds executable non-binary files in the current directory and any sub-directory
+ - `lk` finds and displays comment headers from your scripts 
+ - `lk` finds and displays comments for functions
+ - `lk` ignores functions prefixed with `_`. 
+ - `lk` uses a temporary file to execute the script, but you shouldn't need to worry about that
+
+## Installation
+From [the crate](https://crates.io/crates/lk):
+```bash
+cargo install lk
+```
+
+### Update
+```bash
+cargo install --force lk
+```
+
+## Use
+Just execute `lk` and follow the instructions.
+
+### An example bash script
+
+I don't want you to have to alter your scripts to use `lk`. I want it to just find your stuff, magically. If you have a problem I implore you to let me know so I can fix it. Thanks in advance!
+
+Having said that, a script might look something like this:
 
 ```
 #!/usr/bin/env bash
@@ -24,27 +63,10 @@ yet_more_functions() {
 }
 ```
 
-You can access it by executing `lk`, and it'll find the script and should you what functions are available. Then you can run something like this to execute the function:
-```bash
-lk script.sh some_function
-```
 
-## Why "lk"
-This is a tool that I use a lot, and "lk" is short and ergonomic. As long as you're reasting on the home keys.
+## Why the name "lk"?
+If you have any typist home key dicipline and if you flap your right hand at the keyboard there's a good chance you'll type 'lk'. So it's short, and ergonomic.
 
-## Installation
-From [the crate](https://crates.io/crates/lk):
-```bash
-cargo install lk
-```
-
-### Update
-```bash
-cargo install --force lk
-```
-
-## Use
-Just execute `lk` and follow the instructions.
 
 
 ### File headers
@@ -62,16 +84,7 @@ I already wrote this in bash and called it [run_lib](https://github.com/jamescol
 1. A Rust executable is easier to distribute via `cargo`. It's easier for people to update their version. 
 2. Integration with a script is more or less the same. 
 3. The processing is much easier in Rust than it is in bash, i.e. finding and displaying multi-line comments. 
-4. Rust so hot right now.
+4. 
+![rust so hot right now](./docs/meme01.png)
 
-## Finding bash files
-### Testing for binaries
-We don't want binaries because we won't be reading any functions from them.
-
-For testing I took the smallest binary from my `/usr/bin` and copied it into `./tests/`
-
-## TODO
-
-- [ ] Test for bash files. At the moment it will attemp to display any executable text file.
-- [ ] Add syntax to allow functions to be ignored, e.g. an `_` prefix.
-- [ ] Don't return a non-0 exit code when exploring scripts, i.e. running without valid script and function arguments. This is a hangup from `runsh`, where it used non-0 exit codes to run the scripts.
+The truth is I wrote this in Rust because I'm a magpie but now I'm in love with Rust in a very embarassing way.
