@@ -169,26 +169,6 @@ impl UiState {
                     current_line == self.selected_index,
                 );
 
-                // if current_line == lines_to_show - 1 {
-                //     write!(
-                //         stdout,
-                //         "{}{}{}{}\n",
-                //         termion::cursor::Hide,
-                //         termion::cursor::Goto(1, current_line as u16),
-                //         termion::clear::CurrentLine,
-                //         format!("{} ", coloured_line.on_dark_grey())
-                //     )?;
-                // } else {
-                //     write!(
-                //         stdout,
-                //         "{}{}{}{}\n",
-                //         termion::cursor::Hide,
-                //         termion::cursor::Goto(1, current_line as u16),
-                //         termion::clear::CurrentLine,
-                //         format!("{} ", coloured_line,)
-                //     )?;
-                // }
-                // TODO: Nope, do on_blue if is_selected
                 if current_line == self.selected_index {
                     writeln!(
                         stdout,
