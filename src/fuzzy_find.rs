@@ -12,42 +12,45 @@ use termion::raw::IntoRawMode;
 
 struct UiState {
     search_term: String,
-    selected_index: u8,
-    lines_to_show: u8,
+    selected_index: i8,
+    lines_to_show: i8,
     fuzzy_functions: Vec<FuzzyFunction>,
     matches: Option<Vec<FuzzyFunction>>,
+    top_index: u8,
+    bottom_index: u8,
 }
 
 impl UiState {
     pub fn new(functions: Vec<FuzzyFunction>) -> Self {
         let mut state = UiState {
             search_term: String::from(""),
-            selected_index: 0,
+            selected_index: 9,
             lines_to_show: 10,
             fuzzy_functions: functions,
             matches: Option::None,
+            top_index: 0,
+            bottom_index: 9,
         };
         state.update_matches();
         state
     }
 
     pub fn up(&mut self) -> Result<()> {
-        self.selected_index = if self.selected_index > 0 {
-            self.selected_index - 1
-        } else {
-            self.selected_index
-        };
-        self.update_matches();
+        let match_count = self.matches.as_ref().unwrap().len() as i8;
+        if self.selected_index > 0 && self.selected_index < match_count {
+            println!("{} - {}", self.selected_index, match_count);
+            self.selected_index -= 1;
+        }
         self.render()
     }
 
     pub fn down(&mut self) -> Result<()> {
-        self.selected_index = if self.selected_index >= self.lines_to_show {
-            self.lines_to_show
-        } else {
-            self.selected_index + 1
-        };
-        self.update_matches();
+        let match_count = self.matches.as_ref().unwrap().len() as i8;
+        if self.selected_index >= 0 && self.selected_index < match_count - 1 {
+            println!("{} - {}", self.selected_index, match_count);
+            self.selected_index += 1;
+        }
+
         self.render()
     }
 
@@ -87,12 +90,17 @@ impl UiState {
 
         // We want these in the order of their fuzzy matched score, i.e. closed matches
         matches.sort_by(|a, b| a.score.cmp(&b.score));
-        self.matches = Some(matches)
+        let match_count = matches.len() as i8;
+        self.matches = Some(matches);
+
+        if self.selected_index >= match_count {
+            self.selected_index = match_count - 1;
+        }
     }
 
     /// Gets the number of blank lines we need to display, given the current match set
-    fn blank_lines(&self) -> u8 {
-        let match_count = self.matches.as_ref().unwrap().len() as u8;
+    fn blank_lines(&self) -> i8 {
+        let match_count = self.matches.as_ref().unwrap().len() as i8;
         // Figure out how many blank lines we need to show at the top
         if self.lines_to_show >= match_count {
             self.lines_to_show - match_count
@@ -142,7 +150,9 @@ impl UiState {
     pub fn render(&self) -> Result<()> {
         let mut stdout = stdout().into_raw_mode()?;
 
-        let mut current_line = 0;
+        let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
+        let mut current_line: i8 = 0;
+        let mut blank_line: i8 = 0;
 
         // Render the blank lines
         for _ in 0..self.blank_lines() {
@@ -150,15 +160,16 @@ impl UiState {
                 stdout,
                 "{}{}{}",
                 termion::cursor::Hide,
-                termion::cursor::Goto(1, current_line as u16),
+                termion::cursor::Goto(1, blank_line as u16),
                 termion::clear::CurrentLine,
             )?;
-            current_line += 1;
+            blank_line += 1;
         }
 
         // Render the remaining lines
+        let mut count = 0;
         for matching in self.matches.as_ref().unwrap().iter() {
-            // Make sure we only show the top
+            // Make sure we only show the top number of results
             if self.lines_to_show > current_line {
                 let fuzzy_indecies = &matching.score.as_ref().unwrap().1;
 
@@ -169,27 +180,27 @@ impl UiState {
                     current_line == self.selected_index,
                 );
 
-                if current_line == self.selected_index {
-                    writeln!(
-                        stdout,
-                        "{}{}{}{}",
-                        termion::cursor::Hide,
-                        termion::cursor::Goto(1, current_line as u16),
-                        termion::clear::CurrentLine,
-                        format!("{} ", coloured_line.on_dark_grey())
-                    )?;
-                } else {
-                    writeln!(
-                        stdout,
-                        "{}{}{}{}",
-                        termion::cursor::Hide,
-                        termion::cursor::Goto(1, current_line as u16),
-                        termion::clear::CurrentLine,
-                        format!("{} ", coloured_line,)
-                    )?;
-                }
+                writeln!(
+                    stdout,
+                    "{}{}{}{}",
+                    termion::cursor::Hide,
+                    termion::cursor::Goto(1, (blank_line + current_line) as u16),
+                    termion::clear::CurrentLine,
+                    format!(
+                        "{}-{}-{}-{}-{} ",
+                        count,
+                        self.selected_index,
+                        self.matches.as_ref().unwrap().len(),
+                        current_line,
+                        coloured_line,
+                    )
+                )?;
+                // }
                 current_line += 1;
+            } else {
+                break;
             }
+            count += 1;
         }
 
         let prompt_y = self.lines_to_show as u16;
