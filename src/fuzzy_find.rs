@@ -93,6 +93,7 @@ impl UiState {
         let match_count = matches.len() as i8;
         self.matches = Some(matches);
 
+        // We can't have the index greater than the match count
         if self.selected_index >= match_count {
             self.selected_index = match_count - 1;
         }
@@ -110,7 +111,7 @@ impl UiState {
     }
 
     fn get_coloured_line(
-        fuzzy_indecies: &[usize],
+        fuzzy_indecies: &Vec<usize>,
         matching: &FuzzyFunction,
         is_selected: bool,
     ) -> String {
@@ -151,65 +152,76 @@ impl UiState {
         let mut stdout = stdout().into_raw_mode()?;
 
         let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
-        let mut current_line: i8 = 0;
-        let mut blank_line: i8 = 0;
+        let matches = self.matches.as_ref().unwrap();
 
-        // Render the blank lines
+        println!("bottom: {}, top: {}", self.bottom_index, self.top_index);
+        // Add blank lines
         for _ in 0..self.blank_lines() {
-            writeln!(
-                stdout,
-                "{}{}{}",
-                termion::cursor::Hide,
-                termion::cursor::Goto(1, blank_line as u16),
-                termion::clear::CurrentLine,
-            )?;
-            blank_line += 1;
+            to_render.push(Option::None)
         }
-
-        // Render the remaining lines
-        let mut count = 0;
-        for matching in self.matches.as_ref().unwrap().iter() {
-            // Make sure we only show the top number of results
-            if self.lines_to_show > current_line {
-                let fuzzy_indecies = &matching.score.as_ref().unwrap().1;
-
-                // Do some string manipulation to colourise the indexed parts
-                let coloured_line = UiState::get_coloured_line(
-                    fuzzy_indecies,
-                    matching,
-                    current_line == self.selected_index,
-                );
-
-                writeln!(
-                    stdout,
-                    "{}{}{}{}",
-                    termion::cursor::Hide,
-                    termion::cursor::Goto(1, (blank_line + current_line) as u16),
-                    termion::clear::CurrentLine,
-                    format!(
-                        "{}-{}-{}-{}-{} ",
-                        count,
-                        self.selected_index,
-                        self.matches.as_ref().unwrap().len(),
-                        current_line,
-                        coloured_line,
-                    )
-                )?;
-                // }
-                current_line += 1;
-            } else {
-                break;
+        // If we've got fewer than the lines to show we'll just add everything
+        if matches.len() < self.lines_to_show as usize {
+            for m in matches.iter() {
+                to_render.push(Option::Some(m.clone()));
             }
-            count += 1;
+        } else {
+            // Otherwise we need to add a slice of the matches based on top and bottom indecies.
+            for i in self.top_index..self.bottom_index {
+                let func = matches[i as usize].clone();
+                to_render.push(Option::Some(func));
+            }
         }
 
+        // Render the searched lines
+        for (index, item) in to_render.iter().enumerate() {
+            match item {
+                Some(thing) => {
+                    let fuzzy_indecies = &thing.score.as_ref().unwrap().1;
+
+                    // Do some string manipulation to colourise the indexed parts
+                    let coloured_line = UiState::get_coloured_line(
+                        fuzzy_indecies,
+                        thing,
+                        index == self.selected_index as usize,
+                    );
+                    writeln!(
+                        stdout,
+                        "{}{}{}{}",
+                        termion::cursor::Hide,
+                        termion::cursor::Goto(1, index as u16 + 1),
+                        // termion::cursor::Goto(1, index as u16),
+                        termion::clear::CurrentLine,
+                        format!(
+                            "{}-{}-{}-{} ",
+                            // count,
+                            self.selected_index,
+                            self.matches.as_ref().unwrap().len(),
+                            index,
+                            coloured_line,
+                        )
+                    )?;
+                }
+                None => {
+                    writeln!(
+                        stdout,
+                        "{}{}{}",
+                        termion::cursor::Hide,
+                        termion::cursor::Goto(1, index as u16),
+                        termion::clear::CurrentLine,
+                    )?;
+                }
+            };
+        }
+
+        // Render the prompt
         let prompt_y = self.lines_to_show as u16;
         let current_x = self.search_term.chars().count() + 2;
         write!(
             stdout,
-            "{}{}",
+            "{}{}{}",
             termion::clear::CurrentLine,
-            termion::cursor::Goto(current_x as u16, prompt_y)
+            termion::cursor::Goto(current_x as u16, prompt_y),
+            termion::clear::CurrentLine,
         )?;
         write!(
             stdout,
