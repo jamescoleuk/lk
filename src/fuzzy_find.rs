@@ -29,8 +29,8 @@ impl UiState {
             lines_to_show,
             fuzzy_functions: functions,
             matches: Option::None,
-            top_index: 0,
-            bottom_index: lines_to_show as u8 - 1,
+            top_index: lines_to_show as u8 - 1,
+            bottom_index: 0,
         };
         state.update_matches();
         state
@@ -39,9 +39,18 @@ impl UiState {
     pub fn up(&mut self) -> Result<()> {
         log::info!("------------- up -------------");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
-        if self.selected_index > 0 && self.selected_index < match_count {
+        log::info!(
+            "selected_index: {}, match_count: {}, bottom_index: {}",
+            self.selected_index,
+            match_count,
+            self.bottom_index,
+        );
+        // if self.selected_index > 0 && self.selected_index < match_count {
+        if self.selected_index > 0 {
             println!("{} - {}", self.selected_index, match_count);
             self.selected_index -= 1;
+        } else {
+            log::info!("not going up because we're at the limit")
         }
         self.render()
     }
@@ -49,17 +58,18 @@ impl UiState {
     pub fn down(&mut self) -> Result<()> {
         log::info!("------------- down -------------");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
-        if self.selected_index < match_count - 1 && self.selected_index < self.bottom_index as i8 {
-            log::info!(
-                "incrementing index (down), selected_index: {}, match_count: {}, bottom_index: {}",
-                self.selected_index,
-                match_count,
-                self.bottom_index,
-            );
-            println!("{} - {}", self.selected_index, match_count);
+        log::info!(
+            " selected_index: {}, match_count: {}, bottom_index: {}",
+            self.selected_index,
+            match_count,
+            self.bottom_index,
+        );
+        // if self.selected_index < match_count - 1 && self.selected_index >= self.bottom_index as i8 {
+        if self.selected_index <= self.top_index as i8 - 1 {
+            log::info!("incrementing");
             self.selected_index += 1;
         } else {
-            log::info!("not incrementing index (down) because we're at the limit")
+            log::info!("not going down because we're at the limit")
         }
 
         self.render()
@@ -103,7 +113,8 @@ impl UiState {
             .collect::<Vec<FuzzyFunction>>();
 
         // We want these in the order of their fuzzy matched score, i.e. closed matches
-        matches.sort_by(|a, b| a.score.cmp(&b.score));
+        // matches.sort_by(|a, b| a.score.cmp(&b.score));
+        matches.sort_by(|a, b| b.score.cmp(&a.score));
         let match_count = matches.len() as i8;
         self.matches = Some(matches);
 
@@ -111,19 +122,6 @@ impl UiState {
         if self.selected_index >= match_count {
             println!("shrinking");
             self.selected_index = match_count - 1;
-        }
-    }
-
-    /// Gets the number of blank lines we need to display, given the current match set
-    fn blank_lines(&self) -> i8 {
-        let match_count = self.matches.as_ref().unwrap().len() as i8;
-        // Figure out how many blank lines we need to show at the top
-        if self.lines_to_show >= match_count {
-            log::info!("blank_lines: {}", self.lines_to_show - match_count);
-            self.lines_to_show - match_count
-        } else {
-            log::info!("blank_lines: 0");
-            0
         }
     }
 
@@ -165,39 +163,47 @@ impl UiState {
     }
 
     /// Renders the current result set
-    pub fn render(&self) -> Result<()> {
+    pub fn render(&mut self) -> Result<()> {
         log::info!("render");
         let mut stdout = stdout().into_raw_mode()?;
 
         let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
         let matches = self.matches.as_ref().unwrap();
 
-        println!("bottom: {}, top: {}", self.bottom_index, self.top_index);
-        // Add blank lines
-        for _ in 0..self.blank_lines() {
-            to_render.push(Option::None)
-        }
-        // If we've got fewer than the lines to show we'll just add everything
-        if matches.len() < self.lines_to_show as usize {
-            log::info!("showing everything we've got");
-            for m in matches.iter() {
-                to_render.push(Option::Some(m.clone()));
-            }
-        } else {
-            log::info!("showing subset");
-            // Otherwise we need to add a slice of the matches based on top and bottom indecies.
-            for i in self.top_index..self.bottom_index + 1 {
-                let func = matches[i as usize].clone();
-                to_render.push(Option::Some(func));
+        log::info!("bottom: {}, top: {}", self.bottom_index, self.top_index);
+
+        // Get everything in our display window
+        for i in self.bottom_index..self.top_index + 1 {
+            if matches.len() > (i).into() {
+                to_render.push(Option::Some(matches[i as usize].clone()));
+            } else {
+                to_render.push(Option::None);
             }
         }
 
-        // Render the searched lines
+        // Render the searched lines -- we're actually going to reverse the order now.
+        to_render.reverse();
+
+        // Now that the order is reversed our indexes will match. If the selected_index
+        // is outside the range of what's selectable, i.e. our matches, then we need
+        // to gently reset it back to the limit. This prevents the selection going onto
+        // blank lines and also moves the selection to the top of the matches when
+        // the number of matches shrinks.
+        for (i, item) in to_render.iter().enumerate() {
+            if item.is_none() {
+                log::info!("selected_index: {}, i: {}", self.selected_index, i);
+                self.selected_index = if self.selected_index <= i as i8 {
+                    self.lines_to_show - matches.len() as i8
+                } else {
+                    self.selected_index
+                }
+            }
+        }
+
         log::info!("Rendering lines ({}):", to_render.len());
         for (index, item) in to_render.iter().enumerate() {
             match item {
                 Some(thing) => {
-                    // log::info!("  Some");
                     let fuzzy_indecies = &thing.score.as_ref().unwrap().1;
 
                     // Do some string manipulation to colourise the indexed parts
