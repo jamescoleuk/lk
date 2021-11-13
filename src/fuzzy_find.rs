@@ -37,7 +37,7 @@ impl UiState {
     }
 
     pub fn up(&mut self) -> Result<()> {
-        log::info!("up");
+        log::info!("------------- up -------------");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
         if self.selected_index > 0 && self.selected_index < match_count {
             println!("{} - {}", self.selected_index, match_count);
@@ -47,11 +47,19 @@ impl UiState {
     }
 
     pub fn down(&mut self) -> Result<()> {
-        log::info!("down");
+        log::info!("------------- down -------------");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
-        if self.selected_index >= 0 && self.selected_index < match_count - 1 {
+        if self.selected_index < match_count - 1 && self.selected_index < self.bottom_index as i8 {
+            log::info!(
+                "incrementing index (down), selected_index: {}, match_count: {}, bottom_index: {}",
+                self.selected_index,
+                match_count,
+                self.bottom_index,
+            );
             println!("{} - {}", self.selected_index, match_count);
             self.selected_index += 1;
+        } else {
+            log::info!("not incrementing index (down) because we're at the limit")
         }
 
         self.render()
@@ -86,7 +94,7 @@ impl UiState {
 
     /// Gets functions that match our current criteria, sorted by score.
     fn update_matches(&mut self) {
-        log::info!("update_matches");
+        log::info!("------------- update_matches -------------");
         let mut matches = self
             .fuzzy_functions
             .iter()
@@ -108,12 +116,13 @@ impl UiState {
 
     /// Gets the number of blank lines we need to display, given the current match set
     fn blank_lines(&self) -> i8 {
-        log::info!("blank_lines");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
         // Figure out how many blank lines we need to show at the top
         if self.lines_to_show >= match_count {
+            log::info!("blank_lines: {}", self.lines_to_show - match_count);
             self.lines_to_show - match_count
         } else {
+            log::info!("blank_lines: 0");
             0
         }
     }
@@ -183,11 +192,12 @@ impl UiState {
             }
         }
 
-        log::info!("about to render {} items", to_render.len());
         // Render the searched lines
+        log::info!("Rendering lines ({}):", to_render.len());
         for (index, item) in to_render.iter().enumerate() {
             match item {
                 Some(thing) => {
+                    // log::info!("  Some");
                     let fuzzy_indecies = &thing.score.as_ref().unwrap().1;
 
                     // Do some string manipulation to colourise the indexed parts
@@ -214,11 +224,12 @@ impl UiState {
                     )?;
                 }
                 None => {
+                    // log::info!("  None");
                     writeln!(
                         stdout,
                         "{}{}{}",
                         termion::cursor::Hide,
-                        termion::cursor::Goto(1, index as u16),
+                        termion::cursor::Goto(1, index as u16 + 1),
                         termion::clear::CurrentLine,
                     )?;
                 }
