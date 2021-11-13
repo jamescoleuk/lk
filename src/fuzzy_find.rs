@@ -22,20 +22,22 @@ struct UiState {
 
 impl UiState {
     pub fn new(functions: Vec<FuzzyFunction>) -> Self {
+        let lines_to_show = 8;
         let mut state = UiState {
             search_term: String::from(""),
-            selected_index: 9,
-            lines_to_show: 10,
+            selected_index: lines_to_show - 1,
+            lines_to_show,
             fuzzy_functions: functions,
             matches: Option::None,
             top_index: 0,
-            bottom_index: 9,
+            bottom_index: lines_to_show as u8 - 1,
         };
         state.update_matches();
         state
     }
 
     pub fn up(&mut self) -> Result<()> {
+        log::info!("up");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
         if self.selected_index > 0 && self.selected_index < match_count {
             println!("{} - {}", self.selected_index, match_count);
@@ -45,6 +47,7 @@ impl UiState {
     }
 
     pub fn down(&mut self) -> Result<()> {
+        log::info!("down");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
         if self.selected_index >= 0 && self.selected_index < match_count - 1 {
             println!("{} - {}", self.selected_index, match_count);
@@ -55,6 +58,7 @@ impl UiState {
     }
 
     pub fn append(&mut self, c: char) -> Result<()> {
+        log::info!("append");
         // This is a normal key that we want to add to the search.
         self.search_term = format!("{}{}", self.search_term, c);
 
@@ -67,6 +71,7 @@ impl UiState {
     }
 
     pub fn backspace(&mut self) -> Result<()> {
+        log::info!("backspace");
         if self.search_term.chars().count() > 0 {
             self.search_term =
                 String::from(&self.search_term[..self.search_term.chars().count() - 1]);
@@ -81,6 +86,7 @@ impl UiState {
 
     /// Gets functions that match our current criteria, sorted by score.
     fn update_matches(&mut self) {
+        log::info!("update_matches");
         let mut matches = self
             .fuzzy_functions
             .iter()
@@ -95,12 +101,14 @@ impl UiState {
 
         // We can't have the index greater than the match count
         if self.selected_index >= match_count {
+            println!("shrinking");
             self.selected_index = match_count - 1;
         }
     }
 
     /// Gets the number of blank lines we need to display, given the current match set
     fn blank_lines(&self) -> i8 {
+        log::info!("blank_lines");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
         // Figure out how many blank lines we need to show at the top
         if self.lines_to_show >= match_count {
@@ -149,6 +157,7 @@ impl UiState {
 
     /// Renders the current result set
     pub fn render(&self) -> Result<()> {
+        log::info!("render");
         let mut stdout = stdout().into_raw_mode()?;
 
         let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
@@ -161,17 +170,20 @@ impl UiState {
         }
         // If we've got fewer than the lines to show we'll just add everything
         if matches.len() < self.lines_to_show as usize {
+            log::info!("showing everything we've got");
             for m in matches.iter() {
                 to_render.push(Option::Some(m.clone()));
             }
         } else {
+            log::info!("showing subset");
             // Otherwise we need to add a slice of the matches based on top and bottom indecies.
-            for i in self.top_index..self.bottom_index {
+            for i in self.top_index..self.bottom_index + 1 {
                 let func = matches[i as usize].clone();
                 to_render.push(Option::Some(func));
             }
         }
 
+        log::info!("about to render {} items", to_render.len());
         // Render the searched lines
         for (index, item) in to_render.iter().enumerate() {
             match item {
@@ -214,7 +226,7 @@ impl UiState {
         }
 
         // Render the prompt
-        let prompt_y = self.lines_to_show as u16;
+        let prompt_y = self.lines_to_show as u16 + 1;
         let current_x = self.search_term.chars().count() + 2;
         write!(
             stdout,
