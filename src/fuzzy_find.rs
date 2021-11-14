@@ -3,12 +3,13 @@ use anyhow::Result;
 use crossterm::style::Stylize;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
-use std::io::{stdin, stdout, Write};
+use std::io::{stdin, stdout, Stdout, Write};
 use std::time::{Duration, Instant};
 use termion::color;
+use termion::cursor::DetectCursorPos;
 use termion::event::Key;
 use termion::input::TermRead;
-use termion::raw::IntoRawMode;
+use termion::raw::{IntoRawMode, RawTerminal};
 
 struct UiState {
     search_term: String,
@@ -18,19 +19,28 @@ struct UiState {
     matches: Option<Vec<FuzzyFunction>>,
     top_index: u8,
     bottom_index: u8,
+    console_offset: u16,
+    stdout: RawTerminal<Stdout>,
 }
 
 impl UiState {
     pub fn new(functions: Vec<FuzzyFunction>) -> Self {
-        let lines_to_show = 8;
+        // We need to know where to start rendering from. We can't do this later because
+        // we overwrite the cursor. Maybe we shouldn't do this? (TODO)
+        let mut stdout = stdout().into_raw_mode().unwrap();
+        let lines_to_show: i8 = 8;
+        let console_offset: u16 = stdout.cursor_pos().unwrap().1 - (&lines_to_show + 2) as u16;
+
         let mut state = UiState {
             search_term: String::from(""),
-            selected_index: lines_to_show - 1,
+            selected_index: (lines_to_show - 1) as i8,
             lines_to_show,
             fuzzy_functions: functions,
             matches: Option::None,
             top_index: lines_to_show as u8 - 1,
             bottom_index: 0,
+            console_offset,
+            stdout,
         };
         state.update_matches();
         state
@@ -164,8 +174,7 @@ impl UiState {
 
     /// Renders the current result set
     pub fn render(&mut self) -> Result<()> {
-        log::info!("render");
-        let mut stdout = stdout().into_raw_mode()?;
+        log::info!("render, console_offset: {}", self.console_offset);
 
         let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
         let matches = self.matches.as_ref().unwrap();
@@ -201,7 +210,13 @@ impl UiState {
         }
 
         log::info!("Rendering lines ({}):", to_render.len());
+
         for (index, item) in to_render.iter().enumerate() {
+            write!(
+                self.stdout,
+                "{}",
+                termion::cursor::Goto(1, index as u16 + 1 + self.console_offset),
+            )?;
             match item {
                 Some(thing) => {
                     let fuzzy_indecies = &thing.score.as_ref().unwrap().1;
@@ -213,15 +228,11 @@ impl UiState {
                         index == self.selected_index as usize,
                     );
                     writeln!(
-                        stdout,
-                        "{}{}{}{}",
-                        termion::cursor::Hide,
-                        termion::cursor::Goto(1, index as u16 + 1),
-                        // termion::cursor::Goto(1, index as u16),
+                        self.stdout,
+                        "{}{}",
                         termion::clear::CurrentLine,
                         format!(
                             "{}-{}-{}-{} ",
-                            // count,
                             self.selected_index,
                             self.matches.as_ref().unwrap().len(),
                             index,
@@ -230,14 +241,7 @@ impl UiState {
                     )?;
                 }
                 None => {
-                    // log::info!("  None");
-                    writeln!(
-                        stdout,
-                        "{}{}{}",
-                        termion::cursor::Hide,
-                        termion::cursor::Goto(1, index as u16 + 1),
-                        termion::clear::CurrentLine,
-                    )?;
+                    writeln!(self.stdout, "{}", termion::clear::CurrentLine,)?;
                 }
             };
         }
@@ -245,31 +249,31 @@ impl UiState {
         // Render the prompt
         let prompt_y = self.lines_to_show as u16 + 1;
         let current_x = self.search_term.chars().count() + 2;
+
         write!(
-            stdout,
+            self.stdout,
             "{}{}{}",
             termion::clear::CurrentLine,
-            termion::cursor::Goto(current_x as u16, prompt_y),
+            termion::cursor::Goto(current_x as u16, prompt_y + self.console_offset),
             termion::clear::CurrentLine,
         )?;
         write!(
-            stdout,
+            self.stdout,
             "{}{}{}>{} {}",
             termion::cursor::Show,
-            termion::cursor::Goto(1, prompt_y),
+            termion::cursor::Goto(1, prompt_y + self.console_offset),
             color::Fg(color::Cyan),
             color::Fg(color::Reset),
             self.search_term
         )?;
-        stdout.flush()?;
+        self.stdout.flush()?;
+
         Ok(())
     }
 }
 
 pub fn fuzzy_find_function(scripts: &[Script]) -> Result<()> {
     let fuzzy_functions = scripts_to_flat(scripts);
-
-    let mut stdout = stdout().into_raw_mode()?;
 
     let mut state = UiState::new(fuzzy_functions);
 
@@ -347,10 +351,10 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<()> {
                 }
                 _ => {}
             }
-            stdout.flush().unwrap();
+            state.stdout.flush().unwrap();
         }
     }
-    write!(stdout, "{}", termion::cursor::Show).unwrap();
+    write!(state.stdout, "{}", termion::cursor::Show).unwrap();
     Ok(())
 }
 #[derive(Clone)]
