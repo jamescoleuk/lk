@@ -53,17 +53,20 @@ impl UiState {
         log::info!("------------- up -------------");
         let match_count = self.matches.as_ref().unwrap().len() as i8;
         log::info!(
-            "selected_index: {}, match_count: {}, bottom_index: {}",
+            "selected_index: {}, match_count: {}, bottom_index: {}, top_index: {}",
             self.selected_index,
             match_count,
             self.bottom_index,
+            self.top_index
         );
         // if self.selected_index > 0 && self.selected_index < match_count {
         if self.selected_index > 0 {
             println!("{} - {}", self.selected_index, match_count);
             self.selected_index -= 1;
         } else {
-            log::info!("not going up because we're at the limit")
+            log::info!("not going up because we're at the limit");
+            self.bottom_index += 1;
+            self.top_index += 1;
         }
         self.render()
     }
@@ -78,11 +81,22 @@ impl UiState {
             self.bottom_index,
         );
         // if self.selected_index < match_count - 1 && self.selected_index >= self.bottom_index as i8 {
+
+        // Should we move the selection down?
         if self.selected_index <= self.top_index as i8 - 1 {
             log::info!("incrementing");
             self.selected_index += 1;
+        }
+
+        // Should we scroll down?
+        if self.selected_index > self.lines_to_show - 1 && self.bottom_index > 0 {
+            self.bottom_index -= 1;
+            self.top_index -= 1;
+            // if we've scrolled down then we don't want to change the selected index
+            // The selected index is for the view, so it stays the same.
+            self.selected_index -= 1;
         } else {
-            log::info!("not going down because we're at the limit")
+            log::info!("not scrolling down own because we're at the limit");
         }
 
         self.render()
@@ -213,7 +227,7 @@ impl UiState {
 
         if self.first {
             for _ in 0..self.lines_to_show + 3 {
-                writeln!(self.stdout, "-")?;
+                writeln!(self.stdout, " ")?;
             }
         }
 
