@@ -3,7 +3,7 @@ use anyhow::Result;
 use crossterm::style::Stylize;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
-use std::io::{stdin, stdout, Stdout, Write};
+use std::io::{stdout, Stdout, Write};
 use std::time::{Duration, Instant};
 use termion::color;
 use termion::cursor::DetectCursorPos;
@@ -21,6 +21,7 @@ struct UiState {
     bottom_index: u8,
     console_offset: u16,
     stdout: RawTerminal<Stdout>,
+    first: bool,
 }
 
 impl UiState {
@@ -29,6 +30,7 @@ impl UiState {
         // we overwrite the cursor. Maybe we shouldn't do this? (TODO)
         let mut stdout = stdout().into_raw_mode().unwrap();
         let lines_to_show: i8 = 8;
+        log::info!("fucking cursor pos: {}", stdout.cursor_pos().unwrap().1);
         let console_offset: u16 = stdout.cursor_pos().unwrap().1 - (&lines_to_show + 2) as u16;
 
         let mut state = UiState {
@@ -41,6 +43,7 @@ impl UiState {
             bottom_index: 0,
             console_offset,
             stdout,
+            first: true,
         };
         state.update_matches();
         state
@@ -130,7 +133,6 @@ impl UiState {
 
         // We can't have the index greater than the match count
         if self.selected_index >= match_count {
-            println!("shrinking");
             self.selected_index = match_count - 1;
         }
     }
@@ -206,6 +208,12 @@ impl UiState {
                 } else {
                     self.selected_index
                 }
+            }
+        }
+
+        if self.first {
+            for _ in 0..self.lines_to_show + 3 {
+                writeln!(self.stdout, "-")?;
             }
         }
 
