@@ -63,7 +63,7 @@ impl UiState {
         if self.selected_index > 0 {
             println!("{} - {}", self.selected_index, match_count);
             self.selected_index -= 1;
-        } else {
+        } else if self.top_index < (match_count - 1) as u8 {
             log::info!("not going up because we're at the limit");
             self.bottom_index += 1;
             self.top_index += 1;
