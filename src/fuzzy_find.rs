@@ -11,18 +11,23 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 
-struct UiState {
-    search_term: String,
-    selected_index: i8,
-    lines_to_show: i8,
-    fuzzy_functions: Vec<FuzzyFunction>,
-    matches: Option<Vec<FuzzyFunction>>,
+struct View {
     top_index: u8,
     bottom_index: u8,
+    lines_to_show: i8,
+    selected_index: i8,
+    //TODO change to contents
+    view: Option<Vec<Option<FuzzyFunction>>>,
+}
+
+struct UiState {
+    search_term: String,
+    fuzzy_functions: Vec<FuzzyFunction>,
+    matches: Option<Vec<FuzzyFunction>>,
     console_offset: u16,
     stdout: RawTerminal<Stdout>,
     first: bool,
-    view: Option<Vec<Option<FuzzyFunction>>>,
+    view: View,
 }
 
 impl UiState {
@@ -38,20 +43,20 @@ impl UiState {
             0
         };
 
-        // let console_offset: u16 = stdout.cursor_pos().unwrap().1 - (&lines_to_show + 2) as u16;
-
         let mut state = UiState {
             search_term: String::from(""),
-            selected_index: (lines_to_show - 1) as i8,
-            lines_to_show,
             fuzzy_functions: functions,
             matches: Option::None,
-            top_index: lines_to_show as u8 - 1,
-            bottom_index: 0,
             console_offset,
             stdout,
             first: true,
-            view: Option::None,
+            view: View {
+                view: Option::None,
+                top_index: lines_to_show as u8 - 1,
+                selected_index: (lines_to_show - 1) as i8,
+                lines_to_show,
+                bottom_index: 0,
+            },
         };
         state.update_matches();
         state
@@ -62,19 +67,19 @@ impl UiState {
         let match_count = self.matches.as_ref().unwrap().len() as i8;
         log::info!(
             "selected_index: {}, match_count: {}, bottom_index: {}, top_index: {}",
-            self.selected_index,
+            self.view.selected_index,
             match_count,
-            self.bottom_index,
-            self.top_index
+            self.view.bottom_index,
+            self.view.top_index
         );
         // if self.selected_index > 0 && self.selected_index < match_count {
-        if self.selected_index > 0 {
-            log::info!("{} - {}", self.selected_index, match_count);
-            self.selected_index -= 1;
-        } else if self.top_index < (match_count - 1) as u8 {
+        if self.view.selected_index > 0 {
+            log::info!("{} - {}", self.view.selected_index, match_count);
+            self.view.selected_index -= 1;
+        } else if self.view.top_index < (match_count - 1) as u8 {
             log::info!("not going up because we're at the limit");
-            self.bottom_index += 1;
-            self.top_index += 1;
+            self.view.bottom_index += 1;
+            self.view.top_index += 1;
         }
         self.render()
     }
@@ -84,26 +89,26 @@ impl UiState {
         let match_count = self.matches.as_ref().unwrap().len() as i8;
         log::info!(
             " selected_index: {}, match_count: {}, bottom_index: {}",
-            self.selected_index,
+            self.view.selected_index,
             match_count,
-            self.bottom_index,
+            self.view.bottom_index,
         );
         // if self.selected_index < match_count - 1 && self.selected_index >= self.bottom_index as i8 {
 
         // Should we move the selection down?
-        if self.selected_index < self.top_index as i8 {
+        if self.view.selected_index < self.view.top_index as i8 {
             log::info!("incrementing");
-            self.selected_index += 1;
+            self.view.selected_index += 1;
         }
 
         // Should we scroll down?
-        if self.selected_index > self.lines_to_show - 1 && self.bottom_index > 0 {
-            self.bottom_index -= 1;
-            self.top_index -= 1;
+        if self.view.selected_index > self.view.lines_to_show - 1 && self.view.bottom_index > 0 {
+            self.view.bottom_index -= 1;
+            self.view.top_index -= 1;
             // if we've scrolled down then we don't want to change the selected index
             // The selected index is for the view, so it stays the same.
-            if self.selected_index > 0 {
-                self.selected_index -= 1;
+            if self.view.selected_index > 0 {
+                self.view.selected_index -= 1;
             }
         } else {
             log::info!("not scrolling down own because we're at the limit");
@@ -140,8 +145,8 @@ impl UiState {
     }
 
     pub fn get_selected(&self) -> FuzzyFunction {
-        let view = &mut self.view.as_ref().unwrap().to_owned();
-        let index = self.selected_index as usize;
+        let view = &mut self.view.view.as_ref().unwrap().to_owned();
+        let index = self.view.selected_index as usize;
         let selected = view[index].as_ref().unwrap();
         selected.to_owned()
     }
@@ -163,8 +168,8 @@ impl UiState {
         self.matches = Some(matches);
 
         // We can't have the index greater than the match count
-        if self.selected_index >= match_count {
-            self.selected_index = match_count - 1;
+        if self.view.selected_index >= match_count {
+            self.view.selected_index = match_count - 1;
             log::info!("resetting selected_index against match count");
         }
     }
@@ -210,12 +215,16 @@ impl UiState {
     pub fn render(&mut self) -> Result<()> {
         log::info!("render, console_offset: {}", self.console_offset);
 
-        log::info!("bottom: {}, top: {}", self.bottom_index, self.top_index);
+        log::info!(
+            "bottom: {}, top: {}",
+            self.view.bottom_index,
+            self.view.top_index
+        );
 
         let matches = self.matches.as_ref().unwrap();
         let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
         // Get everything in our display window
-        for i in self.bottom_index..self.top_index + 1 {
+        for i in self.view.bottom_index..self.view.top_index + 1 {
             if matches.len() > (i).into() {
                 to_render.push(Option::Some(matches[i as usize].clone()));
             } else {
@@ -224,8 +233,8 @@ impl UiState {
         }
 
         to_render.reverse();
-        self.view = Some(to_render);
-        let view = self.view.as_ref().unwrap();
+        self.view.view = Some(to_render);
+        let view = self.view.view.as_ref().unwrap();
 
         // Now that the order is reversed our indexes will match. If the selected_index
         // is outside the range of what's selectable, i.e. our matches, then we need
@@ -234,17 +243,17 @@ impl UiState {
         // the number of matches shrinks.
         for (i, item) in view.iter().enumerate() {
             if item.is_none() {
-                log::info!("selected_index: {}, i: {}", self.selected_index, i);
-                self.selected_index = if self.selected_index <= i as i8 {
-                    self.lines_to_show - matches.len() as i8
+                log::info!("selected_index: {}, i: {}", self.view.selected_index, i);
+                self.view.selected_index = if self.view.selected_index <= i as i8 {
+                    self.view.lines_to_show - matches.len() as i8
                 } else {
-                    self.selected_index
+                    self.view.selected_index
                 }
             }
         }
 
         if self.first {
-            for _ in 0..self.lines_to_show + 3 {
+            for _ in 0..self.view.lines_to_show + 3 {
                 writeln!(self.stdout, " ")?;
             }
         }
@@ -265,7 +274,7 @@ impl UiState {
                     let coloured_line = UiState::get_coloured_line(
                         fuzzy_indecies,
                         thing,
-                        index == self.selected_index as usize,
+                        index == self.view.selected_index as usize,
                     );
                     writeln!(
                         self.stdout,
@@ -273,7 +282,7 @@ impl UiState {
                         termion::clear::CurrentLine,
                         format!(
                             "{}-{}-{}-{} ",
-                            self.selected_index,
+                            self.view.selected_index,
                             self.matches.as_ref().unwrap().len(),
                             index,
                             coloured_line,
@@ -287,7 +296,7 @@ impl UiState {
         }
 
         // Render the prompt
-        let prompt_y = self.lines_to_show as u16 + 1;
+        let prompt_y = self.view.lines_to_show as u16 + 1;
         let current_x = self.search_term.chars().count() + 2;
 
         write!(
@@ -403,7 +412,6 @@ pub struct FuzzyFunction {
     pub script: Script,
     pub function: Function,
     score: Option<(i64, Vec<usize>)>,
-    //TODO: add is_selected!
 }
 
 fn scripts_to_flat(scripts: &[Script]) -> Vec<FuzzyFunction> {
@@ -419,7 +427,6 @@ fn scripts_to_flat(scripts: &[Script]) -> Vec<FuzzyFunction> {
                     script.file_name(),
                     function.name
                 ),
-                // score: Option::None,
                 // We'll set the search scores to 100 so we get the initial list displayed:
                 // anything that has None has non match and doesn't get rendered.
                 score: Some((100, Vec::new())),
