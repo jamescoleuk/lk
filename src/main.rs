@@ -71,9 +71,8 @@ fn main() -> Result<()> {
 
     if args.fuzzy {
         let result = fuzzy_find_function(&scripts)?;
-        if result.is_some() {
-            let fuz = result.unwrap();
-            execute(fuz.script.to_owned(), fuz.function.to_owned(), [].to_vec())?;
+        if let Some(function) = result {
+            execute(function.script.to_owned(), function.function, [].to_vec())?;
         }
     } else {
         // Did the user request a script?
@@ -108,7 +107,7 @@ fn main() -> Result<()> {
 }
 
 fn execute(script: Script, function: Function, params: Vec<String>) -> Result<()> {
-    let bash_file = BashFile::new(script.to_owned(), function.to_owned(), params);
+    let bash_file = BashFile::new(script, function, params);
     bash_file.write()?;
     bash_file.execute()
 }

@@ -91,7 +91,7 @@ impl UiState {
         // if self.selected_index < match_count - 1 && self.selected_index >= self.bottom_index as i8 {
 
         // Should we move the selection down?
-        if self.selected_index <= self.top_index as i8 - 1 {
+        if self.selected_index < self.top_index as i8 {
             log::info!("incrementing");
             self.selected_index += 1;
         }
@@ -170,7 +170,7 @@ impl UiState {
     }
 
     fn get_coloured_line(
-        fuzzy_indecies: &Vec<usize>,
+        fuzzy_indecies: &[usize],
         matching: &FuzzyFunction,
         is_selected: bool,
     ) -> String {
