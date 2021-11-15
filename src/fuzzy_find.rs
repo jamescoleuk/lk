@@ -29,6 +29,22 @@ impl View {
             bottom_index: 0,
         }
     }
+
+    /// Takes the current matches and updates the visible contents.
+    pub fn update(&mut self, matches: &[FuzzyFunction]) {
+        let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
+        // Get everything in our display window
+        for i in self.bottom_index..self.top_index + 1 {
+            if matches.len() > (i).into() {
+                to_render.push(Option::Some(matches[i as usize].clone()));
+            } else {
+                to_render.push(Option::None);
+            }
+        }
+
+        to_render.reverse();
+        self.contents = Some(to_render);
+    }
 }
 
 struct UiState {
@@ -227,18 +243,9 @@ impl UiState {
         );
 
         let matches = self.matches.as_ref().unwrap();
-        let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
-        // Get everything in our display window
-        for i in self.view.bottom_index..self.view.top_index + 1 {
-            if matches.len() > (i).into() {
-                to_render.push(Option::Some(matches[i as usize].clone()));
-            } else {
-                to_render.push(Option::None);
-            }
-        }
 
-        to_render.reverse();
-        self.view.contents = Some(to_render);
+        self.view.update(matches);
+
         let view = self.view.contents.as_ref().unwrap();
 
         // Now that the order is reversed our indexes will match. If the selected_index
