@@ -16,7 +16,6 @@ struct View {
     bottom_index: u8,
     lines_to_show: i8,
     selected_index: i8,
-    //TODO change to contents
     contents: Option<Vec<Option<FuzzyFunction>>>,
 }
 
