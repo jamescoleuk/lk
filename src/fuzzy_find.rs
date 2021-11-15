@@ -19,6 +19,18 @@ struct View {
     contents: Option<Vec<Option<FuzzyFunction>>>,
 }
 
+impl View {
+    pub fn new(lines_to_show: i8) -> Self {
+        View {
+            contents: Option::None,
+            top_index: lines_to_show as u8 - 1,
+            selected_index: (lines_to_show - 1) as i8,
+            lines_to_show,
+            bottom_index: 0,
+        }
+    }
+}
+
 struct UiState {
     search_term: String,
     fuzzy_functions: Vec<FuzzyFunction>,
@@ -49,13 +61,7 @@ impl UiState {
             console_offset,
             stdout,
             first: true,
-            view: View {
-                contents: Option::None,
-                top_index: lines_to_show as u8 - 1,
-                selected_index: (lines_to_show - 1) as i8,
-                lines_to_show,
-                bottom_index: 0,
-            },
+            view: View::new(lines_to_show),
         };
         state.update_matches();
         state
