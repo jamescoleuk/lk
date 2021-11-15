@@ -17,7 +17,7 @@ struct View {
     lines_to_show: i8,
     selected_index: i8,
     //TODO change to contents
-    view: Option<Vec<Option<FuzzyFunction>>>,
+    contents: Option<Vec<Option<FuzzyFunction>>>,
 }
 
 struct UiState {
@@ -51,7 +51,7 @@ impl UiState {
             stdout,
             first: true,
             view: View {
-                view: Option::None,
+                contents: Option::None,
                 top_index: lines_to_show as u8 - 1,
                 selected_index: (lines_to_show - 1) as i8,
                 lines_to_show,
@@ -145,7 +145,7 @@ impl UiState {
     }
 
     pub fn get_selected(&self) -> FuzzyFunction {
-        let view = &mut self.view.view.as_ref().unwrap().to_owned();
+        let view = &mut self.view.contents.as_ref().unwrap().to_owned();
         let index = self.view.selected_index as usize;
         let selected = view[index].as_ref().unwrap();
         selected.to_owned()
@@ -233,8 +233,8 @@ impl UiState {
         }
 
         to_render.reverse();
-        self.view.view = Some(to_render);
-        let view = self.view.view.as_ref().unwrap();
+        self.view.contents = Some(to_render);
+        let view = self.view.contents.as_ref().unwrap();
 
         // Now that the order is reversed our indexes will match. If the selected_index
         // is outside the range of what's selectable, i.e. our matches, then we need
