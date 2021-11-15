@@ -16,6 +16,7 @@ use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
+use script::Function;
 use structopt::StructOpt;
 
 /// Use lk to explore and execute scripts in your current directory.
@@ -69,7 +70,11 @@ fn main() -> Result<()> {
     // });
 
     if args.fuzzy {
-        fuzzy_find_function(&scripts)?;
+        let result = fuzzy_find_function(&scripts);
+        if result.is_some() {
+            let fuz = result.unwrap();
+            execute(fuz.script.to_owned(), fuz.function.to_owned(), [].to_vec())?;
+        }
     } else {
         // Did the user request a script?
         if let Some(script) = args.script {
@@ -82,10 +87,7 @@ fn main() -> Result<()> {
                     // Is it a function that exists in the script we found?
                     if let Some(function) = script.get(&function) {
                         // Do our thing
-                        let bash_file =
-                            BashFile::new(script.to_owned(), function.to_owned(), args.params);
-                        bash_file.write()?;
-                        bash_file.execute()?;
+                        execute(script.to_owned(), function.to_owned(), args.params)?;
                     } else {
                         print_bad_function_name(&script, &function);
                     }
@@ -103,4 +105,10 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn execute(script: Script, function: Function, params: Vec<String>) -> Result<()> {
+    let bash_file = BashFile::new(script.to_owned(), function.to_owned(), params);
+    bash_file.write()?;
+    bash_file.execute()
 }

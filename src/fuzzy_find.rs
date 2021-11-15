@@ -22,6 +22,7 @@ struct UiState {
     console_offset: u16,
     stdout: RawTerminal<Stdout>,
     first: bool,
+    view: Option<Vec<Option<FuzzyFunction>>>,
 }
 
 impl UiState {
@@ -30,8 +31,14 @@ impl UiState {
         // we overwrite the cursor. Maybe we shouldn't do this? (TODO)
         let mut stdout = stdout().into_raw_mode().unwrap();
         let lines_to_show: i8 = 8;
-        log::info!("fucking cursor pos: {}", stdout.cursor_pos().unwrap().1);
-        let console_offset: u16 = stdout.cursor_pos().unwrap().1 - (&lines_to_show + 2) as u16;
+        let console_offset = if stdout.cursor_pos().is_ok() {
+            stdout.cursor_pos().unwrap().1 - (&lines_to_show + 2) as u16
+        } else {
+            log::error!("Cannot get cursor!");
+            0
+        };
+
+        // let console_offset: u16 = stdout.cursor_pos().unwrap().1 - (&lines_to_show + 2) as u16;
 
         let mut state = UiState {
             search_term: String::from(""),
@@ -44,6 +51,7 @@ impl UiState {
             console_offset,
             stdout,
             first: true,
+            view: Option::None,
         };
         state.update_matches();
         state
@@ -131,6 +139,13 @@ impl UiState {
         self.render()
     }
 
+    pub fn get_selected(&self) -> FuzzyFunction {
+        let view = &mut self.view.as_ref().unwrap().to_owned();
+        let index = self.selected_index as usize;
+        let selected = view[index].as_ref().unwrap();
+        selected.to_owned()
+    }
+
     /// Gets functions that match our current criteria, sorted by score.
     fn update_matches(&mut self) {
         log::info!("------------- update_matches -------------");
@@ -195,11 +210,10 @@ impl UiState {
     pub fn render(&mut self) -> Result<()> {
         log::info!("render, console_offset: {}", self.console_offset);
 
-        let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
-        let matches = self.matches.as_ref().unwrap();
-
         log::info!("bottom: {}, top: {}", self.bottom_index, self.top_index);
 
+        let matches = self.matches.as_ref().unwrap();
+        let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
         // Get everything in our display window
         for i in self.bottom_index..self.top_index + 1 {
             if matches.len() > (i).into() {
@@ -209,15 +223,16 @@ impl UiState {
             }
         }
 
-        // Render the searched lines -- we're actually going to reverse the order now.
         to_render.reverse();
+        self.view = Some(to_render);
+        let view = self.view.as_ref().unwrap();
 
         // Now that the order is reversed our indexes will match. If the selected_index
         // is outside the range of what's selectable, i.e. our matches, then we need
         // to gently reset it back to the limit. This prevents the selection going onto
         // blank lines and also moves the selection to the top of the matches when
         // the number of matches shrinks.
-        for (i, item) in to_render.iter().enumerate() {
+        for (i, item) in view.iter().enumerate() {
             if item.is_none() {
                 log::info!("selected_index: {}, i: {}", self.selected_index, i);
                 self.selected_index = if self.selected_index <= i as i8 {
@@ -234,9 +249,9 @@ impl UiState {
             }
         }
 
-        log::info!("Rendering lines ({}):", to_render.len());
+        log::info!("Rendering lines ({}):", view.len());
 
-        for (index, item) in to_render.iter().enumerate() {
+        for (index, item) in view.iter().enumerate() {
             write!(
                 self.stdout,
                 "{}",
@@ -297,12 +312,12 @@ impl UiState {
     }
 }
 
-pub fn fuzzy_find_function(scripts: &[Script]) -> Result<()> {
+pub fn fuzzy_find_function(scripts: &[Script]) -> Option<FuzzyFunction> {
     let fuzzy_functions = scripts_to_flat(scripts);
 
     let mut state = UiState::new(fuzzy_functions);
 
-    state.render()?;
+    state.render();
 
     let mut stdin = termion::async_stdin().keys();
 
@@ -334,11 +349,11 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<()> {
 
                 // This captures the enter key
                 Key::Char('\n') => {
-                    // TODO: if there's something selected
-                    //           run the thing
-                    //       else
-                    //           nothing, or a watnin
-                    break;
+                    return if state.matches.is_some() {
+                        Some(state.get_selected())
+                    } else {
+                        None
+                    };
                 }
                 Key::Char(c) => {
                     if !escaped.is_empty() {
@@ -348,11 +363,11 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<()> {
                             "^[[" => continue,
                             "^[[A" => {
                                 escaped = String::from("");
-                                state.up()?;
+                                state.up();
                             }
                             "^[[B" => {
                                 escaped = String::from("");
-                                state.down()?;
+                                state.down();
                             }
                             _ => {
                                 // This is nothing we recognise so let's abandon the escape sequence.
@@ -360,7 +375,7 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<()> {
                             }
                         }
                     } else {
-                        state.append(c)?;
+                        state.append(c);
                     }
                 }
                 Key::Esc => {
@@ -372,7 +387,7 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<()> {
                     }
                 }
                 Key::Backspace => {
-                    state.backspace()?;
+                    state.backspace();
                 }
                 _ => {}
             }
@@ -380,13 +395,13 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<()> {
         }
     }
     write!(state.stdout, "{}", termion::cursor::Show).unwrap();
-    Ok(())
+    None
 }
 #[derive(Clone)]
-struct FuzzyFunction {
+pub struct FuzzyFunction {
     long_name: String,
-    script: Script,
-    function: Function,
+    pub script: Script,
+    pub function: Function,
     score: Option<(i64, Vec<usize>)>,
     //TODO: add is_selected!
 }
