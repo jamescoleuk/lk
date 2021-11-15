@@ -70,7 +70,7 @@ fn main() -> Result<()> {
     // });
 
     if args.fuzzy {
-        let result = fuzzy_find_function(&scripts);
+        let result = fuzzy_find_function(&scripts)?;
         if result.is_some() {
             let fuz = result.unwrap();
             execute(fuz.script.to_owned(), fuz.function.to_owned(), [].to_vec())?;

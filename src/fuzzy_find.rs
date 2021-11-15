@@ -4,7 +4,7 @@ use crossterm::style::Stylize;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::io::{stdout, Stdout, Write};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use termion::color;
 use termion::cursor::DetectCursorPos;
 use termion::event::Key;
@@ -312,12 +312,12 @@ impl UiState {
     }
 }
 
-pub fn fuzzy_find_function(scripts: &[Script]) -> Option<FuzzyFunction> {
+pub fn fuzzy_find_function(scripts: &[Script]) -> Result<Option<FuzzyFunction>> {
     let fuzzy_functions = scripts_to_flat(scripts);
 
     let mut state = UiState::new(fuzzy_functions);
 
-    state.render();
+    state.render()?;
 
     let mut stdin = termion::async_stdin().keys();
 
@@ -350,9 +350,9 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Option<FuzzyFunction> {
                 // This captures the enter key
                 Key::Char('\n') => {
                     return if state.matches.is_some() {
-                        Some(state.get_selected())
+                        Ok(Some(state.get_selected()))
                     } else {
-                        None
+                        Ok(None)
                     };
                 }
                 Key::Char(c) => {
@@ -363,11 +363,11 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Option<FuzzyFunction> {
                             "^[[" => continue,
                             "^[[A" => {
                                 escaped = String::from("");
-                                state.up();
+                                state.up()?;
                             }
                             "^[[B" => {
                                 escaped = String::from("");
-                                state.down();
+                                state.down()?;
                             }
                             _ => {
                                 // This is nothing we recognise so let's abandon the escape sequence.
@@ -375,7 +375,7 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Option<FuzzyFunction> {
                             }
                         }
                     } else {
-                        state.append(c);
+                        state.append(c)?;
                     }
                 }
                 Key::Esc => {
@@ -387,7 +387,7 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Option<FuzzyFunction> {
                     }
                 }
                 Key::Backspace => {
-                    state.backspace();
+                    state.backspace()?;
                 }
                 _ => {}
             }
@@ -395,7 +395,7 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Option<FuzzyFunction> {
         }
     }
     write!(state.stdout, "{}", termion::cursor::Show).unwrap();
-    None
+    Ok(None)
 }
 #[derive(Clone)]
 pub struct FuzzyFunction {
