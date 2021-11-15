@@ -42,6 +42,22 @@ impl View {
             }
         }
 
+        // Now that the order is reversed our indexes will match. If the selected_index
+        // is outside the range of what's selectable, i.e. our matches, then we need
+        // to gently reset it back to the limit. This prevents the selection going onto
+        // blank lines and also moves the selection to the top of the matches when
+        // the number of matches shrinks.
+        for (i, item) in to_render.iter().enumerate() {
+            if item.is_none() {
+                log::info!("selected_index: {}, i: {}", self.selected_index, i);
+                self.selected_index = if self.selected_index <= i as i8 {
+                    self.lines_to_show - matches.len() as i8
+                } else {
+                    self.selected_index
+                }
+            }
+        }
+
         to_render.reverse();
         self.contents = Some(to_render);
     }
@@ -248,26 +264,13 @@ impl UiState {
 
         let view = self.view.contents.as_ref().unwrap();
 
-        // Now that the order is reversed our indexes will match. If the selected_index
-        // is outside the range of what's selectable, i.e. our matches, then we need
-        // to gently reset it back to the limit. This prevents the selection going onto
-        // blank lines and also moves the selection to the top of the matches when
-        // the number of matches shrinks.
-        for (i, item) in view.iter().enumerate() {
-            if item.is_none() {
-                log::info!("selected_index: {}, i: {}", self.view.selected_index, i);
-                self.view.selected_index = if self.view.selected_index <= i as i8 {
-                    self.view.lines_to_show - matches.len() as i8
-                } else {
-                    self.view.selected_index
-                }
-            }
-        }
-
+        // Drop down so we don't over-write the terminal line that instigated
+        // this run of lk.
         if self.first {
             for _ in 0..self.view.lines_to_show + 3 {
                 writeln!(self.stdout, " ")?;
             }
+            self.first = false
         }
 
         log::info!("Rendering lines ({}):", view.len());
