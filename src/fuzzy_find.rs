@@ -61,7 +61,7 @@ impl UiState {
         );
         // if self.selected_index > 0 && self.selected_index < match_count {
         if self.selected_index > 0 {
-            println!("{} - {}", self.selected_index, match_count);
+            log::info!("{} - {}", self.selected_index, match_count);
             self.selected_index -= 1;
         } else if self.top_index < (match_count - 1) as u8 {
             log::info!("not going up because we're at the limit");
@@ -94,7 +94,9 @@ impl UiState {
             self.top_index -= 1;
             // if we've scrolled down then we don't want to change the selected index
             // The selected index is for the view, so it stays the same.
-            self.selected_index -= 1;
+            if self.selected_index > 0 {
+                self.selected_index -= 1;
+            }
         } else {
             log::info!("not scrolling down own because we're at the limit");
         }
@@ -148,6 +150,7 @@ impl UiState {
         // We can't have the index greater than the match count
         if self.selected_index >= match_count {
             self.selected_index = match_count - 1;
+            log::info!("resetting selected_index against match count");
         }
     }
 
