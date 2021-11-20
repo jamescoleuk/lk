@@ -1,5 +1,3 @@
-use crate::fuzzy_find::FuzzyFunction;
-
 #[derive(Clone)]
 pub struct Item<T>
 where
