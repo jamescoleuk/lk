@@ -1,3 +1,4 @@
+use crate::fuzzy::{Item, View};
 use crate::script::{Function, Script};
 use anyhow::Result;
 use crossterm::style::Stylize;
@@ -11,58 +12,6 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 
-struct View {
-    top_index: u8,
-    bottom_index: u8,
-    lines_to_show: i8,
-    selected_index: i8,
-    contents: Option<Vec<Option<FuzzyFunction>>>,
-}
-
-impl View {
-    pub fn new(lines_to_show: i8) -> Self {
-        View {
-            contents: Option::None,
-            top_index: lines_to_show as u8 - 1,
-            selected_index: (lines_to_show - 1) as i8,
-            lines_to_show,
-            bottom_index: 0,
-        }
-    }
-
-    /// Takes the current matches and updates the visible contents.
-    pub fn update(&mut self, matches: &[FuzzyFunction]) {
-        let mut to_render: Vec<Option<FuzzyFunction>> = Vec::new();
-        // Get everything in our display window
-        for i in self.bottom_index..self.top_index + 1 {
-            if matches.len() > (i).into() {
-                to_render.push(Option::Some(matches[i as usize].clone()));
-            } else {
-                to_render.push(Option::None);
-            }
-        }
-
-        // Now that the order is reversed our indexes will match. If the selected_index
-        // is outside the range of what's selectable, i.e. our matches, then we need
-        // to gently reset it back to the limit. This prevents the selection going onto
-        // blank lines and also moves the selection to the top of the matches when
-        // the number of matches shrinks.
-        for (i, item) in to_render.iter().enumerate() {
-            if item.is_none() {
-                log::info!("selected_index: {}, i: {}", self.selected_index, i);
-                self.selected_index = if self.selected_index <= i as i8 {
-                    self.lines_to_show - matches.len() as i8
-                } else {
-                    self.selected_index
-                }
-            }
-        }
-
-        to_render.reverse();
-        self.contents = Some(to_render);
-    }
-}
-
 struct UiState {
     search_term: String,
     fuzzy_functions: Vec<FuzzyFunction>,
@@ -70,7 +19,7 @@ struct UiState {
     console_offset: u16,
     stdout: RawTerminal<Stdout>,
     first: bool,
-    view: View,
+    view: View<FuzzyFunction>,
 }
 
 impl UiState {
@@ -181,11 +130,11 @@ impl UiState {
         self.render()
     }
 
-    pub fn get_selected(&self) -> FuzzyFunction {
-        let view = &mut self.view.contents.as_ref().unwrap().to_owned();
+    pub fn get_selected(&self) -> &Item<FuzzyFunction> {
+        let view = &mut self.view.contents.as_ref().unwrap();
         let index = self.view.selected_index as usize;
-        let selected = view[index].as_ref().unwrap();
-        selected.to_owned()
+        let selected = &view[index];
+        selected
     }
 
     /// Gets functions that match our current criteria, sorted by score.
@@ -211,17 +160,13 @@ impl UiState {
         }
     }
 
-    fn get_coloured_line(
-        fuzzy_indecies: &[usize],
-        matching: &FuzzyFunction,
-        is_selected: bool,
-    ) -> String {
+    fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) -> String {
         // Do some string manipulation to colourise the indexed parts
         let mut coloured_line = String::from("");
         let mut start = 0;
         for i in fuzzy_indecies {
-            let part = &matching.long_name[start..*i];
-            let matching_char = &matching.long_name[*i..*i + 1];
+            let part = &text[start..*i];
+            let matching_char = &text[*i..*i + 1];
             if is_selected {
                 coloured_line = format!(
                     "{}{}{}",
@@ -239,7 +184,7 @@ impl UiState {
             }
             start = i + 1;
         }
-        let remaining_chars = &matching.long_name[start..matching.long_name.chars().count()];
+        let remaining_chars = &text[start..text.chars().count()];
         if is_selected {
             coloured_line = format!("{}{}", coloured_line, remaining_chars.on_dark_grey());
         } else {
@@ -259,8 +204,16 @@ impl UiState {
         );
 
         let matches = self.matches.as_ref().unwrap();
-
-        self.view.update(matches);
+        let items: Vec<Item<FuzzyFunction>> = matches
+            .iter()
+            .map(|ff| Item {
+                is_blank: false,
+                name: ff.long_name.clone(),
+                score: ff.score.as_ref().unwrap().to_owned(),
+                item: Some(ff.to_owned()),
+            })
+            .collect();
+        self.view.update(&items);
 
         let view = self.view.contents.as_ref().unwrap();
 
@@ -281,33 +234,30 @@ impl UiState {
                 "{}",
                 termion::cursor::Goto(1, index as u16 + 1 + self.console_offset),
             )?;
-            match item {
-                Some(thing) => {
-                    let fuzzy_indecies = &thing.score.as_ref().unwrap().1;
+            if item.is_blank {
+                writeln!(self.stdout, "{}", termion::clear::CurrentLine,)?;
+            } else {
+                let fuzzy_indecies = &item.score.1;
 
-                    // Do some string manipulation to colourise the indexed parts
-                    let coloured_line = UiState::get_coloured_line(
-                        fuzzy_indecies,
-                        thing,
-                        index == self.view.selected_index as usize,
-                    );
-                    writeln!(
-                        self.stdout,
-                        "{}{}",
-                        termion::clear::CurrentLine,
-                        format!(
-                            "{}-{}-{}-{} ",
-                            self.view.selected_index,
-                            self.matches.as_ref().unwrap().len(),
-                            index,
-                            coloured_line,
-                        )
-                    )?;
-                }
-                None => {
-                    writeln!(self.stdout, "{}", termion::clear::CurrentLine,)?;
-                }
-            };
+                // Do some string manipulation to colourise the indexed parts
+                let coloured_line = UiState::get_coloured_line(
+                    &fuzzy_indecies,
+                    &item.name,
+                    index == self.view.selected_index as usize,
+                );
+                writeln!(
+                    self.stdout,
+                    "{}{}",
+                    termion::clear::CurrentLine,
+                    format!(
+                        "{}-{}-{}-{} ",
+                        self.view.selected_index,
+                        self.matches.as_ref().unwrap().len(),
+                        index,
+                        coloured_line,
+                    )
+                )?;
+            }
         }
 
         // Render the prompt
@@ -355,7 +305,7 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<Option<FuzzyFunction>> 
         // E.g. up is ^[[A and down is ^[[B. So the question is how do we identify an escape
         // key by itself? If it's ^[[A then that's ^[ followed almost instantly by [A. If we have
         // ^[ followed by a pause then we know it's not an escape for some other key, but an
-        // escape by itself. That's what the 100 is below.
+        // escape by itself. That's what the 100 136His below.
         // NB: some terminals might send these bytes too slowly and escape might not be caught.
         // NB: some terminals might use different escape keys entirely.
         if escaped == "^[" && instant.elapsed().as_micros() > 100 {
@@ -374,7 +324,7 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<Option<FuzzyFunction>> 
                 // This captures the enter key
                 Key::Char('\n') => {
                     return if state.matches.is_some() {
-                        Ok(Some(state.get_selected()))
+                        Ok(Some(state.get_selected().item.as_ref().unwrap().to_owned()))
                     } else {
                         Ok(None)
                     };
@@ -423,10 +373,10 @@ pub fn fuzzy_find_function(scripts: &[Script]) -> Result<Option<FuzzyFunction>> 
 }
 #[derive(Clone)]
 pub struct FuzzyFunction {
-    long_name: String,
+    pub long_name: String,
     pub script: Script,
     pub function: Function,
-    score: Option<(i64, Vec<usize>)>,
+    pub score: Option<(i64, Vec<usize>)>,
 }
 
 fn scripts_to_flat(scripts: &[Script]) -> Vec<FuzzyFunction> {

@@ -1,5 +1,6 @@
 mod bash_file;
 mod executables;
+mod fuzzy;
 mod fuzzy_find;
 mod script;
 pub mod ui;
@@ -106,6 +107,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+//TODO Move this to bash_file.rs
 fn execute(script: Script, function: Function, params: Vec<String>) -> Result<()> {
     let bash_file = BashFile::new(script, function, params);
     bash_file.write()?;
