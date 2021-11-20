@@ -36,7 +36,7 @@ where
         }
     }
 
-    pub fn up(&mut self, matches: &Vec<Item<T>>) {
+    pub fn up(&mut self, matches: &[Item<T>]) {
         log::info!("------------- up -------------");
         let match_count = matches.len() as i8;
         log::info!(
@@ -101,16 +101,16 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
-    use crate::script::{Function, Script};
 
     use super::*;
+
+    #[derive(Clone)]
+    struct TestItem {}
 
     #[test]
     fn test_up() {
         // Given
-        let mut view = View::<FuzzyFunction>::new(8);
+        let mut view = View::<TestItem>::new(8);
         //TODO This is way too long and complicated. It's the domain model's struct
         //     not the view's struct. I need a trait (Item) and have FuzzyFunction
         //     implement that. That'll maek this much easier to stub, and then I can

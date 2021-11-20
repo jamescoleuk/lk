@@ -133,8 +133,7 @@ impl UiState {
     pub fn get_selected(&self) -> &Item<FuzzyFunction> {
         let view = &mut self.view.contents.as_ref().unwrap();
         let index = self.view.selected_index as usize;
-        let selected = &view[index];
-        selected
+        &view[index]
     }
 
     /// Gets functions that match our current criteria, sorted by score.
