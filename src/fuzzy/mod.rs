@@ -1,8 +1,8 @@
 use crossterm::style::Stylize;
 
-pub mod Item;
-pub mod UiState;
-pub mod View;
+pub mod item;
+pub mod ui_state;
+pub mod view;
 // use crate::fuzzy::Item::Item;
 
 fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) -> String {

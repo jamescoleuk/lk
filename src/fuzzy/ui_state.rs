@@ -1,5 +1,4 @@
 use anyhow::Result;
-use crossterm::style::Stylize;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::io::{stdout, Stdout, Write};
@@ -12,8 +11,8 @@ use termion::raw::{IntoRawMode, RawTerminal};
 
 use crate::fuzzy::get_coloured_line;
 
-use super::Item::Item;
-use super::View::View;
+use super::item::Item;
+use super::view::View;
 
 pub struct UiState<T>
 where

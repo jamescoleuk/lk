@@ -4,7 +4,7 @@ mod fuzzy;
 mod script;
 pub mod ui;
 use crate::{
-    fuzzy::UiState::UiState,
+    fuzzy::ui_state::UiState,
     script::Script,
     ui::{print_bad_function_name, print_bad_script_name},
 };
@@ -12,7 +12,7 @@ use crate::{
 use anyhow::Result;
 use bash_file::BashFile;
 use executables::Executables;
-use fuzzy::Item::Item;
+use fuzzy::item::Item;
 use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Config, Root};
