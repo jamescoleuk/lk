@@ -181,4 +181,90 @@ mod tests {
         assert_eq!(contents.len(), lines_to_show as usize);
         assert_eq!(view.selected_index, lines_to_show - 1);
     }
+
+    #[test]
+    fn test_up() {
+        // GIVEN
+        let lines_to_show = 8;
+        let mut view = View::<TestItem>::new(lines_to_show);
+        let setup = Setup::new();
+        view.update(&setup.items);
+
+        // WHEN
+        view.up(&setup.items); // 6
+        view.up(&setup.items); // 5
+        view.up(&setup.items); // 4
+
+        // THEN
+        let contents = view.contents.unwrap();
+        assert_eq!(contents.len(), lines_to_show as usize);
+        assert_eq!(view.selected_index, 4);
+    }
+
+    #[test]
+    fn test_up_to_extremis() {
+        // GIVEN
+        let lines_to_show = 8;
+        let mut view = View::<TestItem>::new(lines_to_show);
+        let setup = Setup::new();
+        view.update(&setup.items);
+
+        // WHEN
+        // More than lines_to_show
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+        view.up(&setup.items);
+
+        // THEN
+        let contents = view.contents.unwrap();
+        assert_eq!(contents.len(), lines_to_show as usize);
+        assert_eq!(view.selected_index, 0);
+    }
+
+    #[test]
+    fn test_down_at_bottom() {
+        // GIVEN
+        let lines_to_show = 8;
+        let mut view = View::<TestItem>::new(lines_to_show);
+        let setup = Setup::new();
+        view.update(&setup.items);
+
+        // WHEN
+        view.down(&setup.items); // 7
+
+        // THEN
+        let contents = view.contents.unwrap();
+        assert_eq!(contents.len(), lines_to_show as usize);
+        assert_eq!(view.selected_index, 7);
+    }
+
+    #[test]
+    fn test_down() {
+        // GIVEN
+        let lines_to_show = 8;
+        let mut view = View::<TestItem>::new(lines_to_show);
+        let setup = Setup::new();
+        view.update(&setup.items);
+
+        // WHEN
+        view.up(&setup.items); // 6
+        view.up(&setup.items); // 5
+        view.up(&setup.items); // 4
+        view.down(&setup.items); // 5
+
+        // THEN
+        let contents = view.contents.unwrap();
+        assert_eq!(contents.len(), lines_to_show as usize);
+        assert_eq!(view.selected_index, 5);
+    }
 }
