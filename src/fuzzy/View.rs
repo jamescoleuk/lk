@@ -127,43 +127,58 @@ mod tests {
     use super::*;
 
     #[derive(Clone)]
-    struct TestItem {}
+    struct TestItem {
+        name: String,
+    }
+
+    fn item(name: &str) -> Item<TestItem> {
+        Item::new(
+            String::from(name),
+            TestItem {
+                name: String::from(name),
+            },
+        )
+    }
+
+    struct Setup {
+        items: Vec<Item<TestItem>>,
+    }
+
+    impl Setup {
+        fn new() -> Self {
+            Setup {
+                items: vec![
+                    item("A"),
+                    item("B"),
+                    item("C"),
+                    item("D"),
+                    item("E"),
+                    item("F"),
+                    item("G"),
+                    item("H"),
+                    item("I"),
+                    item("J"),
+                    item("K"),
+                    item("L"),
+                    item("M"),
+                ],
+            }
+        }
+    }
 
     #[test]
-    fn test_up() {
-        // Given
-        let mut view = View::<TestItem>::new(8);
-        //TODO This is way too long and complicated. It's the domain model's struct
-        //     not the view's struct. I need a trait (Item) and have FuzzyFunction
-        //     implement that. That'll maek this much easier to stub, and then I can
-        //     properly test the up and and so on, without it all being tied into the
-        //     bloody display! When the tests pass it works. That'll be fab.
-        let items = vec![Item::empty()];
-        // let matches = vec![FuzzyFunction {
-        //     long_name: String::from("foo1"),
-        //     script: Script {
-        //         path: PathBuf::new(),
-        //         absolute_path: PathBuf::new(),
-        //         comment: vec!["Some".to_string(), "Comment".to_string()],
-        //         functions: vec![Function {
-        //             name: String::from("some function name"),
-        //             comment: vec!["comment".to_string()],
-        //         }],
-        //     },
-        //     function: Function {
-        //         name: String::from("some function name"),
-        //         comment: vec!["comment".to_string()],
-        //     },
-        //     score: Some((100, Vec::new())),
-        // }];
-        view.update(&items);
+    fn test_update() {
+        // GIVEN
+        let lines_to_show = 8;
+        let mut view = View::<TestItem>::new(lines_to_show);
+        let setup = Setup::new();
 
-        // WHen
-        view.up(&items);
+        // WHEN
+        view.update(&setup.items);
 
-        // Then
+        // THEN
         let contents = view.contents.unwrap();
-        assert_eq!(contents.len(), 1);
-        // assert_eq!(clean_comment_line("#First line"), "First line");
+        assert_eq!(contents.len(), lines_to_show as usize);
+        assert_eq!(view.selected_index, lines_to_show - 1);
     }
 }
