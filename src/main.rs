@@ -1,19 +1,18 @@
 mod bash_file;
 mod executables;
 mod fuzzy;
-mod fuzzy_find;
 mod script;
 pub mod ui;
 use crate::{
-    fuzzy_find::UiState,
+    fuzzy::UiState::UiState,
     script::Script,
     ui::{print_bad_function_name, print_bad_script_name},
 };
-use fuzzy::Item;
 
 use anyhow::Result;
 use bash_file::BashFile;
 use executables::Executables;
+use fuzzy::Item::Item;
 use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Config, Root};

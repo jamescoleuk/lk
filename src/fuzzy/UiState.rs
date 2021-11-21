@@ -1,4 +1,3 @@
-use crate::fuzzy::{Item, View};
 use anyhow::Result;
 use crossterm::style::Stylize;
 use fuzzy_matcher::skim::SkimMatcherV2;
@@ -10,6 +9,11 @@ use termion::cursor::DetectCursorPos;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
+
+use crate::fuzzy::get_coloured_line;
+
+use super::Item::Item;
+use super::View::View;
 
 pub struct UiState<T>
 where
@@ -329,37 +333,4 @@ where
         write!(state.stdout, "{}", termion::cursor::Show).unwrap();
         Ok(None)
     }
-}
-
-fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) -> String {
-    // Do some string manipulation to colourise the indexed parts
-    let mut coloured_line = String::from("");
-    let mut start = 0;
-    for i in fuzzy_indecies {
-        let part = &text[start..*i];
-        let matching_char = &text[*i..*i + 1];
-        if is_selected {
-            coloured_line = format!(
-                "{}{}{}",
-                coloured_line,
-                &part.on_dark_grey(),
-                &matching_char.on_dark_blue()
-            );
-        } else {
-            coloured_line = format!(
-                "{}{}{}",
-                coloured_line,
-                &part,
-                &matching_char.on_dark_blue()
-            );
-        }
-        start = i + 1;
-    }
-    let remaining_chars = &text[start..text.chars().count()];
-    if is_selected {
-        coloured_line = format!("{}{}", coloured_line, remaining_chars.on_dark_grey());
-    } else {
-        coloured_line = format!("{}{}", coloured_line, remaining_chars);
-    }
-    coloured_line
 }
