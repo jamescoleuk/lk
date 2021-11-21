@@ -72,9 +72,9 @@ fn main() -> Result<()> {
     // });
 
     if args.fuzzy {
-        let result = UiState::fuzzy_find_function(scripts_to_flat(&scripts)).unwrap();
+        let result = UiState::fuzzy_find_function(scripts_to_item(&scripts)).unwrap();
         if let Some(function) = result {
-            execute(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
+            BashFile::run(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
         }
     } else {
         // Did the user request a script?
@@ -88,7 +88,7 @@ fn main() -> Result<()> {
                     // Is it a function that exists in the script we found?
                     if let Some(function) = script.get(&function) {
                         // Do our thing
-                        execute(script.to_owned(), function.to_owned(), args.params)?;
+                        BashFile::run(script.to_owned(), function.to_owned(), args.params)?;
                     } else {
                         print_bad_function_name(&script, &function);
                     }
@@ -108,16 +108,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-//TODO Move this to bash_file.rs
-fn execute(script: Script, function: Function, params: Vec<String>) -> Result<()> {
-    let bash_file = BashFile::new(script, function, params);
-    bash_file.write()?;
-    bash_file.execute()
-}
-
-// TODO: This needs to be kicked out!
-// TODO: I guess I'll migrate stuff out of this and into mod.
-fn scripts_to_flat(scripts: &[Script]) -> Vec<Item<(&Script, &Function)>> {
+fn scripts_to_item(scripts: &[Script]) -> Vec<Item<(&Script, &Function)>> {
     let mut fuzzy_functions: Vec<Item<(&Script, &Function)>> = Vec::new();
     scripts.iter().for_each(|script| {
         script.functions.iter().for_each(|function| {

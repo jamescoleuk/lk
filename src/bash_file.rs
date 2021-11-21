@@ -34,6 +34,12 @@ impl BashFile {
         }
     }
 
+    pub fn run(script: Script, function: Function, params: Vec<String>) -> Result<()> {
+        let bash_file = BashFile::new(script, function, params);
+        bash_file.write()?;
+        bash_file.execute()
+    }
+
     /// lk uses a temporary file in order to execute a function in a script. This temporary file
     /// sources the script we're going to execute and then it can run the function because it'll
     /// have been loaded into the shell. `std::process::Command` has no way to do this. An alternative
