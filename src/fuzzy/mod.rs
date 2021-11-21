@@ -5,8 +5,31 @@ where
 {
     pub is_blank: bool,
     pub name: String,
-    pub score: (i64, Vec<usize>),
+    pub score: Option<(i64, Vec<usize>)>,
     pub item: Option<T>,
+}
+
+impl<T> Item<T>
+where
+    T: Clone,
+{
+    pub fn new(name: String, item: T) -> Self {
+        Item::<T> {
+            is_blank: false,
+            name,
+            item: Some(item),
+            score: None,
+        }
+    }
+
+    pub fn empty() -> Self {
+        Item::<T> {
+            is_blank: true,
+            name: "".to_string(),
+            score: None,
+            item: None,
+        }
+    }
 }
 
 pub struct View<T>
@@ -68,12 +91,7 @@ where
                 // to_render.push(Option::Some(matches[i as usize].clone()));
                 to_render.push(matches[i as usize].clone());
             } else {
-                to_render.push(Item {
-                    is_blank: true,
-                    name: "".to_string(),
-                    score: (0, vec![]),
-                    item: None,
-                });
+                to_render.push(Item::empty());
                 // to_render.push(Option::None);
             }
         }
@@ -116,12 +134,7 @@ mod tests {
         //     implement that. That'll maek this much easier to stub, and then I can
         //     properly test the up and and so on, without it all being tied into the
         //     bloody display! When the tests pass it works. That'll be fab.
-        let items = vec![Item {
-            is_blank: false,
-            score: (0, vec![]),
-            name: "some name".to_string(),
-            item: None,
-        }];
+        let items = vec![Item::empty()];
         // let matches = vec![FuzzyFunction {
         //     long_name: String::from("foo1"),
         //     script: Script {

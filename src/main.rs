@@ -5,10 +5,11 @@ mod fuzzy_find;
 mod script;
 pub mod ui;
 use crate::{
+    fuzzy_find::UiState,
     script::Script,
     ui::{print_bad_function_name, print_bad_script_name},
 };
-use fuzzy_find::fuzzy_find_function;
+use fuzzy::Item;
 
 use anyhow::Result;
 use bash_file::BashFile;
@@ -71,9 +72,9 @@ fn main() -> Result<()> {
     // });
 
     if args.fuzzy {
-        let result = fuzzy_find_function(&scripts)?;
+        let result = UiState::fuzzy_find_function(scripts_to_flat(&scripts)).unwrap();
         if let Some(function) = result {
-            execute(function.script.to_owned(), function.function, [].to_vec())?;
+            execute(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
         }
     } else {
         // Did the user request a script?
@@ -112,4 +113,24 @@ fn execute(script: Script, function: Function, params: Vec<String>) -> Result<()
     let bash_file = BashFile::new(script, function, params);
     bash_file.write()?;
     bash_file.execute()
+}
+
+// TODO: This needs to be kicked out!
+// TODO: I guess I'll migrate stuff out of this and into mod.
+fn scripts_to_flat(scripts: &[Script]) -> Vec<Item<(&Script, &Function)>> {
+    let mut fuzzy_functions: Vec<Item<(&Script, &Function)>> = Vec::new();
+    scripts.iter().for_each(|script| {
+        script.functions.iter().for_each(|function| {
+            fuzzy_functions.push(Item::new(
+                format!(
+                    "{}/{} - {}",
+                    script.path(),
+                    script.file_name(),
+                    function.name
+                ),
+                (script, function),
+            ))
+        })
+    });
+    fuzzy_functions
 }
