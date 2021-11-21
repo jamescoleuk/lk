@@ -58,57 +58,12 @@ where
     }
 
     pub fn up(&mut self) -> Result<()> {
-        log::info!("------------- up -------------");
-        let match_count = self.matches.len() as i8;
-        log::info!(
-            "selected_index: {}, match_count: {}, bottom_index: {}, top_index: {}",
-            self.view.selected_index,
-            match_count,
-            self.view.bottom_index,
-            self.view.top_index
-        );
-        // if self.selected_index > 0 && self.selected_index < match_count {
-        if self.view.selected_index > 0 {
-            log::info!("{} - {}", self.view.selected_index, match_count);
-            self.view.selected_index -= 1;
-        } else if self.view.top_index < (match_count - 1) as u8 {
-            log::info!("not going up because we're at the limit");
-            self.view.bottom_index += 1;
-            self.view.top_index += 1;
-        }
+        self.view.up(&self.matches);
         self.render()
     }
 
     pub fn down(&mut self) -> Result<()> {
-        log::info!("------------- down -------------");
-        let match_count = self.matches.len() as i8;
-        log::info!(
-            " selected_index: {}, match_count: {}, bottom_index: {}",
-            self.view.selected_index,
-            match_count,
-            self.view.bottom_index,
-        );
-        // if self.selected_index < match_count - 1 && self.selected_index >= self.bottom_index as i8 {
-
-        // Should we move the selection down?
-        if self.view.selected_index < self.view.top_index as i8 {
-            log::info!("incrementing");
-            self.view.selected_index += 1;
-        }
-
-        // Should we scroll down?
-        if self.view.selected_index > self.view.lines_to_show - 1 && self.view.bottom_index > 0 {
-            self.view.bottom_index -= 1;
-            self.view.top_index -= 1;
-            // if we've scrolled down then we don't want to change the selected index
-            // The selected index is for the view, so it stays the same.
-            if self.view.selected_index > 0 {
-                self.view.selected_index -= 1;
-            }
-        } else {
-            log::info!("not scrolling down own because we're at the limit");
-        }
-
+        self.view.down(&self.matches);
         self.render()
     }
 
@@ -137,12 +92,6 @@ where
         }
         self.update_matches();
         self.render()
-    }
-
-    pub fn get_selected(&self) -> &Item<T> {
-        let view = &mut self.view.contents.as_ref().unwrap();
-        let index = self.view.selected_index as usize;
-        &view[index]
     }
 
     /// Gets functions that match our current criteria, sorted by score.
@@ -285,8 +234,10 @@ where
 
                     // This captures the enter key
                     Key::Char('\n') => {
-                        return if state.matches.len() > 0 {
-                            Ok(Some(state.get_selected().item.as_ref().unwrap().to_owned()))
+                        return if !state.matches.is_empty() {
+                            Ok(Some(
+                                state.view.get_selected().item.as_ref().unwrap().to_owned(),
+                            ))
                         } else {
                             Ok(None)
                         };

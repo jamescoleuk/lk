@@ -28,7 +28,7 @@ where
     }
 
     pub fn up(&mut self, matches: &[Item<T>]) {
-        log::info!("------------- up -------------");
+        log::info!("------------- UP -------------");
         let match_count = matches.len() as i8;
         log::info!(
             "selected_index: {}, match_count: {}, bottom_index: {}, top_index: {}",
@@ -46,7 +46,37 @@ where
             self.bottom_index += 1;
             self.top_index += 1;
         }
-        // self.render()
+    }
+
+    pub fn down(&mut self, matches: &[Item<T>]) {
+        log::info!("------------- down -------------");
+        let match_count = matches.len() as i8;
+        log::info!(
+            " selected_index: {}, match_count: {}, bottom_index: {}",
+            self.selected_index,
+            match_count,
+            self.bottom_index,
+        );
+        // if self.selected_index < match_count - 1 && self.selected_index >= self.bottom_index as i8 {
+
+        // Should we move the selection down?
+        if self.selected_index < self.top_index as i8 {
+            log::info!("incrementing");
+            self.selected_index += 1;
+        }
+
+        // Should we scroll down?
+        if self.selected_index > self.lines_to_show - 1 && self.bottom_index > 0 {
+            self.bottom_index -= 1;
+            self.top_index -= 1;
+            // if we've scrolled down then we don't want to change the selected index
+            // The selected index is for the view, so it stays the same.
+            if self.selected_index > 0 {
+                self.selected_index -= 1;
+            }
+        } else {
+            log::info!("not scrolling down own because we're at the limit");
+        }
     }
 
     /// Takes the current matches and updates the visible contents.
@@ -82,6 +112,12 @@ where
 
         to_render.reverse();
         self.contents = Some(to_render);
+    }
+
+    pub fn get_selected(&self) -> &Item<T> {
+        let contents = &mut self.contents.as_ref().unwrap();
+        let index = self.selected_index as usize;
+        &contents[index]
     }
 }
 
