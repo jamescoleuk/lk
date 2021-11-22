@@ -91,6 +91,7 @@ where
                 // to_render.push(Option::None);
             }
         }
+        to_render.reverse();
 
         // Now that the order is reversed our indexes will match. If the selected_index
         // is outside the range of what's selectable, i.e. our matches, then we need
@@ -108,7 +109,6 @@ where
             }
         }
 
-        to_render.reverse();
         self.contents = to_render;
     }
 
