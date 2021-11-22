@@ -128,7 +128,7 @@ where
 
         self.view.update(&self.matches);
 
-        let view = self.view.contents.as_ref().unwrap();
+        let view = &self.view.contents;
 
         // Drop down so we don't over-write the terminal line that instigated
         // this run of lk.

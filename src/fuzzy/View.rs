@@ -8,9 +8,7 @@ where
     pub bottom_index: u8,
     pub lines_to_show: i8,
     pub selected_index: i8,
-    //TODO: don't use a FuzzyFunction, but rather a trait which FuzzyFunction can implement
-    // pub contents: Option<Vec<Option<FuzzyFunction>>>,
-    pub contents: Option<Vec<Item<T>>>,
+    pub contents: Vec<Item<T>>,
 }
 
 impl<T> View<T>
@@ -19,7 +17,7 @@ where
 {
     pub fn new(lines_to_show: i8) -> Self {
         View {
-            contents: Option::None,
+            contents: vec![],
             top_index: lines_to_show as u8 - 1,
             selected_index: (lines_to_show - 1) as i8,
             lines_to_show,
@@ -111,13 +109,12 @@ where
         }
 
         to_render.reverse();
-        self.contents = Some(to_render);
+        self.contents = to_render;
     }
 
     pub fn get_selected(&self) -> &Item<T> {
-        let contents = &mut self.contents.as_ref().unwrap();
         let index = self.selected_index as usize;
-        &contents[index]
+        &self.contents[index]
     }
 }
 
@@ -142,6 +139,7 @@ mod tests {
 
     struct Setup {
         items: Vec<Item<TestItem>>,
+        few_items: Vec<Item<TestItem>>,
     }
 
     impl Setup {
@@ -162,6 +160,7 @@ mod tests {
                     item("L"),
                     item("M"),
                 ],
+                few_items: vec![item("A"), item("B"), item("C")],
             }
         }
     }
@@ -177,9 +176,9 @@ mod tests {
         view.update(&setup.items);
 
         // THEN
-        let contents = view.contents.unwrap();
-        assert_eq!(contents.len(), lines_to_show as usize);
+        assert_eq!(view.contents.len(), lines_to_show as usize);
         assert_eq!(view.selected_index, lines_to_show - 1);
+        assert_eq!(view.get_selected().item.as_ref().unwrap().name, "A")
     }
 
     #[test]
@@ -196,7 +195,7 @@ mod tests {
         view.up(&setup.items); // 4
 
         // THEN
-        let contents = view.contents.unwrap();
+        let contents = view.contents;
         assert_eq!(contents.len(), lines_to_show as usize);
         assert_eq!(view.selected_index, 4);
     }
@@ -226,7 +225,7 @@ mod tests {
         view.up(&setup.items);
 
         // THEN
-        let contents = view.contents.unwrap();
+        let contents = view.contents;
         assert_eq!(contents.len(), lines_to_show as usize);
         assert_eq!(view.selected_index, 0);
     }
@@ -243,7 +242,7 @@ mod tests {
         view.down(&setup.items); // 7
 
         // THEN
-        let contents = view.contents.unwrap();
+        let contents = view.contents;
         assert_eq!(contents.len(), lines_to_show as usize);
         assert_eq!(view.selected_index, 7);
     }
@@ -263,7 +262,7 @@ mod tests {
         view.down(&setup.items); // 5
 
         // THEN
-        let contents = view.contents.unwrap();
+        let contents = view.contents;
         assert_eq!(contents.len(), lines_to_show as usize);
         assert_eq!(view.selected_index, 5);
     }
