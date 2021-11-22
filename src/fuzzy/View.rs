@@ -44,6 +44,7 @@ where
             self.bottom_index += 1;
             self.top_index += 1;
         }
+        self.floor_selected_index();
     }
 
     pub fn down(&mut self, matches: &[Item<T>]) {
@@ -75,6 +76,17 @@ where
         } else {
             log::info!("not scrolling down own because we're at the limit");
         }
+        self.floor_selected_index();
+    }
+
+    fn floor_selected_index(&mut self) {
+        let index_of_first_blank = self.contents.iter().rev().position(|item| item.is_blank);
+        if let Some(rev_index) = index_of_first_blank {
+            let index = self.lines_to_show - rev_index as i8;
+            if self.selected_index < index as i8 {
+                self.selected_index = index
+            }
+        }
     }
 
     /// Takes the current matches and updates the visible contents.
@@ -93,23 +105,8 @@ where
         }
         to_render.reverse();
 
-        // Now that the order is reversed our indexes will match. If the selected_index
-        // is outside the range of what's selectable, i.e. our matches, then we need
-        // to gently reset it back to the limit. This prevents the selection going onto
-        // blank lines and also moves the selection to the top of the matches when
-        // the number of matches shrinks.
-        for (i, item) in to_render.iter().enumerate() {
-            if item.is_blank {
-                log::info!("selected_index: {}, i: {}", self.selected_index, i);
-                self.selected_index = if self.selected_index <= i as i8 {
-                    self.lines_to_show - matches.len() as i8
-                } else {
-                    self.selected_index
-                }
-            }
-        }
-
         self.contents = to_render;
+        self.floor_selected_index();
     }
 
     pub fn get_selected(&self) -> &Item<T> {
