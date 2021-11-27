@@ -2,7 +2,8 @@ mod bash_file;
 mod executables;
 mod fuzzy;
 mod script;
-pub mod ui;
+mod ui;
+
 use crate::{
     fuzzy::ui_state::UiState,
     script::Script,
@@ -51,8 +52,6 @@ fn main() -> Result<()> {
         .build(Root::builder().appender("logfile").build(LevelFilter::Info))?;
 
     log4rs::init_config(config)?;
-
-    log::info!("Hello, world!");
 
     let executables = Executables::new(".");
 

@@ -19,7 +19,7 @@ where
     T: Clone,
 {
     search_term: String,
-    fuzzy_functions: Vec<Item<T>>,
+    all_items: Vec<Item<T>>,
     matches: Vec<Item<T>>,
     console_offset: u16,
     stdout: RawTerminal<Stdout>,
@@ -45,14 +45,13 @@ where
 
         let mut state = UiState {
             search_term: String::from(""),
-            fuzzy_functions: functions,
+            all_items: functions,
             matches: vec![],
             console_offset,
             stdout,
             first: true,
             view: View::new(lines_to_show),
         };
-        state.update_matches();
         state
     }
 
@@ -71,10 +70,6 @@ where
         // This is a normal key that we want to add to the search.
         self.search_term = format!("{}{}", self.search_term, c);
 
-        let matcher = SkimMatcherV2::default();
-        for f in &mut self.fuzzy_functions {
-            f.score = matcher.fuzzy_indices(&f.name, &self.search_term);
-        }
         self.update_matches();
         self.render()
     }
@@ -85,7 +80,7 @@ where
             self.search_term =
                 String::from(&self.search_term[..self.search_term.chars().count() - 1]);
             let matcher = SkimMatcherV2::default();
-            for f in &mut self.fuzzy_functions {
+            for f in &mut self.all_items {
                 f.score = matcher.fuzzy_indices(&f.name, &self.search_term);
             }
         }
@@ -96,15 +91,21 @@ where
     /// Gets functions that match our current criteria, sorted by score.
     fn update_matches(&mut self) {
         log::info!("------------- update_matches -------------");
+        let matcher = SkimMatcherV2::default();
+        for f in &mut self.all_items {
+            f.score = matcher.fuzzy_indices(&f.name, &self.search_term);
+        }
         let mut matches = self
-            .fuzzy_functions
+            .all_items
             .iter()
             .filter(|f| f.score.is_some())
             .cloned()
             .collect::<Vec<Item<T>>>();
 
+        log::info!("There are a total of {} item(s)", self.all_items.len());
+        log::info!("There are a total of {} match(es)", matches.len());
+
         // We want these in the order of their fuzzy matched score, i.e. closed matches
-        // matches.sort_by(|a, b| a.score.cmp(&b.score));
         matches.sort_by(|a, b| b.score.cmp(&a.score));
         let match_count = matches.len() as i8;
         self.matches = matches;
@@ -114,6 +115,7 @@ where
             self.view.selected_index = match_count - 1;
             log::info!("resetting selected_index against match count");
         }
+        self.view.update(&self.matches);
     }
 
     /// Renders the current result set
@@ -126,10 +128,6 @@ where
             self.view.top_index
         );
 
-        self.view.update(&self.matches);
-
-        let view = &self.view.contents;
-
         // Drop down so we don't over-write the terminal line that instigated
         // this run of lk.
         if self.first {
@@ -139,9 +137,9 @@ where
             self.first = false
         }
 
-        log::info!("Rendering lines ({}):", view.len());
+        log::info!("Rendering lines ({}):", &self.view.contents.len());
 
-        for (index, item) in view.iter().enumerate() {
+        for (index, item) in self.view.contents.iter().enumerate() {
             write!(
                 self.stdout,
                 "{}",
@@ -200,6 +198,7 @@ where
 
     pub fn fuzzy_find_function(items: Vec<Item<T>>) -> Result<Option<T>> {
         let mut state = UiState::new(items);
+        state.update_matches();
 
         state.render()?;
 
