@@ -92,6 +92,7 @@ where
     /// Takes the current matches and updates the visible contents.
     // pub fn update(&mut self, matches: &[FuzzyFunction]) {
     pub fn update(&mut self, matches: &[Item<T>]) {
+        log::info!("Updating view with {} match(es)", matches.len());
         let mut to_render: Vec<Item<T>> = Vec::new();
         // Get everything in our display window
         for i in self.bottom_index..self.top_index + 1 {

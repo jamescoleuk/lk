@@ -107,14 +107,7 @@ where
 
         // We want these in the order of their fuzzy matched score, i.e. closed matches
         matches.sort_by(|a, b| b.score.cmp(&a.score));
-        let match_count = matches.len() as i8;
         self.matches = matches;
-
-        // We can't have the index greater than the match count
-        if self.view.selected_index >= match_count {
-            self.view.selected_index = match_count - 1;
-            log::info!("resetting selected_index against match count");
-        }
         self.view.update(&self.matches);
     }
 
