@@ -37,7 +37,16 @@ where
         let mut stdout = stdout().into_raw_mode().unwrap();
         let lines_to_show: i8 = 8;
         let console_offset = if stdout.cursor_pos().is_ok() {
-            stdout.cursor_pos().unwrap().1 - (&lines_to_show + 2) as u16
+            let cursor_pos_y = stdout.cursor_pos().unwrap().1;
+            log::info!(
+                "Cursor position is {} and lines to show is {}",
+                cursor_pos_y,
+                lines_to_show
+            );
+            // FIXME: the commented out line below makes cargo run -- --fuzzy work well, but
+            //        it doesn't work really because it tries to get a negative position.
+            // cursor_pos_y - (&lines_to_show + 2) as u16
+            cursor_pos_y - 1
         } else {
             log::error!("Cannot get cursor!");
             0
@@ -134,6 +143,7 @@ where
         log::info!("Rendering lines ({}):", &self.view.contents.len());
 
         for (index, item) in self.view.contents.iter().enumerate() {
+            // Move the cursor to the place we want to write the next item.
             write!(
                 self.stdout,
                 "{}",
