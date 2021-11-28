@@ -36,12 +36,20 @@ fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) ->
     let remaining_chars = &text[start..text.chars().count()];
     if is_selected {
         coloured_line = format!(
-            "{}{}",
+            "{}{}{}{}",
+            ">".green().on(selected_background_color),
+            "  ".on(selected_background_color),
             coloured_line,
             remaining_chars.on(selected_background_color)
         );
     } else {
-        coloured_line = format!("{}{}", coloured_line, remaining_chars);
+        coloured_line = format!(
+            "{}{}{}{}",
+            " ".on(selected_background_color),
+            "  ",
+            coloured_line,
+            remaining_chars
+        );
     }
     coloured_line
 }

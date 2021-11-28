@@ -181,7 +181,7 @@ where
         )?;
         write!(
             self.stdout,
-            "{}{}{}>{} {}",
+            "{}{}{}${} {}",
             termion::cursor::Show,
             termion::cursor::Goto(1, prompt_y + self.console_offset),
             color::Fg(color::Cyan),
