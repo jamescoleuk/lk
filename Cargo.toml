@@ -8,7 +8,7 @@ description = "A cli frontend for your bash scripts"
 readme = "README.md"
 keywords = ["bash", "cli"]
 categories = ["command-line-interface", "command-line-utilities"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 # To handle lk arguments.
