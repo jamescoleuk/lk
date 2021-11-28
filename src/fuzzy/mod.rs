@@ -20,14 +20,14 @@ fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) ->
             coloured_line = format!(
                 "{}{}{}",
                 coloured_line,
-                &part.on(selected_background_color),
+                &part.white().on(selected_background_color),
                 &matching_char.on_dark_blue()
             );
         } else {
             coloured_line = format!(
                 "{}{}{}",
                 coloured_line,
-                &part,
+                &part.white(),
                 &matching_char.on_dark_blue()
             );
         }
