@@ -20,7 +20,7 @@ fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) ->
             coloured_line = format!(
                 "{}{}{}",
                 coloured_line,
-                &part.on(selected_background_color),
+                &part.white().on(selected_background_color),
                 &matching_char.on_dark_blue()
             );
         } else {
@@ -39,8 +39,8 @@ fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) ->
             "{}{}{}{}",
             ">".green().on(selected_background_color),
             "  ".on(selected_background_color),
-            coloured_line,
-            remaining_chars.on(selected_background_color)
+            coloured_line.white(),
+            remaining_chars.white().on(selected_background_color)
         );
     } else {
         coloured_line = format!(
