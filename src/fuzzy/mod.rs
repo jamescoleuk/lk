@@ -2,7 +2,7 @@ use crossterm::style::Stylize;
 
 pub mod item;
 pub mod ui_state;
-pub mod view;
+mod view;
 
 fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) -> String {
     // Do some string manipulation to colourise the indexed parts
