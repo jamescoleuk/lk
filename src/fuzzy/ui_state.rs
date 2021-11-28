@@ -43,7 +43,7 @@ where
             0
         };
 
-        let mut state = UiState {
+        UiState {
             search_term: String::from(""),
             all_items: functions,
             matches: vec![],
@@ -51,8 +51,7 @@ where
             stdout,
             first: true,
             view: View::new(lines_to_show),
-        };
-        state
+        }
     }
 
     pub fn up(&mut self) -> Result<()> {
