@@ -155,15 +155,16 @@ where
                     self.stdout,
                     "{}{}",
                     termion::clear::CurrentLine,
-                    format!(
-                        "{}-{}-{}-{}-{} ",
-                        self.view.selected_index,
-                        self.matches.len(),
-                        index,
-                        &item.score.as_ref().unwrap().0,
-                        coloured_line,
-                    )
+                    coloured_line
                 )?;
+                // format!(
+                //     "{}-{}-{}-{}-{} ",
+                //     self.view.selected_index,
+                //     self.matches.len(),
+                //     index,
+                //     &item.score.as_ref().unwrap().0,
+                //     coloured_line,
+                // )
             }
         }
 
