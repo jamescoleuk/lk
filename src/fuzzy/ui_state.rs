@@ -57,11 +57,13 @@ where
 
     pub fn up(&mut self) -> Result<()> {
         self.view.up(&self.matches);
+        self.update_matches();
         self.render()
     }
 
     pub fn down(&mut self) -> Result<()> {
         self.view.down(&self.matches);
+        self.update_matches();
         self.render()
     }
 
@@ -154,10 +156,11 @@ where
                     "{}{}",
                     termion::clear::CurrentLine,
                     format!(
-                        "{}-{}-{}-{} ",
+                        "{}-{}-{}-{}-{} ",
                         self.view.selected_index,
                         self.matches.len(),
                         index,
+                        &item.score.as_ref().unwrap().0,
                         coloured_line,
                     )
                 )?;
