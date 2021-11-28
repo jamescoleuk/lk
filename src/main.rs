@@ -20,6 +20,7 @@ use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
 use script::Function;
 use structopt::StructOpt;
+use tempfile::tempdir;
 
 /// Use lk to explore and execute scripts in your current directory.
 /// Execute lk without arguments to see what scripts are available.
@@ -43,14 +44,20 @@ struct Cli {
 fn main() -> Result<()> {
     let args = Cli::from_args();
 
-    let logfile = FileAppender::builder()
+    let lk_dir = match dirs::home_dir() {
+        // Use a dir in ~/.config like a good human, but then store logs in it lol.
+        Some(home_dir) => format!("{}/.config/lk", home_dir.to_string_lossy()),
+        // If we don't have access to the home_dir for some reason then just use a temp dir.
+        None => tempdir().unwrap().into_path().to_string_lossy().to_string(),
+    };
+    let log_file_path = format!("{}/lk.log", lk_dir);
+    let log_file = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
-        .build("output.log")?;
+        .build(&log_file_path)?;
 
     let config = Config::builder()
-        .appender(Appender::builder().build("logfile", Box::new(logfile)))
+        .appender(Appender::builder().build("logfile", Box::new(log_file)))
         .build(Root::builder().appender("logfile").build(LevelFilter::Info))?;
-
     log4rs::init_config(config)?;
 
     let executables = Executables::new(".");
