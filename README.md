@@ -64,14 +64,6 @@ I already wrote this in bash and called it [run_lib](https://github.com/jamescol
 3. The processing is much easier in Rust than it is in bash, i.e. finding and displaying multi-line comments. 
 4. Rust so hot right now.
 
-## Finding bash files
-### Testing for binaries
-We don't want binaries because we won't be reading any functions from them.
 
-For testing I took the smallest binary from my `/usr/bin` and copied it into `./tests/`
-
-## TODO
-
-- [ ] Test for bash files. At the moment it will attemp to display any executable text file.
-- [ ] Add syntax to allow functions to be ignored, e.g. an `_` prefix.
-- [ ] Don't return a non-0 exit code when exploring scripts, i.e. running without valid script and function arguments. This is a hangup from `runsh`, where it used non-0 exit codes to run the scripts.
+## Inspiration
+[fzf](https://github.com/junegunn/fzf) is wonderful. The `--fuzzy` option in `lk` comes from years of `ctrl-r` fuzzy finding throughn my shelln history with `fzf`. I almost didn't implement this feature because I thought "why bother? fzf has already done it perfectly." Or rather I thought about piping from `lk` to `fzf`. But having the functionality implemented natively is the right thing for `lk`. But you'll notice, perhaps, that the rendering of the fuzzy search in `lk` draws a lot of visual inspiration from `fzf`. `fzf`, I love you.
