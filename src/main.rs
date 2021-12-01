@@ -29,6 +29,7 @@ use tempfile::tempdir;
 /// name to actually run that function.
 #[derive(StructOpt)]
 struct Cli {
+    /// Fuzzy search for available scripts and functions.
     #[structopt(long, short)]
     fuzzy: bool,
     /// Optional: the name of a script to explore or use
