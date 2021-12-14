@@ -38,19 +38,32 @@ where
         let lines_to_show: i8 = 8;
         let console_offset = if stdout.cursor_pos().is_ok() {
             let cursor_pos_y = stdout.cursor_pos().unwrap().1;
-            log::info!(
-                "Cursor position is {} and lines to show is {}",
-                cursor_pos_y,
-                lines_to_show
-            );
-            // FIXME: the commented out line below makes cargo run -- --fuzzy work well, but
-            //        it doesn't work really because it tries to get a negative position.
-            // cursor_pos_y - (&lines_to_show + 2) as u16
-            cursor_pos_y - 1
+
+            // Scroll if we need to
+            writeln!(stdout, "{}", termion::cursor::Save).unwrap();
+            let terminal_height = termion::terminal_size().unwrap().1;
+            let starting_y = cursor_pos_y;
+            let ending_y = starting_y + lines_to_show as u16;
+            let space_remaining: i16 = terminal_height as i16 - ending_y as i16;
+            let cursor_pos_y = if space_remaining < 0 {
+                log::info!("yas");
+                let mut positive_space_remaining: u16 = space_remaining.abs().try_into().unwrap();
+                // FIXME: WTF is this 5?
+                positive_space_remaining += 5;
+                cursor_pos_y - positive_space_remaining
+            } else {
+                cursor_pos_y - 1
+            };
+            cursor_pos_y
         } else {
             log::error!("Cannot get cursor!");
             0
         };
+        log::info!(
+            "Cursor position is {} and lines to show is {}",
+            console_offset,
+            lines_to_show
+        );
 
         UiState {
             search_term: String::from(""),
@@ -156,7 +169,7 @@ where
 
                 // Do some string manipulation to colourise the indexed parts
                 let coloured_line = get_coloured_line(
-                    &fuzzy_indecies,
+                    fuzzy_indecies,
                     &item.name,
                     index == self.view.selected_index as usize,
                 );
@@ -204,6 +217,7 @@ where
 
     pub fn fuzzy_find_function(items: Vec<Item<T>>) -> Result<Option<T>> {
         let mut state = UiState::new(items);
+
         state.update_matches();
 
         state.render()?;
@@ -224,6 +238,7 @@ where
             // NB: some terminals might send these bytes too slowly and escape might not be caught.
             // NB: some terminals might use different escape keys entirely.
             if escaped == "^[" && instant.elapsed().as_micros() > 100 {
+                writeln!(state.stdout, "{}", termion::cursor::Restore)?;
                 break;
             }
 
@@ -239,6 +254,25 @@ where
                     // This captures the enter key
                     Key::Char('\n') => {
                         return if !state.matches.is_empty() {
+                            // Tidy up the console lines we've been writing
+                            for line_to_clear in state.console_offset
+                                ..state.console_offset + state.view.lines_to_show as u16 + 4
+                            {
+                                write!(
+                                    state.stdout,
+                                    "{}{}",
+                                    termion::cursor::Goto(0, line_to_clear),
+                                    termion::clear::CurrentLine,
+                                )?;
+                            }
+                            writeln!(state.stdout, "{}", termion::cursor::Restore)?;
+                            // Move back to the original line
+                            // write!(
+                            //     state.stdout,
+                            //     "{}",
+                            //     termion::cursor::Goto(1, state.console_offset + 1),
+                            // )?;
+
                             Ok(Some(
                                 state.view.get_selected().item.as_ref().unwrap().to_owned(),
                             ))
