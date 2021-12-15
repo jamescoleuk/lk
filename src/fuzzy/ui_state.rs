@@ -40,7 +40,7 @@ where
             let cursor_pos_y = stdout.cursor_pos().unwrap().1;
 
             // Scroll if we need to
-            writeln!(stdout, "{}", termion::cursor::Save).unwrap();
+            // writeln!(stdout, "{}", termion::cursor::Save).unwrap();
             let terminal_height = termion::terminal_size().unwrap().1;
             let starting_y = cursor_pos_y;
             let ending_y = starting_y + lines_to_show as u16;
@@ -255,24 +255,11 @@ where
                     Key::Char('\n') => {
                         return if !state.matches.is_empty() {
                             // Tidy up the console lines we've been writing
-                            for line_to_clear in state.console_offset
+                            for _ in state.console_offset
                                 ..state.console_offset + state.view.lines_to_show as u16 + 4
                             {
-                                write!(
-                                    state.stdout,
-                                    "{}{}",
-                                    termion::cursor::Goto(0, line_to_clear),
-                                    termion::clear::CurrentLine,
-                                )?;
+                                write!(state.stdout, "{}", termion::clear::CurrentLine,)?;
                             }
-                            writeln!(state.stdout, "{}", termion::cursor::Restore)?;
-                            // Move back to the original line
-                            // write!(
-                            //     state.stdout,
-                            //     "{}",
-                            //     termion::cursor::Goto(1, state.console_offset + 1),
-                            // )?;
-
                             Ok(Some(
                                 state.view.get_selected().item.as_ref().unwrap().to_owned(),
                             ))
