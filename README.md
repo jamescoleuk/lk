@@ -20,6 +20,7 @@ That's all all the functions in `script.sh` along with comments. You can execute
 
 
 Or, with the new fuzzy find feature, you can search for scripts. Run `lk --fuzzy` and you'll see a searchable list, like this:
+
 ![And image showing the fuzzy find results](docs/example05.png )
 
 That's it.
