@@ -25,6 +25,7 @@ where
     stdout: RawTerminal<Stdout>,
     first: bool,
     view: View<T>,
+    positive_space_remaining: u16,
 }
 
 impl<T> UiState<T>
@@ -35,24 +36,21 @@ where
         // We need to know where to start rendering from. We can't do this later because
         // we overwrite the cursor. Maybe we shouldn't do this? (TODO)
         let mut stdout = stdout().into_raw_mode().unwrap();
+
+        write!(stdout, "{}", termion::cursor::Save).unwrap();
         let lines_to_show: i8 = 8;
+        let mut positive_space_remaining = 0;
         let console_offset = if stdout.cursor_pos().is_ok() {
             let cursor_pos_y = stdout.cursor_pos().unwrap().1;
 
-            // Scroll if we need to
-            // writeln!(stdout, "{}", termion::cursor::Save).unwrap();
             let terminal_height = termion::terminal_size().unwrap().1;
             let starting_y = cursor_pos_y;
             let ending_y = starting_y + lines_to_show as u16;
             let space_remaining: i16 = terminal_height as i16 - ending_y as i16;
-            let cursor_pos_y = if space_remaining < 0 {
-                log::info!("yas");
-                let mut positive_space_remaining: u16 = space_remaining.abs().try_into().unwrap();
-                // FIXME: WTF is this 5?
-                positive_space_remaining += 5;
-                cursor_pos_y - positive_space_remaining
+            positive_space_remaining = if space_remaining < 0 {
+                space_remaining.abs().try_into().unwrap()
             } else {
-                cursor_pos_y - 1
+                0
             };
             cursor_pos_y
         } else {
@@ -73,6 +71,7 @@ where
             stdout,
             first: true,
             view: View::new(lines_to_show),
+            positive_space_remaining,
         }
     }
 
@@ -111,6 +110,83 @@ where
         self.render()
     }
 
+    fn render_space(&mut self) -> Result<()> {
+        // Drop down so we don't over-write the terminal line that instigated
+        // this run of lk.
+        write!(self.stdout, "{}", termion::cursor::Save).unwrap();
+        if self.first {
+            for _ in 0..self.view.lines_to_show {
+                writeln!(self.stdout, " ")?;
+            }
+            self.first = false
+        }
+        write!(self.stdout, "{}", termion::cursor::Restore).unwrap();
+
+        Ok(())
+    }
+
+    fn goto_start(&mut self) -> Result<()> {
+        write!(
+            self.stdout,
+            "{}",
+            termion::cursor::Goto(1, self.console_offset - self.positive_space_remaining)
+        )?;
+        Ok(())
+    }
+
+    fn render_items(&mut self) -> Result<()> {
+        self.goto_start()?;
+        for (index, item) in self.view.contents.iter().enumerate() {
+            if item.is_blank {
+                writeln!(self.stdout, "{}", termion::clear::CurrentLine)?;
+            } else {
+                let fuzzy_indecies = &item.score.as_ref().unwrap().1;
+
+                // Do some string manipulation to colourise the indexed parts
+                let coloured_line = get_coloured_line(
+                    fuzzy_indecies,
+                    &item.name,
+                    index == self.view.selected_index as usize,
+                );
+
+                writeln!(
+                    self.stdout,
+                    "{}{}{}",
+                    termion::clear::CurrentLine,
+                    // Go maximum left, so we're at the start of the line
+                    termion::cursor::Left(1000),
+                    coloured_line
+                )?;
+            }
+        }
+        Ok(())
+    }
+
+    fn render_prompt(&mut self) -> Result<()> {
+        // Render the prompt
+        let prompt_y = self.view.lines_to_show as u16 + 1;
+        let current_x = self.search_term.chars().count() + 2;
+
+        write!(
+            self.stdout,
+            "{}{}{}",
+            termion::clear::CurrentLine,
+            termion::cursor::Goto(current_x as u16, prompt_y + self.console_offset),
+            termion::clear::CurrentLine,
+        )?;
+        write!(
+            self.stdout,
+            "{}{}{}${} {}",
+            termion::cursor::Show,
+            termion::cursor::Goto(1, prompt_y + self.console_offset),
+            color::Fg(color::Cyan),
+            color::Fg(color::Reset),
+            self.search_term
+        )?;
+        self.stdout.flush()?;
+        Ok(())
+    }
+
     /// Gets functions that match our current criteria, sorted by score.
     fn update_matches(&mut self) {
         log::info!("------------- update_matches -------------");
@@ -144,73 +220,11 @@ where
             self.view.top_index
         );
 
-        // Drop down so we don't over-write the terminal line that instigated
-        // this run of lk.
-        if self.first {
-            for _ in 0..self.view.lines_to_show + 3 {
-                writeln!(self.stdout, " ")?;
-            }
-            self.first = false
-        }
+        self.render_space()?;
+        self.render_items()?;
+        self.render_prompt()?;
 
         log::info!("Rendering lines ({}):", &self.view.contents.len());
-
-        for (index, item) in self.view.contents.iter().enumerate() {
-            // Move the cursor to the place we want to write the next item.
-            write!(
-                self.stdout,
-                "{}",
-                termion::cursor::Goto(1, index as u16 + 1 + self.console_offset),
-            )?;
-            if item.is_blank {
-                writeln!(self.stdout, "{}", termion::clear::CurrentLine,)?;
-            } else {
-                let fuzzy_indecies = &item.score.as_ref().unwrap().1;
-
-                // Do some string manipulation to colourise the indexed parts
-                let coloured_line = get_coloured_line(
-                    fuzzy_indecies,
-                    &item.name,
-                    index == self.view.selected_index as usize,
-                );
-                writeln!(
-                    self.stdout,
-                    "{}{}",
-                    termion::clear::CurrentLine,
-                    coloured_line
-                )?;
-                // format!(
-                //     "{}-{}-{}-{}-{} ",
-                //     self.view.selected_index,
-                //     self.matches.len(),
-                //     index,
-                //     &item.score.as_ref().unwrap().0,
-                //     coloured_line,
-                // )
-            }
-        }
-
-        // Render the prompt
-        let prompt_y = self.view.lines_to_show as u16 + 1;
-        let current_x = self.search_term.chars().count() + 2;
-
-        write!(
-            self.stdout,
-            "{}{}{}",
-            termion::clear::CurrentLine,
-            termion::cursor::Goto(current_x as u16, prompt_y + self.console_offset),
-            termion::clear::CurrentLine,
-        )?;
-        write!(
-            self.stdout,
-            "{}{}{}${} {}",
-            termion::cursor::Show,
-            termion::cursor::Goto(1, prompt_y + self.console_offset),
-            color::Fg(color::Cyan),
-            color::Fg(color::Reset),
-            self.search_term
-        )?;
-        self.stdout.flush()?;
 
         Ok(())
     }
@@ -238,7 +252,7 @@ where
             // NB: some terminals might send these bytes too slowly and escape might not be caught.
             // NB: some terminals might use different escape keys entirely.
             if escaped == "^[" && instant.elapsed().as_micros() > 100 {
-                writeln!(state.stdout, "{}", termion::cursor::Restore)?;
+                write!(state.stdout, "{}", termion::cursor::Restore)?;
                 break;
             }
 
@@ -306,7 +320,6 @@ where
                 state.stdout.flush().unwrap();
             }
         }
-        write!(state.stdout, "{}", termion::cursor::Show).unwrap();
         Ok(None)
     }
 }
