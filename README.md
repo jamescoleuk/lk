@@ -1,8 +1,10 @@
 # lk
 
-A CLI frontend for your bash scripts. 
+A CLI frontend for your bash scripts, focused on ergonomics.
 
-Parses scripts and pretty prints the functions it finds. Similar to [run_lib](https://github.com/jamescoleuk/run_lib) but rustier, and to [runsh](https://github.com/jamescoleuk/runsh) but better.
+`lk` parses scripts and finds bash functions. It can then either:
+* pretty prints the functions it finds so you can run them through `lk`, rather like sub commands in git.
+* let you fuzzy find and execute functions, similar to the wonderful `fzf`'s `ctrl-r` feature. 
 
 If you ran it on this repo you'd see something like this:
 
@@ -15,6 +17,10 @@ So it's found all executable bash scripts in this and all sub-directories. You c
 That's all all the functions in `script.sh` along with comments. You can execute a function like this:
 
 ![lk executing a function in script.sh](./docs/example04.png)
+
+
+Or, with the new fuzzy find feature, you can search for scripts. Run `lk --fuzzy` and you'll see a searchable list, like this:
+![And image showing the fuzzy find results](docs/example05.png )
 
 That's it.
 
@@ -31,60 +37,50 @@ From [the crate](https://crates.io/crates/lk):
 cargo install lk
 ```
 
-### Update
+## Update
 ```bash
 cargo install --force lk
 ```
 
 ## Use
-Just execute `lk` and follow the instructions.
+Just execute `lk` and follow the instructions. `lk --help` is also a thing you can run.
 
-### An example bash script
+## How to write your bash files so they work with lk
+Big design goal: you shouldn't have to. But there are many styles of bash, and if `lk` doesn't work with how you write your bash then please let me know and I'll be all over fixing it.
 
-I don't want you to have to alter your scripts to use `lk`. I want it to just find your stuff, magically. If you have a problem I implore you to let me know so I can fix it. Thanks in advance!
-
-Having said that, a script might look something like this:
-
-```
-#!/usr/bin/env bash
-
-# This function is very clever and awesome and does a lot of neat stuff.
-# And here is some more detailed description about this funciton. Isn't it great?
-some_function() {
-    echo "hello world from a script"
-    echo "foobar"
-    sleep 1
-    echo "ending function now"
-}
-
-# More functions
-yet_more_functions() {
-    echo "hello from another function"
-}
-```
-
-
-## Why the name "lk"?
-If you have any typist home key dicipline and if you flap your right hand at the keyboard there's a good chance you'll type 'lk'. So it's short, and ergonomic.
-
-
-
-### File headers
-`lk` will extract comments in the file header, if it finds any, and display them alongside all your runnable functions. It relies on these comments following the form in the [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html#s4.1-file-header), i.e. like this:
+Having said that `lk` does support comments. `lk` will extract comments from file and function headers, if it finds any, and display them alongside all your runnable functions. At the moment it relies on these comments following the form in the [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html#s4.1-file-header). I.e. like this:
 ```bash
 #!/usr/bin/env bash
 #
 # Some comments.
 # And some more.
+
+
+# A glorious function that does all the things
+be_glorious() {
+    echo "Ta da!"
+}
 ```
 
-## Why not run_lib?
+## Configuration and logging
+There's no configuration file for `lk`, but it does store logs in `${HOME}/.config/lk`.
 
-I already wrote this in bash and called it [run_lib](https://github.com/jamescoleuk/run_lib). There are a few reasons why this might be better. Here are some considerations:
-1. A Rust executable is easier to distribute via `cargo`. It's easier for people to update their version. 
-2. Integration with a script is more or less the same. 
-3. The processing is much easier in Rust than it is in bash, i.e. finding and displaying multi-line comments. 
-4. 
-![rust so hot right now](./docs/meme01.png)
+## Why the name "lk"?
+If you have any typist home key dicipline and if you flap your right hand at the keyboard there's a good chance you'll type 'lk'. So it's short, and ergonomic.
 
-The truth is I wrote this in Rust because I'm a magpie but now I'm in love with Rust in a very embarassing way.
+## What's to come?
+* If I end up using `lk --fuzzy` exclusively, as I expect, I'll need to add some way to configure this as a default. That'd make it more useful out-of-the-box.
+* Minor UI fixes. It doesn't always behave as I'd like it to.
+* Way huge under-the-cover improvements. I have a lot of refactoring to do.
+* Support scripts in other languages, e.g. Python, rust-script, Typescript.
+
+## Inspiration
+
+I have previously written two similar tools: 
+* [run_lib](https://github.com/jamescoleuk/run_lib) - my first draft and written in bash
+* [runsh](https://github.com/jamescoleuk/runsh) - my second draft and written in Rust
+
+`run_lib` still has its uses. I've worked in secure environments where I could not have installed a binary. `run_lib` is just a bash script.
+
+
+[fzf](https://github.com/junegunn/fzf) is wonderful. The `--fuzzy` option in `lk` comes from years of `ctrl-r` fuzzy finding through my shell history with `fzf`. I almost didn't implement this feature because I thought "why bother? fzf has already done it perfectly." Or rather I thought about piping from `lk` to `fzf`. But having the functionality implemented natively is the right thing for `lk`. But you'll notice, perhaps, that the rendering of the fuzzy search in `lk` draws a lot of visual inspiration from `fzf`. `fzf`, I love you.
