@@ -60,7 +60,8 @@ fn main() -> Result<()> {
         .appender(Appender::builder().build("logfile", Box::new(log_file)))
         .build(Root::builder().appender("logfile").build(LevelFilter::Info))?;
     log4rs::init_config(config)?;
-    log::info!("\n\nStaring ln...");
+
+    log::info!("\n\nStarting lk...");
 
     let executables = Executables::new(".");
 

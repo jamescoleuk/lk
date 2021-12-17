@@ -26,41 +26,19 @@ where
     }
 
     pub fn up(&mut self, matches: &[Item<T>]) {
-        log::info!("------------- UP -------------");
         let match_count = matches.len() as i8;
-        log::info!(
-            "selected_index: {}, match_count: {}, bottom_index: {}, top_index: {}",
-            self.selected_index,
-            match_count,
-            self.bottom_index,
-            self.top_index
-        );
-        // if self.selected_index > 0 && self.selected_index < match_count {
         if self.selected_index > 0 {
-            log::info!("{} - {}", self.selected_index, match_count);
             self.selected_index -= 1;
         } else if self.top_index < (match_count - 1) as u8 {
-            log::info!("not going up because we're at the limit");
             self.bottom_index += 1;
             self.top_index += 1;
         }
         self.floor_selected_index();
     }
 
-    pub fn down(&mut self, matches: &[Item<T>]) {
-        log::info!("------------- down -------------");
-        let match_count = matches.len() as i8;
-        log::info!(
-            " selected_index: {}, match_count: {}, bottom_index: {}",
-            self.selected_index,
-            match_count,
-            self.bottom_index,
-        );
-        // if self.selected_index < match_count - 1 && self.selected_index >= self.bottom_index as i8 {
-
+    pub fn down(&mut self) {
         // Should we move the selection down?
         if self.selected_index < self.top_index as i8 {
-            log::info!("incrementing");
             self.selected_index += 1;
         }
 
@@ -73,8 +51,6 @@ where
             if self.selected_index > 0 {
                 self.selected_index -= 1;
             }
-        } else {
-            log::info!("not scrolling down own because we're at the limit");
         }
         self.floor_selected_index();
     }
@@ -90,18 +66,15 @@ where
     }
 
     /// Takes the current matches and updates the visible contents.
-    // pub fn update(&mut self, matches: &[FuzzyFunction]) {
     pub fn update(&mut self, matches: &[Item<T>]) {
         log::info!("Updating view with {} match(es)", matches.len());
         let mut to_render: Vec<Item<T>> = Vec::new();
         // Get everything in our display window
         for i in self.bottom_index..self.top_index + 1 {
             if matches.len() > (i).into() {
-                // to_render.push(Option::Some(matches[i as usize].clone()));
                 to_render.push(matches[i as usize].clone());
             } else {
                 to_render.push(Item::empty());
-                // to_render.push(Option::None);
             }
         }
         to_render.reverse();
@@ -231,7 +204,7 @@ mod tests {
         setup.view.update(&setup.items);
 
         // WHEN
-        setup.view.down(&setup.items); // 7
+        setup.view.down(); // 7
 
         // THEN
         assert_eq!(setup.view.contents.len(), 8);
@@ -248,7 +221,7 @@ mod tests {
         setup.view.up(&setup.items); // 6
         setup.view.up(&setup.items); // 5
         setup.view.up(&setup.items); // 4
-        setup.view.down(&setup.items); // 5
+        setup.view.down(); // 5
 
         // THEN
         assert_eq!(setup.view.contents.len(), 8);

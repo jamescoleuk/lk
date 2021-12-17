@@ -57,11 +57,6 @@ where
             log::error!("Cannot get cursor!");
             0
         };
-        log::info!(
-            "Cursor position is {} and lines to show is {}",
-            console_offset,
-            lines_to_show
-        );
 
         UiState {
             search_term: String::from(""),
@@ -82,13 +77,12 @@ where
     }
 
     pub fn down(&mut self) -> Result<()> {
-        self.view.down(&self.matches);
+        self.view.down();
         self.update_matches();
         self.render()
     }
 
     pub fn append(&mut self, c: char) -> Result<()> {
-        log::info!("append");
         // This is a normal key that we want to add to the search.
         self.search_term = format!("{}{}", self.search_term, c);
 
@@ -97,7 +91,6 @@ where
     }
 
     pub fn backspace(&mut self) -> Result<()> {
-        log::info!("backspace");
         if self.search_term.chars().count() > 0 {
             self.search_term =
                 String::from(&self.search_term[..self.search_term.chars().count() - 1]);
@@ -189,7 +182,6 @@ where
 
     /// Gets functions that match our current criteria, sorted by score.
     fn update_matches(&mut self) {
-        log::info!("------------- update_matches -------------");
         let matcher = SkimMatcherV2::default();
         for f in &mut self.all_items {
             f.score = matcher.fuzzy_indices(&f.name, &self.search_term);
@@ -201,8 +193,11 @@ where
             .cloned()
             .collect::<Vec<Item<T>>>();
 
-        log::info!("There are a total of {} item(s)", self.all_items.len());
-        log::info!("There are a total of {} match(es)", matches.len());
+        log::info!(
+            "There are a total of {} item(s) and {} match(es)",
+            self.all_items.len(),
+            matches.len()
+        );
 
         // We want these in the order of their fuzzy matched score, i.e. closed matches
         matches.sort_by(|a, b| b.score.cmp(&a.score));
@@ -212,20 +207,9 @@ where
 
     /// Renders the current result set
     pub fn render(&mut self) -> Result<()> {
-        log::info!("render, console_offset: {}", self.console_offset);
-
-        log::info!(
-            "bottom: {}, top: {}",
-            self.view.bottom_index,
-            self.view.top_index
-        );
-
         self.render_space()?;
         self.render_items()?;
         self.render_prompt()?;
-
-        log::info!("Rendering lines ({}):", &self.view.contents.len());
-
         Ok(())
     }
 
