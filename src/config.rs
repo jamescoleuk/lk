@@ -1,9 +1,8 @@
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use std::{
     fs::OpenOptions,
-    io::{BufRead, BufReader, BufWriter, Write},
+    io::{BufWriter, Write},
     path::Path,
 };
 
@@ -26,13 +25,13 @@ impl ConfigFile {
         if !Path::new(&path).exists() {
             log::info!("Creating config file at {}", path);
             match OpenOptions::new().write(true).create(true).open(&path) {
-                Ok(mut file) => {
+                Ok(file) => {
                     let mut buffered = BufWriter::new(file);
                     let default_config = Config {
                         default_mode: "list".to_string(),
                     };
                     let toml = toml::to_string(&default_config).unwrap();
-                    write!(buffered, "{}", toml);
+                    write!(buffered, "{}", toml).expect("Failed to write to file");
                 }
                 Err(e) => log::error!("Unable to create default config file: {}", e),
             }
@@ -53,35 +52,12 @@ impl ConfigFile {
     pub fn save(&self) {
         let path = format!("{}/{}", self.lk_dir, self.file_name);
         let toml = toml::to_string(&self.config).expect("Couldn't serialize config file");
-        let mut file = OpenOptions::new()
+        let file = OpenOptions::new()
             .write(true)
             .create(true)
             .open(&path)
-            .expect(format!("Couldn't open config file at {}", path).as_str());
+            .unwrap_or_else(|_| panic!("Couldn't open config file at {}", path));
         let mut buffered = BufWriter::new(file);
         write!(buffered, "{}", toml).expect("Couldn't write to config file");
     }
-
-    // pub fn set_default_mode(&self, mode: &str) -> Result<()> {
-    //     // let path = format!("{}/llk.toml", lk_dir);
-    //     let mut file = OpenOptions::new().write(true).open(path)?;
-    //     let mut buffered = BufWriter::new(file);
-    //     let default_config = Config {
-    //         default_mode: mode.to_string(),
-    //     };
-    //     let toml = toml::to_string(&default_config).unwrap();
-    //     write!(buffered, "{}", toml);
-    //     Ok(())
-    // }
 }
-
-// fn save_default_mode(path: &str, default_mode: &str) -> Result<()> {
-//     let file = OpenOptions::new().write(true).create(true).open(path)?;
-//     let mut buffered = BufWriter::new(file);
-//     let default_config = Config {
-//         default_mode: default_mode.to_string(),
-//     };
-//     let toml = toml::to_string(&default_config).unwrap();
-//     write!(buffered, "{}", toml)?;
-//     Ok(())
-// }
