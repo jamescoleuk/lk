@@ -6,7 +6,7 @@ mod script;
 mod ui;
 
 use crate::{
-    fuzzy::ui_state::UiState,
+    fuzzy::ui_state::FuzzyFinder,
     script::Script,
     ui::{print_bad_function_name, print_bad_script_name},
 };
@@ -110,7 +110,7 @@ fn main() -> Result<()> {
             }
         }
     } else if args.fuzzy || config_file.config.default_mode == "fuzzy" {
-        let result = UiState::fuzzy_find_function(scripts_to_item(&scripts)).unwrap();
+        let result = FuzzyFinder::find(scripts_to_item(&scripts)).unwrap();
         if let Some(function) = result {
             BashFile::run(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
         }

@@ -4,6 +4,8 @@ pub mod item;
 pub mod ui_state;
 mod view;
 
+/// Highlights the line. Will highlight matching search items, and also indicate
+/// if it's a selected item.
 fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) -> String {
     // Do some string manipulation to colourise the indexed parts
     let mut coloured_line = String::from("");

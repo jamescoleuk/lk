@@ -14,7 +14,7 @@ use crate::fuzzy::get_coloured_line;
 use super::item::Item;
 use super::view::View;
 
-pub struct UiState<T>
+pub struct FuzzyFinder<T>
 where
     T: Clone,
 {
@@ -28,11 +28,11 @@ where
     positive_space_remaining: u16,
 }
 
-impl<T> UiState<T>
+impl<T> FuzzyFinder<T>
 where
     T: Clone,
 {
-    pub fn new(functions: Vec<Item<T>>) -> Self {
+    fn new(functions: Vec<Item<T>>) -> Self {
         // We need to know where to start rendering from. We can't do this later because
         // we overwrite the cursor. Maybe we shouldn't do this? (TODO)
         let mut stdout = stdout().into_raw_mode().unwrap();
@@ -58,7 +58,7 @@ where
             0
         };
 
-        UiState {
+        FuzzyFinder {
             search_term: String::from(""),
             all_items: functions,
             matches: vec![],
@@ -181,7 +181,7 @@ where
     }
 
     /// Gets functions that match our current criteria, sorted by score.
-    fn update_matches(&mut self) {
+    pub fn update_matches(&mut self) {
         let matcher = SkimMatcherV2::default();
         for f in &mut self.all_items {
             f.score = matcher.fuzzy_indices(&f.name, &self.search_term);
@@ -213,8 +213,9 @@ where
         Ok(())
     }
 
-    pub fn fuzzy_find_function(items: Vec<Item<T>>) -> Result<Option<T>> {
-        let mut state = UiState::new(items);
+    /// The main entry point for the fuzzy finder.
+    pub fn find(items: Vec<Item<T>>) -> Result<Option<T>> {
+        let mut state = FuzzyFinder::new(items);
 
         state.update_matches();
 
