@@ -1,4 +1,5 @@
 mod bash_file;
+mod config;
 mod executables;
 mod fuzzy;
 mod script;
@@ -12,6 +13,7 @@ use crate::{
 
 use anyhow::Result;
 use bash_file::BashFile;
+use crossterm::style::Stylize;
 use executables::Executables;
 use fuzzy::item::Item;
 use log::LevelFilter;
@@ -29,6 +31,9 @@ use tempfile::tempdir;
 /// name to actually run that function.
 #[derive(StructOpt)]
 struct Cli {
+    /// Set the default mode: fuzzy or list
+    #[structopt(long, short)]
+    default: Option<String>,
     /// Fuzzy search for available scripts and functions.
     #[structopt(long, short)]
     fuzzy: bool,
@@ -43,14 +48,17 @@ struct Cli {
 }
 
 fn main() -> Result<()> {
-    let args = Cli::from_args();
-
     let lk_dir = match dirs::home_dir() {
         // Use a dir in ~/.config like a good human, but then store logs in it lol.
         Some(home_dir) => format!("{}/.config/lk", home_dir.to_string_lossy()),
         // If we don't have access to the home_dir for some reason then just use a temp dir.
         None => tempdir().unwrap().into_path().to_string_lossy().to_string(),
     };
+
+    let mut config_file = config::ConfigFile::new(&lk_dir, "lk.toml");
+
+    let args = Cli::from_args();
+
     let log_file_path = format!("{}/lk.log", lk_dir);
     let log_file = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
@@ -78,8 +86,30 @@ fn main() -> Result<()> {
     //         .iter()
     //         .for_each(|function| println!("{} - {}", script.file_name(), function.name))
     // });
-
-    if args.fuzzy {
+    if let Some(default) = args.default {
+        match default.as_str() {
+            "fuzzy" => {
+                println!("Setting default mode to {}", "fuzzy".green());
+                config_file.config.default_mode = "fuzzy".to_string();
+                config_file.save();
+            }
+            "list" => {
+                println!("Setting default mode to {}", "list".green());
+                config_file.config.default_mode = "list".to_string();
+                config_file.save();
+            }
+            _ => {
+                println!(
+                    "{} Please specify either {} or {}. You can try out either using the {} or {} flags.",
+                    "Unknown default!".red(),
+                    "fuzzy".green(),
+                    "list".green(),
+                    "--fuzzy".green(),
+                    "--list".green()
+                );
+            }
+        }
+    } else if args.fuzzy || config_file.config.default_mode == "fuzzy" {
         let result = UiState::fuzzy_find_function(scripts_to_item(&scripts)).unwrap();
         if let Some(function) = result {
             BashFile::run(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
