@@ -1,6 +1,6 @@
 use super::item::Item;
 
-pub struct View<T>
+pub struct List<T>
 where
     T: Clone,
 {
@@ -11,12 +11,12 @@ where
     pub contents: Vec<Item<T>>,
 }
 
-impl<T> View<T>
+impl<T> List<T>
 where
     T: Clone,
 {
     pub fn new(lines_to_show: i8) -> Self {
-        View {
+        List {
             contents: vec![],
             top_index: lines_to_show as u8 - 1,
             selected_index: (lines_to_show - 1) as i8,
@@ -111,12 +111,12 @@ mod tests {
     struct Setup {
         items: Vec<Item<TestItem>>,
         few_items: Vec<Item<TestItem>>,
-        view: View<TestItem>,
+        view: List<TestItem>,
     }
 
     impl Setup {
         fn new(lines_to_show: i8) -> Self {
-            let view = View::<TestItem>::new(lines_to_show);
+            let view = List::<TestItem>::new(lines_to_show);
 
             Setup {
                 items: vec![

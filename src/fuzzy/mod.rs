@@ -1,8 +1,8 @@
 use crossterm::style::{Color, Stylize};
 
 pub mod item;
+mod list;
 pub mod ui_state;
-mod view;
 
 /// Highlights the line. Will highlight matching search items, and also indicate
 /// if it's a selected item.

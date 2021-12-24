@@ -12,7 +12,7 @@ use termion::raw::{IntoRawMode, RawTerminal};
 use crate::fuzzy::get_coloured_line;
 
 use super::item::Item;
-use super::view::View;
+use super::list::List;
 
 pub struct FuzzyFinder<T>
 where
@@ -24,7 +24,7 @@ where
     console_offset: u16,
     stdout: RawTerminal<Stdout>,
     first: bool,
-    view: View<T>,
+    view: List<T>,
     positive_space_remaining: u16,
 }
 
@@ -65,7 +65,7 @@ where
             console_offset,
             stdout,
             first: true,
-            view: View::new(lines_to_show),
+            view: List::new(lines_to_show),
             positive_space_remaining,
         }
     }
