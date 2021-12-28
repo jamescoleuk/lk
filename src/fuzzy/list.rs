@@ -8,7 +8,7 @@ where
     pub bottom_index: u8,
     pub lines_to_show: i8,
     pub selected_index: i8,
-    pub contents: Vec<Item<T>>,
+    pub items: Vec<Item<T>>,
 }
 
 impl<T> List<T>
@@ -17,7 +17,7 @@ where
 {
     pub fn new(lines_to_show: i8) -> Self {
         List {
-            contents: vec![],
+            items: vec![],
             top_index: lines_to_show as u8 - 1,
             selected_index: (lines_to_show - 1) as i8,
             lines_to_show,
@@ -56,7 +56,7 @@ where
     }
 
     fn floor_selected_index(&mut self) {
-        let index_of_first_blank = self.contents.iter().rev().position(|item| item.is_blank);
+        let index_of_first_blank = self.items.iter().rev().position(|item| item.is_blank);
         if let Some(rev_index) = index_of_first_blank {
             let index = self.lines_to_show - rev_index as i8;
             if self.selected_index < index as i8 {
@@ -79,13 +79,13 @@ where
         }
         to_render.reverse();
 
-        self.contents = to_render;
+        self.items = to_render;
         self.floor_selected_index();
     }
 
     pub fn get_selected(&self) -> &Item<T> {
         let index = self.selected_index as usize;
-        &self.contents[index]
+        &self.items[index]
     }
 }
 
@@ -149,7 +149,7 @@ mod tests {
         setup.view.update(&setup.items);
 
         // THEN
-        assert_eq!(setup.view.contents.len(), 8);
+        assert_eq!(setup.view.items.len(), 8);
         assert_eq!(setup.view.selected_index, 7); // 0-indexed
         assert_eq!(setup.view.get_selected().item.as_ref().unwrap().name, "A")
     }
@@ -166,7 +166,7 @@ mod tests {
         setup.view.up(&setup.items); // 4
 
         // THEN
-        assert_eq!(setup.view.contents.len(), 8);
+        assert_eq!(setup.view.items.len(), 8);
         assert_eq!(setup.view.selected_index, 4);
     }
 
@@ -193,7 +193,7 @@ mod tests {
         setup.view.up(&setup.items);
 
         // THEN
-        assert_eq!(setup.view.contents.len(), 8);
+        assert_eq!(setup.view.items.len(), 8);
         assert_eq!(setup.view.selected_index, 0);
     }
 
@@ -207,7 +207,7 @@ mod tests {
         setup.view.down(); // 7
 
         // THEN
-        assert_eq!(setup.view.contents.len(), 8);
+        assert_eq!(setup.view.items.len(), 8);
         assert_eq!(setup.view.selected_index, 7);
     }
 
@@ -224,7 +224,7 @@ mod tests {
         setup.view.down(); // 5
 
         // THEN
-        assert_eq!(setup.view.contents.len(), 8);
+        assert_eq!(setup.view.items.len(), 8);
         assert_eq!(setup.view.selected_index, 5);
     }
 
@@ -241,7 +241,7 @@ mod tests {
         setup.view.up(&setup.few_items); // 5
 
         // THEN
-        assert_eq!(setup.view.contents.len(), 8); // Still 8, but blanks
+        assert_eq!(setup.view.items.len(), 8); // Still 8, but blanks
         assert_eq!(setup.view.selected_index, 5);
     }
 }

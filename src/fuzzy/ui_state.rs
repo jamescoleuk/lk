@@ -129,7 +129,7 @@ where
 
     fn render_items(&mut self) -> Result<()> {
         self.goto_start()?;
-        for (index, item) in self.list.contents.iter().enumerate() {
+        for (index, item) in self.list.items.iter().enumerate() {
             if item.is_blank {
                 writeln!(self.stdout, "{}", termion::clear::CurrentLine)?;
             } else {
