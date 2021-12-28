@@ -24,7 +24,7 @@ where
     console_offset: u16,
     stdout: RawTerminal<Stdout>,
     first: bool,
-    view: List<T>,
+    list: List<T>,
     positive_space_remaining: u16,
 }
 
@@ -65,19 +65,19 @@ where
             console_offset,
             stdout,
             first: true,
-            view: List::new(lines_to_show),
+            list: List::new(lines_to_show),
             positive_space_remaining,
         }
     }
 
     pub fn up(&mut self) -> Result<()> {
-        self.view.up(&self.matches);
+        self.list.up(&self.matches);
         self.update_matches();
         self.render()
     }
 
     pub fn down(&mut self) -> Result<()> {
-        self.view.down();
+        self.list.down();
         self.update_matches();
         self.render()
     }
@@ -108,7 +108,7 @@ where
         // this run of lk.
         write!(self.stdout, "{}", termion::cursor::Save).unwrap();
         if self.first {
-            for _ in 0..self.view.lines_to_show {
+            for _ in 0..self.list.lines_to_show {
                 writeln!(self.stdout, " ")?;
             }
             self.first = false
@@ -129,7 +129,7 @@ where
 
     fn render_items(&mut self) -> Result<()> {
         self.goto_start()?;
-        for (index, item) in self.view.contents.iter().enumerate() {
+        for (index, item) in self.list.contents.iter().enumerate() {
             if item.is_blank {
                 writeln!(self.stdout, "{}", termion::clear::CurrentLine)?;
             } else {
@@ -139,7 +139,7 @@ where
                 let coloured_line = get_coloured_line(
                     fuzzy_indecies,
                     &item.name,
-                    index == self.view.selected_index as usize,
+                    index == self.list.selected_index as usize,
                 );
 
                 writeln!(
@@ -157,7 +157,7 @@ where
 
     fn render_prompt(&mut self) -> Result<()> {
         // Render the prompt
-        let prompt_y = self.view.lines_to_show as u16 + 1;
+        let prompt_y = self.list.lines_to_show as u16 + 1;
         let current_x = self.search_term.chars().count() + 2;
 
         write!(
@@ -202,7 +202,7 @@ where
         // We want these in the order of their fuzzy matched score, i.e. closed matches
         matches.sort_by(|a, b| b.score.cmp(&a.score));
         self.matches = matches;
-        self.view.update(&self.matches);
+        self.list.update(&self.matches);
     }
 
     /// Renders the current result set
@@ -255,12 +255,12 @@ where
                         return if !state.matches.is_empty() {
                             // Tidy up the console lines we've been writing
                             for _ in state.console_offset
-                                ..state.console_offset + state.view.lines_to_show as u16 + 4
+                                ..state.console_offset + state.list.lines_to_show as u16 + 4
                             {
                                 write!(state.stdout, "{}", termion::clear::CurrentLine,)?;
                             }
                             Ok(Some(
-                                state.view.get_selected().item.as_ref().unwrap().to_owned(),
+                                state.list.get_selected().item.as_ref().unwrap().to_owned(),
                             ))
                         } else {
                             Ok(None)
