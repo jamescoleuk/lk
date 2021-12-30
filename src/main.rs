@@ -24,11 +24,11 @@ use script::Function;
 use structopt::StructOpt;
 use tempfile::tempdir;
 
-/// Use lk to explore and execute scripts in your current directory.
-/// Execute lk without arguments to see what scripts are available.
-/// Execute lk with a script name to see what functions are available
-/// in that script. Execute lk with a script name and a function
-/// name to actually run that function.
+/// Use lk to explore and execute scripts in your current directory,
+/// and in its sub-directories. lk offers two options: 'list' or 'fuzzy'.
+/// 'list' lets you explore your scripts and their functions in a
+/// hierarchical way. 'fuzzy' lets you do a fuzzy search over all the
+/// scripts and functions found by lk.
 #[derive(StructOpt)]
 struct Cli {
     /// Set the default mode: fuzzy or list
@@ -37,6 +37,9 @@ struct Cli {
     /// Fuzzy search for available scripts and functions.
     #[structopt(long, short)]
     fuzzy: bool,
+    /// List available scripts and functions.
+    #[structopt(long, short)]
+    list: bool,
     /// Optional: the name of a script to explore or use
     script: Option<String>,
     /// Optional: the name of the function to run.
@@ -109,40 +112,56 @@ fn main() -> Result<()> {
                 );
             }
         }
-    } else if args.fuzzy || config_file.config.default_mode == "fuzzy" {
-        let result = FuzzyFinder::find(scripts_to_item(&scripts)).unwrap();
-        if let Some(function) = result {
-            BashFile::run(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
-        }
+    } else if args.fuzzy {
+        fuzzy(&scripts)?
+    } else if args.list {
+        list(executables, args)?
     } else {
-        // Did the user request a script?
-        if let Some(script) = args.script {
-            // Is it a script that exists on disk?
-            if let Some(executable) = executables.get(&script) {
-                // Yay, confirmed script
-                let script = Script::new(executable);
-                // Did the user pass a function?
-                if let Some(function) = args.function {
-                    // Is it a function that exists in the script we found?
-                    if let Some(function) = script.get(&function) {
-                        // Do our thing
-                        BashFile::run(script.to_owned(), function.to_owned(), args.params)?;
-                    } else {
-                        print_bad_function_name(&script, &function);
-                    }
-                } else {
-                    // No function, display a list of what's available
-                    script.pretty_print();
-                }
-            } else {
-                print_bad_script_name(&script, executables);
-            }
-        } else {
-            // No executable, display a list of what's available
-            executables.pretty_print();
+        // Nother requested, so fall back on the default which will always exist.
+        match config_file.config.default_mode.as_str() {
+            "fuzzy" => fuzzy(&scripts)?,
+            "list" => list(executables, args)?,
+            _ => panic!("No default mode set! Has there been a problem creating the config file?"),
         }
     }
+    Ok(())
+}
 
+fn fuzzy(scripts: &[Script]) -> Result<()> {
+    let result = FuzzyFinder::find(scripts_to_item(scripts)).unwrap();
+    if let Some(function) = result {
+        BashFile::run(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
+    }
+    Ok(())
+}
+
+fn list(executables: Executables, args: Cli) -> Result<()> {
+    // Did the user request a script?
+    if let Some(script) = args.script {
+        // Is it a script that exists on disk?
+        if let Some(executable) = executables.get(&script) {
+            // Yay, confirmed script
+            let script = Script::new(executable);
+            // Did the user pass a function?
+            if let Some(function) = args.function {
+                // Is it a function that exists in the script we found?
+                if let Some(function) = script.get(&function) {
+                    // Do our thing
+                    BashFile::run(script.to_owned(), function.to_owned(), args.params)?;
+                } else {
+                    print_bad_function_name(&script, &function);
+                }
+            } else {
+                // No function, display a list of what's available
+                script.pretty_print();
+            }
+        } else {
+            print_bad_script_name(&script, executables);
+        }
+    } else {
+        // No executable, display a list of what's available
+        executables.pretty_print();
+    }
     Ok(())
 }
 

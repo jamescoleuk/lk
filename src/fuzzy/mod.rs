@@ -4,6 +4,9 @@ pub mod item;
 mod list;
 pub mod ui_state;
 
+//TODO: the old ui state should go here.
+// TODO: search for ui_state and rename the stupid thing. Same with View.
+
 /// Highlights the line. Will highlight matching search items, and also indicate
 /// if it's a selected item.
 fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) -> String {
