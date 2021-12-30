@@ -292,7 +292,6 @@ dependencies = [
  "pad",
  "regex",
  "serde",
- "serde_derive",
  "structopt",
  "tempfile",
  "termion",
