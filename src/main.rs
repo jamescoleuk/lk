@@ -6,7 +6,7 @@ mod script;
 mod ui;
 
 use crate::{
-    fuzzy::ui_state::FuzzyFinder,
+    fuzzy::FuzzyFinder,
     script::Script,
     ui::{print_bad_function_name, print_bad_script_name},
 };
