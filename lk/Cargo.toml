@@ -1,0 +1,38 @@
+[package]
+name = "lk"
+version = "0.1.6"
+authors = ["James Cole <jamescole.uk@gmail.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/jamescoleuk/lk"
+description = "A cli frontend for your bash scripts"
+readme = "README.md"
+keywords = ["bash", "cli"]
+categories = ["command-line-interface", "command-line-utilities"]
+edition = "2021"
+
+[dependencies]
+# To handle lk arguments.
+structopt = "0.3.13"
+# To display colour on the terminal.
+colored = "2"
+regex = "1.5.4"
+# To display script and function names in center justified fashion.
+pad = "0.1.6"
+walkdir = "2.3.2"
+# Anyhow makes application error handling easier.
+# If I was writing a library I'd use thiserror.
+anyhow = "1.0.44"
+# To detect and ignore binary executables.
+content_inspector = "0.2.4"
+# To generate unique suffixes for the lk file.
+nanoid = "0.4.0"
+# Somewhere to store lk's temp file
+tempfile = "3.2.0"
+crossterm = "0.22.1"
+termion= "1.5.6"
+fuzzy-matcher = "0.3.7"
+log4rs="1.0.0"
+log="0.4.14"
+dirs="4.0.0"
+toml="0.5.8"
+serde="1.0.132"
