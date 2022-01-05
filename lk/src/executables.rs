@@ -92,14 +92,35 @@ fn is_executable(entry: &DirEntry) -> bool {
 }
 
 fn is_binary(entry: &DirEntry) -> bool {
+    let path = entry.path();
     // We're testing for executable permissions before we check for binary or text
     // because we don't want to attempt to read any files we don't have to.
-    let file = std::fs::File::open(entry.path()).unwrap();
+    let file = match std::fs::File::open(path) {
+        Ok(file) => file,
+        Err(err) => {
+            log::error!(
+                "Unable to access file: {}. The error was: {}",
+                path.as_os_str().to_string_lossy(),
+                err
+            );
+            return false;
+        }
+    };
+
     // We're only going to read a smidgen of the file because that's all we need
     // for using content_inspector.
     let mut buffer = [0; 10];
-    std::io::BufReader::new(file)
-        .read_exact(&mut buffer)
-        .unwrap();
-    inspect(&buffer) == ContentType::BINARY
+
+    let head = std::io::BufReader::new(file).read_exact(&mut buffer);
+    match head {
+        Ok(_) => inspect(&buffer) == ContentType::BINARY,
+        Err(err) => {
+            log::error!(
+                "Unable to read file: {}. The error was: {}",
+                path.as_os_str().to_string_lossy(),
+                err
+            );
+            false
+        }
+    }
 }
