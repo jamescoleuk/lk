@@ -36,3 +36,4 @@ log="0.4.14"
 dirs="4.0.0"
 toml="0.5.8"
 serde="1.0.132"
+fuzzy_finder={path="../fuzzy_finder"}

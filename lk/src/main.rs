@@ -1,21 +1,15 @@
 mod bash_file;
 mod config;
 mod executables;
-mod fuzzy;
 mod script;
 mod ui;
-
-use crate::{
-    fuzzy::FuzzyFinder,
-    script::Script,
-    ui::{print_bad_function_name, print_bad_script_name},
-};
 
 use anyhow::Result;
 use bash_file::BashFile;
 use crossterm::style::Stylize;
 use executables::Executables;
-use fuzzy::item::Item;
+use fuzzy_finder::item::Item;
+use fuzzy_finder::FuzzyFinder;
 use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Config, Root};
@@ -23,6 +17,9 @@ use log4rs::encode::pattern::PatternEncoder;
 use script::Function;
 use structopt::StructOpt;
 use tempfile::tempdir;
+use ui::{print_bad_function_name, print_bad_script_name};
+
+use crate::script::Script;
 
 /// Use lk to explore and execute scripts in your current directory,
 /// and in its sub-directories. lk offers two options: 'list' or 'fuzzy'.
