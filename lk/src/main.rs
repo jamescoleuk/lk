@@ -15,6 +15,7 @@ use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
 use script::Function;
+use spinners::{Spinner, Spinners};
 use structopt::StructOpt;
 use tempfile::tempdir;
 use ui::{print_bad_function_name, print_bad_script_name};
@@ -74,7 +75,9 @@ fn main() -> Result<()> {
 
     log::info!("\n\nStarting lk...");
 
+    let sp = Spinner::new(&Spinners::Line, "".to_string());
     let executables = Executables::new(".");
+    sp.stop();
 
     let scripts: Vec<Script> = executables
         .executables

@@ -163,6 +163,7 @@ where
         let prompt_y = self.list.lines_to_show as u16 + 1;
         let current_x = self.search_term.chars().count() + 2;
 
+        // Go to the bottom line, where we'll render the prompt
         write!(
             self.stdout,
             "{}{}{}",
