@@ -1,5 +1,10 @@
 # lk
 
+
+[![GitHub Actions](https://github.com/jamescoleuk/lk/actions/workflows/rust.yml/badge.svg)](https://github.com/jamescoleuk/lk/actions/workflows/rust.yml/badge.svg)
+[![Crates.io](https://img.shields.io/crates/v/lk.svg)](https://crates.io/crates/lk)
+
+
 A CLI frontend for your bash scripts, focused on ergonomics.
 
 `lk` searches for scripts, parses them and finds bash functions. It can then either:
