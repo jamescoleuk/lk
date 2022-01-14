@@ -25,7 +25,14 @@ impl Script {
     pub fn new(executable: &Executable) -> Self {
         let lines = match read_lines(&executable.path) {
             Ok(lines) => lines,
-            Err(e) => panic!("{}", e),
+            Err(err) => {
+                log::error!(
+                    "Unable to read executable: {}. Error was: {}",
+                    &executable.path.to_string_lossy(),
+                    err
+                );
+                panic!("blah:{}", err)
+            }
         };
 
         // `comments` accumulates comments until we find a function header line, and then they're cleared.
@@ -236,21 +243,15 @@ mod tests {
 
     #[test]
     fn test_is_function_header_line() {
-        assert_eq!(
-            is_function_header_line(&String::from("some_function(){")),
-            true
-        );
-        assert_eq!(
-            is_function_header_line(&String::from("some_function    () {")),
-            true
-        );
-        assert_eq!(
-            is_function_header_line(&String::from("some_function    ()     {")),
-            true
-        );
-        assert_eq!(
-            is_function_header_line(&String::from("    some_function    ()     {")),
-            true
-        );
+        assert!(is_function_header_line(&String::from("some_function(){")));
+        assert!(is_function_header_line(&String::from(
+            "some_function    () {"
+        )));
+        assert!(is_function_header_line(&String::from(
+            "some_function    ()     {"
+        )));
+        assert!(is_function_header_line(&String::from(
+            "    some_function    ()     {"
+        )));
     }
 }

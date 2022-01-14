@@ -52,7 +52,10 @@ fn main() -> Result<()> {
         // Use a dir in ~/.config like a good human, but then store logs in it lol.
         Some(home_dir) => format!("{}/.config/lk", home_dir.to_string_lossy()),
         // If we don't have access to the home_dir for some reason then just use a temp dir.
-        None => tempdir().unwrap().into_path().to_string_lossy().to_string(),
+        None => {
+            println!("Unable to access your home directory. Using a temporary directory instead.");
+            tempdir().unwrap().into_path().to_string_lossy().to_string()
+        }
     };
 
     let mut config_file = config::ConfigFile::new(&lk_dir, "lk.toml");
@@ -111,10 +114,12 @@ fn main() -> Result<()> {
         }
     } else if args.fuzzy {
         fuzzy(&scripts)?
-    } else if args.list {
+    } else if args.list || args.script.is_some() {
+        // If the user is specifying --list OR if there's some value for script.
+        // Any value there is implicitly take as --list.
         list(executables, args)?
     } else {
-        // Nother requested, so fall back on the default which will always exist.
+        // Neither requested, so fall back on the default which will always exist.
         match config_file.config.default_mode.as_str() {
             "fuzzy" => fuzzy(&scripts)?,
             "list" => list(executables, args)?,

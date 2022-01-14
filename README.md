@@ -85,3 +85,11 @@ I have previously written two similar tools:
 
 
 [fzf](https://github.com/junegunn/fzf) is wonderful. The `--fuzzy` option in `lk` comes from years of `ctrl-r` fuzzy finding through my shell history with `fzf`. I almost didn't implement this feature because I thought "why bother? fzf has already done it perfectly." Or rather I thought about piping from `lk` to `fzf`. But having the functionality implemented natively is the right thing for `lk`. But you'll notice, perhaps, that the rendering of the fuzzy search in `lk` draws a lot of visual inspiration from `fzf`. `fzf`, I love you.
+
+## Significant TODOs
+
+- [] Support other script types, e.g. JavaScript, Rust-Script, Python.
+- [] `--fuzzy` should write the `--list` command to the prompt, so what happened is in the history. Is this even possible?
+- [] Option to disable colours, for the colour blind.
+- [] Add a count to --fuzzy -- otherwise how does someone know to scroll up?
+- [] We ignore a bunch of stuff: this needs to be in config.
