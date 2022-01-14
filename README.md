@@ -2,28 +2,22 @@
 
 A CLI frontend for your bash scripts, focused on ergonomics.
 
-`lk` parses scripts and finds bash functions. It can then either:
-* pretty prints the functions it finds so you can run them through `lk`, rather like sub commands in git.
+`lk` searches for scripts, parses them and finds bash functions. It can then either:
+* let you explore and execute functions, rather like subcommands in git
 * let you fuzzy find and execute functions, similar to the wonderful `fzf`'s `ctrl-r` feature. 
 
-If you ran it on this repo you'd see something like this:
+`lk`'s list mode works like this:
 
-![lk results from this repo](./docs/example02.png)
-
-So it's found all executable bash scripts in this and all sub-directories. You could then do this:
-
-![lk showing functions in script.sh](./docs/example03.png)
-
-That's all all the functions in `script.sh` along with comments. You can execute a function like this:
-
-![lk executing a function in script.sh](./docs/example04.png)
+[![asciicast](https://asciinema.org/a/NpLCglXAKXEqCTitTb9qK5RUy.svg)](https://asciinema.org/a/NpLCglXAKXEqCTitTb9qK5RUy)
 
 
-Or, with the new fuzzy find feature, you can search for scripts. Run `lk --fuzzy` and you'll see a searchable list, like this:
+`lk'`s fuzzy mode works like this:
 
-![And image showing the fuzzy find results](docs/example05.png )
+[![asciicast](https://asciinema.org/a/ehlII0cid0UQxXGPBb9o2M3hb.svg)](https://asciinema.org/a/ehlII0cid0UQxXGPBb9o2M3hb)
 
-That's it.
+I use both modes, but I default to fuzzy. You can change the default like this:
+
+[![asciicast](https://asciinema.org/a/VpBulJ15iaNpVKGT3G1xXFtyN.svg)](https://asciinema.org/a/VpBulJ15iaNpVKGT3G1xXFtyN)
 
 ## Features 
  - `lk` finds executable non-binary files in the current directory and any sub-directory
