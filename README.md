@@ -8,8 +8,7 @@ A CLI frontend for your bash scripts, focused on ergonomics.
 
 `lk`'s list mode works like this:
 
-[![asciicast](https://asciinema.org/a/NpLCglXAKXEqCTitTb9qK5RUy.svg)](https://asciinema.org/a/NpLCglXAKXEqCTitTb9qK5RUy)
-
+<script id="asciicast-NpLCglXAKXEqCTitTb9qK5RUy" src="https://asciinema.org/a/NpLCglXAKXEqCTitTb9qK5RUy.js" async></script>
 
 `lk'`s fuzzy mode works like this:
 
