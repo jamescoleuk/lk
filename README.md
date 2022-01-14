@@ -8,15 +8,17 @@ A CLI frontend for your bash scripts, focused on ergonomics.
 
 `lk`'s list mode works like this:
 
-<script id="asciicast-NpLCglXAKXEqCTitTb9qK5RUy" src="https://asciinema.org/a/NpLCglXAKXEqCTitTb9qK5RUy.js" async></script>
+![A CLI recording showing how you can use lk's list feature](./docs/how_to_list.svg)
+<img src="./docs/how_to_list.svg">
 
 `lk'`s fuzzy mode works like this:
-
-[![asciicast](https://asciinema.org/a/ehlII0cid0UQxXGPBb9o2M3hb.svg)](https://asciinema.org/a/ehlII0cid0UQxXGPBb9o2M3hb)
+![A CLI recording showing how you can use lk's fuzzy feature](./docs/how_to_fuzzy.svg)
+<img src="./docs/how_to_fuzzy.svg">
 
 I use both modes, but I default to fuzzy. You can change the default like this:
 
-[![asciicast](https://asciinema.org/a/VpBulJ15iaNpVKGT3G1xXFtyN.svg)](https://asciinema.org/a/VpBulJ15iaNpVKGT3G1xXFtyN)
+![A CLI recording showing how you can change lk's default to either list or fuzzy](./docs/how_to_change_default.svg)
+<img src="./docs/how_to_change_default.svg">
 
 ## Features 
  - `lk` finds executable non-binary files in the current directory and any sub-directory
