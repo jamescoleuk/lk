@@ -80,8 +80,8 @@ I have previously written two similar tools:
 
 ## Significant TODOs
 
-- [] Support other script types, e.g. JavaScript, Rust-Script, Python.
-- [] `--fuzzy` should write the `--list` command to the prompt, so what happened is in the history. Is this even possible?
-- [] Option to disable colours, for the colour blind.
-- [] Add a count to --fuzzy -- otherwise how does someone know to scroll up?
-- [] We ignore a bunch of stuff: this needs to be in config.
+- [ ] Support other script types, e.g. JavaScript, Rust-Script, Python.
+- [ ] `--fuzzy` should write the `--list` command to the prompt, so what happened is in the history. Is this even possible?
+- [ ] Option to disable colours, for the colour blind.
+- [ ] Add a count to --fuzzy -- otherwise how does someone know to scroll up?
+- [ ] We ignore a bunch of stuff: this needs to be in config.
