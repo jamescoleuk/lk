@@ -37,4 +37,5 @@ dirs="4.0.0"
 toml="0.5.8"
 serde="1.0.132"
 spinners="2.0.0"
-fuzzy_finder={path="../fuzzy_finder"}
+# fuzzy_finder={path="../fuzzy_finder"}
+fuzzy_finder="0.1.0"
