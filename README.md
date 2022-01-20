@@ -43,6 +43,21 @@ cargo install --force lk
 ## Use
 Just execute `lk` and follow the instructions. `lk --help` is also a thing you can run.
 
+## Why?
+1. You're a polyglot engineer with package manager fatigue. Hide it all behind some bash, the lingua franca.
+2. You do a lot of devops and have a lot of bash.
+3. You have a lot of projects that you don't work on for months at a time, and you need to bring some consistency to the experience of re-visiting them.
+4. You use `make` and `PHONY` to do non-compile stuff to your project. You are like a baby to me. Just write bash and let `lk` handle the exploration and execution.
+5. You ever copy and paste bash from a text file you keep somewhere.
+
+### Specific use cases
+
+1. AWS: 
+   1. You need to pull down config from AWS and store it in `.env` files.
+   2. You need to switch between AWs environments
+2. You need to build and deploy many services, and want to hide the edge cases. E.g. for compiling, building, and deploying you might have `lk my_service jfdi`.
+3. You regularly need to set up SSH tunneling and can't remember the commands.
+
 ## How to write your bash files so they work with lk
 Big design goal: you shouldn't have to. But there are many styles of bash, and if `lk` doesn't work with how you write your bash then please let me know and I'll be all over fixing it.
 
