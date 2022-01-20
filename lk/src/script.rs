@@ -1,10 +1,11 @@
 use crate::executables::Executable;
 use crate::ui::{print_no_functions_in_script_help, print_script_header};
-use crossterm::style::Stylize;
 use pad::{Alignment, PadStr};
+use pastel_colours::COLOUR_GREEN;
 use regex::bytes::Regex;
 use std::io::BufRead;
 use std::{fs::File, path::Path};
+use termion::color;
 
 /// Everything we need to know about a function in a script
 #[derive(PartialEq, Debug, Clone)]
@@ -126,12 +127,17 @@ impl Script {
                 // First print the function name
                 let to_print = function
                     .name
-                    .pad_to_width_with_alignment(padding, Alignment::Right)
-                    .with(pastel_colours::COLOUR_GREEN);
+                    .pad_to_width_with_alignment(padding, Alignment::Right);
+                let coloured_to_print = format!(
+                    "{}{}{}",
+                    color::Fg(COLOUR_GREEN),
+                    to_print,
+                    color::Fg(color::Reset)
+                );
                 if !function.comment.is_empty() {
-                    print!("{}", to_print);
+                    print!("{}", coloured_to_print);
                 } else {
-                    println!("{}", to_print);
+                    println!("{}", coloured_to_print);
                 }
 
                 // Then follow up with the comment lines

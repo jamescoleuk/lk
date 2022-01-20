@@ -1,10 +1,10 @@
 use anyhow::Result;
-// use colors::COLOR_BLUE;
-use crossterm::style::{Color, Stylize};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
+use pastel_colours::{COLOUR_BLUE, COLOUR_DARK_BLUE, COLOUR_DARK_GREY, COLOUR_GREEN};
 use std::io::{stdout, Stdout, Write};
 use std::time::Instant;
+use termion::color;
 use termion::cursor::DetectCursorPos;
 use termion::event::Key;
 use termion::input::TermRead;
@@ -173,10 +173,11 @@ where
         )?;
         write!(
             self.stdout,
-            "{}{}{} {}",
+            "{}{}{}${} {}",
             termion::cursor::Show,
             termion::cursor::Goto(1, prompt_y + self.console_offset),
-            "$".with(pastel_colours::COLOUR_BLUE),
+            color::Fg(COLOUR_BLUE),
+            color::Fg(color::Reset),
             self.search_term
         )?;
         self.stdout.flush()?;
@@ -318,45 +319,59 @@ fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) ->
     // Do some string manipulation to colourise the indexed parts
     let mut coloured_line = String::from("");
     let mut start = 0;
-    let selected_background_color = Color::Rgb {
-        r: 50,
-        g: 50,
-        b: 50,
-    };
+
     for i in fuzzy_indecies {
         let part = &text[start..*i];
         let matching_char = &text[*i..*i + 1];
         if is_selected {
             coloured_line = format!(
-                "{}{}{}",
+                "{}{}{}{}{}{}{}",
                 coloured_line,
-                &part.white().on(selected_background_color),
-                &matching_char.on(pastel_colours::COLOUR_BLUE)
+                color::Bg(COLOUR_DARK_GREY),
+                &part,
+                color::Bg(color::Reset),
+                color::Bg(COLOUR_DARK_BLUE),
+                &matching_char,
+                color::Bg(color::Reset),
             );
         } else {
             coloured_line = format!(
-                "{}{}{}",
+                "{}{}{}{}{}",
                 coloured_line,
                 &part,
-                &matching_char.on_dark_blue()
+                color::Bg(COLOUR_DARK_BLUE),
+                &matching_char,
+                color::Bg(color::Reset),
             );
         }
         start = i + 1;
     }
     let remaining_chars = &text[start..text.chars().count()];
     if is_selected {
-        coloured_line = format!(
-            "{}{}{}{}",
-            ">".green().on(selected_background_color),
-            "  ".on(selected_background_color),
-            coloured_line.white(),
-            remaining_chars.white().on(selected_background_color)
+        let prompt: String = format!(
+            "{}{}>{}{}",
+            color::Bg(COLOUR_DARK_GREY),
+            color::Fg(COLOUR_GREEN),
+            color::Fg(color::Reset),
+            color::Bg(color::Reset)
         );
+        let spacer: String = format!(
+            "{}  {}",
+            color::Bg(COLOUR_DARK_GREY),
+            color::Bg(color::Reset)
+        );
+        let remaining: String = format!(
+            "{}{}{}",
+            color::Bg(COLOUR_DARK_GREY),
+            remaining_chars,
+            color::Bg(color::Reset),
+        );
+        coloured_line = format!("{}{}{}{}", prompt, spacer, coloured_line, remaining);
     } else {
         coloured_line = format!(
-            "{}{}{}{}",
-            " ".on(selected_background_color),
-            "  ",
+            "{} {}  {}{}",
+            color::Bg(COLOUR_DARK_GREY),
+            color::Bg(color::Reset),
             coloured_line,
             remaining_chars
         );

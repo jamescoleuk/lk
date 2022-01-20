@@ -1,43 +1,12 @@
-use crossterm::style::Color;
+use termion::color::Rgb;
 
-pub const COLOUR_RED: Color = Color::Rgb {
-    r: 232,
-    g: 131,
-    b: 136,
-};
-
-pub const COLOUR_GREEN: Color = Color::Rgb {
-    r: 168,
-    g: 204,
-    b: 140,
-};
-
-pub const COLOUR_BLUE: Color = Color::Rgb {
-    r: 113,
-    g: 190,
-    b: 242,
-};
-
-pub const COLOUR_ORANGE: Color = Color::Rgb {
-    r: 219,
-    g: 171,
-    b: 121,
-};
-
-pub const COLOUR_GREY: Color = Color::Rgb {
-    r: 185,
-    g: 191,
-    b: 202,
-};
-
-pub const COLOUR_PINK: Color = Color::Rgb {
-    r: 210,
-    g: 144,
-    b: 228,
-};
-
-pub const COLOUR_TEAL: Color = Color::Rgb {
-    r: 102,
-    g: 194,
-    b: 205,
-};
+pub const COLOUR_RED: Rgb = Rgb(232, 131, 136);
+pub const COLOUR_GREEN: Rgb = Rgb(168, 204, 140);
+pub const COLOUR_DARK_GREEN: Rgb = Rgb(141, 188, 105);
+pub const COLOUR_BLUE: Rgb = Rgb(113, 190, 242);
+pub const COLOUR_DARK_BLUE: Rgb = Rgb(21, 147, 232);
+pub const COLOUR_ORANGE: Rgb = Rgb(219, 171, 121);
+pub const COLOUR_GREY: Rgb = Rgb(185, 191, 202);
+pub const COLOUR_PINK: Rgb = Rgb(210, 144, 228);
+pub const COLOUR_TEAL: Rgb = Rgb(102, 194, 205);
+pub const COLOUR_DARK_GREY: Rgb = Rgb(50, 50, 50);

@@ -1,7 +1,8 @@
 use crate::{ui::print_root_header};
-use crossterm::style::{Stylize};
 use content_inspector::{inspect, ContentType};
 use pad::{Alignment, PadStr};
+use pastel_colours::{COLOUR_DARK_GREEN};
+use termion::color;
 use std::{io::Read, os::unix::fs::PermissionsExt, path::PathBuf, fs::Permissions};
 use walkdir::{DirEntry, WalkDir};
 
@@ -78,9 +79,8 @@ impl Executables {
             // We'll pad right so everything aligns nicely.
             let to_print = executable
                 .short_name
-                .pad_to_width_with_alignment(padding, Alignment::Right)
-                .with(pastel_colours::COLOUR_GREEN);
-            println!("{to_print} - {path}");
+                .pad_to_width_with_alignment(padding, Alignment::Right);
+            println!("{}{}{} - {path}", color::Fg(COLOUR_DARK_GREEN), to_print, color::Fg(color::Reset));
         });
     }
 }

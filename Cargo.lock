@@ -515,7 +515,7 @@ dependencies = [
 name = "pastel_colours"
 version = "0.1.0"
 dependencies = [
- "crossterm",
+ "termion",
 ]
 
 [[package]]
