@@ -1,18 +1,19 @@
 use anyhow::Result;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
+use item::Item;
+use list::List;
 use pastel_colours::{
-    BLUE_BG, BLUE_FG, DARK_BLUE_BG, DARK_GREY_BG, DARK_GREY_FG, GREEN_FG, RESET_BG, RESET_FG,
+    BLUE_FG, DARK_BLUE_BG, DARK_GREY_BG, DARK_GREY_FG, GREEN_FG, RESET_BG, RESET_FG,
 };
 use std::io::{stdout, Stdout, Write};
 use std::time::Instant;
+use termion::clear::CurrentLine;
 use termion::cursor::DetectCursorPos;
+use termion::cursor::Show;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
-
-use item::Item;
-use list::List;
 
 pub mod item;
 mod list;
@@ -167,15 +168,12 @@ where
         // Go to the bottom line, where we'll render the prompt
         write!(
             self.stdout,
-            "{}{}{}",
-            termion::clear::CurrentLine,
+            "{CurrentLine}{}{CurrentLine}",
             termion::cursor::Goto(current_x as u16, prompt_y + self.console_offset),
-            termion::clear::CurrentLine,
         )?;
         write!(
             self.stdout,
-            "{}{}{BLUE_FG}${RESET_FG} {}",
-            termion::cursor::Show,
+            "{Show}{}{BLUE_FG}${RESET_FG} {}",
             termion::cursor::Goto(1, prompt_y + self.console_offset),
             self.search_term
         )?;

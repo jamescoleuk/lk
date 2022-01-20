@@ -63,7 +63,7 @@ fn main() -> Result<()> {
 
     let args = Cli::from_args();
 
-    let log_file_path = format!("{}/lk.log", lk_dir);
+    let log_file_path = format!("{lk_dir}/lk.log");
     let log_file = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
         .build(&log_file_path)?;

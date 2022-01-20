@@ -164,12 +164,9 @@ fn is_binary(entry: &DirEntry) -> bool {
         Ok(_) => inspect(&buffer) == ContentType::BINARY,
         Err(err) => {
             if err.to_string().as_str() == "failed to fill whole buffer" {
-                log::debug!(
-                    "Found a tiny file and didn't read it all. Ignoring it. Path: {}",
-                    path_str
-                )
+                log::debug!( "Found a tiny file and didn't read it all. Ignoring it. Path: {path_str}");
             } else {
-                log::error!("Unable to read file: {}. The error was: {}", path_str, err);
+                log::error!("Unable to read file: {path_str}. The error was: {err}");
             }
             false
         }

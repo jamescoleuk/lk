@@ -65,10 +65,10 @@ impl BashFile {
         // although that should be possible in a well written-script.
         let script_file_name = self.script.file_name();
         let script_path = self.script.working_dir_absolute();
-        writeln!(file, "cd {}", script_path)?;
+        writeln!(file, "cd {script_path}")?;
 
         // Source the script so we can access its functions
-        writeln!(file, "source ./{}", script_file_name)?;
+        writeln!(file, "source ./{script_file_name}")?;
 
         // Call the function the user asked for
         writeln!(file, "{} {}", self.function.name, self.params.join(" "))?;

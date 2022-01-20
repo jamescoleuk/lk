@@ -27,9 +27,8 @@ impl Script {
             Ok(lines) => lines,
             Err(err) => {
                 log::error!(
-                    "Unable to read executable: {}. Error was: {}",
-                    &executable.path.to_string_lossy(),
-                    err
+                    "Unable to read executable: {}. Error was: {err}",
+                    &executable.path.to_string_lossy()
                 );
                 panic!("blah:{}", err)
             }
@@ -129,20 +128,19 @@ impl Script {
                     .pad_to_width_with_alignment(padding, Alignment::Right);
                 let coloured_to_print = format!("{GREEN_FG}{to_print}{RESET_FG}");
                 if !function.comment.is_empty() {
-                    print!("{}", coloured_to_print);
+                    print!("{coloured_to_print}");
                 } else {
-                    println!("{}", coloured_to_print);
+                    println!("{coloured_to_print}");
                 }
 
                 // Then follow up with the comment lines
                 function.comment.iter().enumerate().for_each(|(i, line)| {
                     if i == 0 {
-                        println!(" {}", line);
+                        println!(" {line}");
                     } else {
                         println!(
-                            "{} {}",
-                            "".pad_to_width_with_alignment(padding, Alignment::Right),
-                            line
+                            "{} {line}",
+                            "".pad_to_width_with_alignment(padding, Alignment::Right)
                         );
                     }
                 });
