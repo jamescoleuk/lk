@@ -1,6 +1,6 @@
 use crate::executables::Executable;
 use crate::ui::{print_no_functions_in_script_help, print_script_header};
-use colored::Colorize;
+use crossterm::style::Stylize;
 use pad::{Alignment, PadStr};
 use regex::bytes::Regex;
 use std::io::BufRead;
@@ -127,7 +127,7 @@ impl Script {
                 let to_print = function
                     .name
                     .pad_to_width_with_alignment(padding, Alignment::Right)
-                    .green();
+                    .with(pastel_colours::COLOUR_GREEN);
                 if !function.comment.is_empty() {
                     print!("{}", to_print);
                 } else {

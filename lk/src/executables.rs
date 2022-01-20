@@ -1,5 +1,5 @@
-use crate::ui::print_root_header;
-use colored::Colorize;
+use crate::{ui::print_root_header};
+use crossterm::style::{Stylize};
 use content_inspector::{inspect, ContentType};
 use pad::{Alignment, PadStr};
 use std::{io::Read, os::unix::fs::PermissionsExt, path::PathBuf, fs::Permissions};
@@ -74,16 +74,13 @@ impl Executables {
             .len()
             + INDENT;
         self.executables.iter().for_each(|executable| {
+            let path = executable.path.as_os_str().to_string_lossy().to_string();
             // We'll pad right so everything aligns nicely.
             let to_print = executable
                 .short_name
                 .pad_to_width_with_alignment(padding, Alignment::Right)
-                .green();
-            println!(
-                "{} - {}",
-                to_print,
-                executable.path.as_os_str().to_string_lossy().to_string()
-            );
+                .with(pastel_colours::COLOUR_GREEN);
+            println!("{to_print} - {path}");
         });
     }
 }

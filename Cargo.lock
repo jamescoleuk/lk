@@ -219,19 +219,7 @@ dependencies = [
  "crossterm",
  "fuzzy-matcher",
  "log",
- "termion",
-]
-
-[[package]]
-name = "fuzzy_finder"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3aaa2bd82088046748c6ce0fcfab8266984d4d65ce892f5b76ac5afd08ded0bc"
-dependencies = [
- "anyhow",
- "crossterm",
- "fuzzy-matcher",
- "log",
+ "pastel_colours",
  "termion",
 ]
 
@@ -329,11 +317,12 @@ dependencies = [
  "crossterm",
  "dirs 4.0.0",
  "fuzzy-matcher",
- "fuzzy_finder 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fuzzy_finder",
  "log",
  "log4rs",
  "nanoid",
  "pad",
+ "pastel_colours",
  "regex",
  "serde",
  "spinners",
@@ -520,6 +509,13 @@ dependencies = [
  "redox_syscall 0.2.10",
  "smallvec",
  "winapi",
+]
+
+[[package]]
+name = "pastel_colours"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
 ]
 
 [[package]]

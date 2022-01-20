@@ -1,10 +1,10 @@
 use anyhow::Result;
+// use colors::COLOR_BLUE;
 use crossterm::style::{Color, Stylize};
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::io::{stdout, Stdout, Write};
 use std::time::Instant;
-use termion::color;
 use termion::cursor::DetectCursorPos;
 use termion::event::Key;
 use termion::input::TermRead;
@@ -173,11 +173,10 @@ where
         )?;
         write!(
             self.stdout,
-            "{}{}{}${} {}",
+            "{}{}{} {}",
             termion::cursor::Show,
             termion::cursor::Goto(1, prompt_y + self.console_offset),
-            color::Fg(color::Cyan),
-            color::Fg(color::Reset),
+            "$".with(pastel_colours::COLOUR_BLUE),
             self.search_term
         )?;
         self.stdout.flush()?;
@@ -332,7 +331,7 @@ fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) ->
                 "{}{}{}",
                 coloured_line,
                 &part.white().on(selected_background_color),
-                &matching_char.on_dark_blue()
+                &matching_char.on(pastel_colours::COLOUR_BLUE)
             );
         } else {
             coloured_line = format!(

@@ -2,5 +2,6 @@
 
 members = [
     "fuzzy_finder",
-    "lk"
+    "lk",
+    "pastel_colours"
 ]
