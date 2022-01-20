@@ -13,8 +13,6 @@ edition = "2021"
 [dependencies]
 # To handle lk arguments.
 structopt = "0.3.13"
-# To display colour on the terminal.
-colored = "2"
 regex = "1.5.4"
 # To display script and function names in center justified fashion.
 pad = "0.1.6"

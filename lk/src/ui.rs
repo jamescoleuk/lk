@@ -2,10 +2,10 @@ use crate::{
     executables::Executables,
     script::{Function, Script},
 };
-use colored::Colorize;
+use pastel_colours::{BLUE_FG, DARK_BLUE_BG, GREEN_FG, RED_FG, RESET_BG, RESET_FG};
 
 pub fn print_root_header() {
-    println!("{}", "lk: ./".on_blue());
+    println!("{DARK_BLUE_BG}lk: ./{RESET_BG}");
 }
 
 pub fn print_script_header(script: &Script) {
@@ -15,19 +15,15 @@ pub fn print_script_header(script: &Script) {
         .into_os_string()
         .into_string()
         .unwrap();
-    println!("{}{}", "lk: ".on_blue(), script_path.on_blue());
+    println!("{DARK_BLUE_BG}lk: {script_path}{RESET_BG}");
 }
 
 pub fn print_complete_header(script: &Script, function: &Function, params: &[String]) {
     println!(
-        "{}{}{}{}{}{}{}",
-        "lk: ".on_blue(),
-        script.path.as_os_str().to_string_lossy().on_blue(),
-        " -> ".on_blue(),
-        function.name.on_blue(),
-        " (".on_blue(),
-        params.join(" ").on_blue(),
-        ")".on_blue()
+        "{DARK_BLUE_BG}lk: {} -> {} ({}){RESET_BG}",
+        script.path.as_os_str().to_string_lossy(),
+        function.name,
+        params.join(" ")
     );
 }
 
@@ -38,23 +34,15 @@ pub fn print_no_functions_in_script_help() {
 blow_mind() {
     echo "OMG so cool"
 } "#;
-    println!("{}", example_function.italic());
+    println!("{GREEN_FG}{example_function}{RESET_FG}");
 }
 
 pub fn print_bad_script_name(script: &str, executables: Executables) {
-    println!(
-        "{} {}!\n",
-        "Didn't find a script with name".red(),
-        script.blue()
-    );
+    println!("{RED_FG}Didn't find a script with name {BLUE_FG}{script}!{RESET_FG}\n");
     executables.pretty_print();
 }
 
 pub fn print_bad_function_name(script: &Script, function: &str) {
-    println!(
-        "{} {}!\n",
-        "Didn't find a function with name".red(),
-        function.blue()
-    );
+    println!("{RED_FG}Didn't find a function with name {BLUE_FG}{function}{RESET_FG}!\n");
     script.pretty_print();
 }

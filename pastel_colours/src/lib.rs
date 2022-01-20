@@ -1,7 +1,8 @@
 use termion::color::{self, Rgb};
 
 const BLUE: Rgb = Rgb(113, 190, 242);
-const DARK_BLUE: Rgb = Rgb(21, 147, 232);
+// const DARK_BLUE: Rgb = Rgb(17, 117, 185);
+const DARK_BLUE: Rgb = Rgb(13, 88, 138);
 const DARK_GREEN: Rgb = Rgb(141, 188, 105);
 const DARK_GREY: Rgb = Rgb(50, 50, 50);
 const GREEN: Rgb = Rgb(168, 204, 140);
