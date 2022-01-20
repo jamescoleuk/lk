@@ -6,7 +6,6 @@ mod ui;
 
 use anyhow::Result;
 use bash_file::BashFile;
-use crossterm::style::Stylize;
 use executables::Executables;
 use fuzzy_finder::item::Item;
 use fuzzy_finder::FuzzyFinder;
@@ -14,10 +13,12 @@ use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
+use pastel_colours::{COLOUR_GREEN, COLOUR_RED};
 use script::Function;
 use spinners::{Spinner, Spinners};
 use structopt::StructOpt;
 use tempfile::tempdir;
+use termion::color;
 use ui::{print_bad_function_name, print_bad_script_name};
 
 use crate::script::Script;
@@ -95,23 +96,37 @@ fn main() -> Result<()> {
     if let Some(default) = args.default {
         match default.as_str() {
             "fuzzy" => {
-                println!("Setting default mode to {}", "fuzzy".green());
+                println!(
+                    "Setting default mode to {}fuzzy{}",
+                    color::Fg(COLOUR_GREEN),
+                    color::Fg(color::Reset)
+                );
                 config_file.config.default_mode = "fuzzy".to_string();
                 config_file.save();
             }
             "list" => {
-                println!("Setting default mode to {}", "list".green());
+                println!(
+                    "Setting default mode to {}list{}",
+                    color::Fg(COLOUR_GREEN),
+                    color::Fg(color::Reset)
+                );
                 config_file.config.default_mode = "list".to_string();
                 config_file.save();
             }
             _ => {
+                // Truely hideous code. It wasn't much better with crossterm.
                 println!(
-                    "{} Please specify either {} or {}. You can try out either using the {} or {} flags.",
-                    "Unknown default!".red(),
-                    "fuzzy".green(),
-                    "list".green(),
-                    "--fuzzy".green(),
-                    "--list".green()
+                    "{}Unknown default!{} Please specify either {}fuzzy{} or {}list{}. You can try out either using the {}--fuzzy{} or {}--list{} flags.",
+                    color::Fg(COLOUR_RED),
+                    color::Fg(color::Reset),
+                    color::Fg(COLOUR_GREEN),
+                    color::Fg(color::Reset),
+                    color::Fg(COLOUR_GREEN),
+                    color::Fg(color::Reset),
+                    color::Fg(COLOUR_GREEN),
+                    color::Fg(color::Reset),
+                    color::Fg(COLOUR_GREEN),
+                    color::Fg(color::Reset),
                 );
             }
         }

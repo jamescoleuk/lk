@@ -11,7 +11,6 @@ edition = "2021"
 [dependencies]
 # TODO: use thiserror instead of anyhow, because this is a library crate.
 anyhow = "1.0.44"
-crossterm = "0.22.1"
 termion= "1.5.6"
 fuzzy-matcher = "0.3.7"
 log="0.4.14"
