@@ -1,11 +1,10 @@
 use crate::executables::Executable;
 use crate::ui::{print_no_functions_in_script_help, print_script_header};
 use pad::{Alignment, PadStr};
-use pastel_colours::COLOUR_GREEN;
+use pastel_colours::{GREEN_FG, RESET_FG};
 use regex::bytes::Regex;
 use std::io::BufRead;
 use std::{fs::File, path::Path};
-use termion::color;
 
 /// Everything we need to know about a function in a script
 #[derive(PartialEq, Debug, Clone)]
@@ -128,12 +127,7 @@ impl Script {
                 let to_print = function
                     .name
                     .pad_to_width_with_alignment(padding, Alignment::Right);
-                let coloured_to_print = format!(
-                    "{}{}{}",
-                    color::Fg(COLOUR_GREEN),
-                    to_print,
-                    color::Fg(color::Reset)
-                );
+                let coloured_to_print = format!("{GREEN_FG}{to_print}{RESET_FG}");
                 if !function.comment.is_empty() {
                     print!("{}", coloured_to_print);
                 } else {

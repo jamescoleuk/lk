@@ -13,12 +13,11 @@ use log::LevelFilter;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
-use pastel_colours::{COLOUR_GREEN, COLOUR_RED};
+use pastel_colours::{GREEN_FG, RED_FG, RESET_FG};
 use script::Function;
 use spinners::{Spinner, Spinners};
 use structopt::StructOpt;
 use tempfile::tempdir;
-use termion::color;
 use ui::{print_bad_function_name, print_bad_script_name};
 
 use crate::script::Script;
@@ -96,37 +95,18 @@ fn main() -> Result<()> {
     if let Some(default) = args.default {
         match default.as_str() {
             "fuzzy" => {
-                println!(
-                    "Setting default mode to {}fuzzy{}",
-                    color::Fg(COLOUR_GREEN),
-                    color::Fg(color::Reset)
-                );
+                println!("Setting default mode to {GREEN_FG}fuzzy{RESET_FG}");
                 config_file.config.default_mode = "fuzzy".to_string();
                 config_file.save();
             }
             "list" => {
-                println!(
-                    "Setting default mode to {}list{}",
-                    color::Fg(COLOUR_GREEN),
-                    color::Fg(color::Reset)
-                );
+                println!("Setting default mode to {GREEN_FG}list{RESET_FG}");
                 config_file.config.default_mode = "list".to_string();
                 config_file.save();
             }
             _ => {
-                // Truely hideous code. It wasn't much better with crossterm.
                 println!(
-                    "{}Unknown default!{} Please specify either {}fuzzy{} or {}list{}. You can try out either using the {}--fuzzy{} or {}--list{} flags.",
-                    color::Fg(COLOUR_RED),
-                    color::Fg(color::Reset),
-                    color::Fg(COLOUR_GREEN),
-                    color::Fg(color::Reset),
-                    color::Fg(COLOUR_GREEN),
-                    color::Fg(color::Reset),
-                    color::Fg(COLOUR_GREEN),
-                    color::Fg(color::Reset),
-                    color::Fg(COLOUR_GREEN),
-                    color::Fg(color::Reset),
+                    "{RED_FG}Unknown default!{RESET_FG} Please specify either {GREEN_FG}fuzzy{RESET_FG} or {GREEN_FG}list{RESET_FG}. You can try out either using the {GREEN_FG}--fuzzy{RESET_FG} or {GREEN_FG}--list{RESET_FG} flags.",
                 );
             }
         }

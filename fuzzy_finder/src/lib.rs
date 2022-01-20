@@ -1,10 +1,11 @@
 use anyhow::Result;
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
-use pastel_colours::{COLOUR_BLUE, COLOUR_DARK_BLUE, COLOUR_DARK_GREY, COLOUR_GREEN};
+use pastel_colours::{
+    BLUE_BG, BLUE_FG, DARK_BLUE_BG, DARK_GREY_BG, DARK_GREY_FG, GREEN_FG, RESET_BG, RESET_FG,
+};
 use std::io::{stdout, Stdout, Write};
 use std::time::Instant;
-use termion::color;
 use termion::cursor::DetectCursorPos;
 use termion::event::Key;
 use termion::input::TermRead;
@@ -173,11 +174,9 @@ where
         )?;
         write!(
             self.stdout,
-            "{}{}{}${} {}",
+            "{}{}{BLUE_FG}${RESET_FG} {}",
             termion::cursor::Show,
             termion::cursor::Goto(1, prompt_y + self.console_offset),
-            color::Fg(COLOUR_BLUE),
-            color::Fg(color::Reset),
             self.search_term
         )?;
         self.stdout.flush()?;
@@ -325,56 +324,21 @@ fn get_coloured_line(fuzzy_indecies: &[usize], text: &str, is_selected: bool) ->
         let matching_char = &text[*i..*i + 1];
         if is_selected {
             coloured_line = format!(
-                "{}{}{}{}{}{}{}",
-                coloured_line,
-                color::Bg(COLOUR_DARK_GREY),
-                &part,
-                color::Bg(color::Reset),
-                color::Bg(COLOUR_DARK_BLUE),
-                &matching_char,
-                color::Bg(color::Reset),
+                "{coloured_line}{DARK_GREY_BG}{part}{RESET_BG}{DARK_BLUE_BG}{matching_char}{RESET_BG}"
             );
         } else {
-            coloured_line = format!(
-                "{}{}{}{}{}",
-                coloured_line,
-                &part,
-                color::Bg(COLOUR_DARK_BLUE),
-                &matching_char,
-                color::Bg(color::Reset),
-            );
+            coloured_line = format!("{coloured_line}{part}{DARK_BLUE_BG}{matching_char}{RESET_BG}");
         }
         start = i + 1;
     }
     let remaining_chars = &text[start..text.chars().count()];
     if is_selected {
-        let prompt: String = format!(
-            "{}{}>{}{}",
-            color::Bg(COLOUR_DARK_GREY),
-            color::Fg(COLOUR_GREEN),
-            color::Fg(color::Reset),
-            color::Bg(color::Reset)
-        );
-        let spacer: String = format!(
-            "{}  {}",
-            color::Bg(COLOUR_DARK_GREY),
-            color::Bg(color::Reset)
-        );
-        let remaining: String = format!(
-            "{}{}{}",
-            color::Bg(COLOUR_DARK_GREY),
-            remaining_chars,
-            color::Bg(color::Reset),
-        );
-        coloured_line = format!("{}{}{}{}", prompt, spacer, coloured_line, remaining);
+        let prompt: String = format!("{DARK_GREY_BG}{GREEN_FG}>{RESET_FG}{RESET_BG}",);
+        let spacer: String = format!("{DARK_GREY_FG}  {RESET_FG}");
+        let remaining: String = format!("{DARK_GREY_BG}{remaining_chars}{RESET_BG}");
+        coloured_line = format!("{prompt}{spacer}{coloured_line}{remaining}");
     } else {
-        coloured_line = format!(
-            "{} {}  {}{}",
-            color::Bg(COLOUR_DARK_GREY),
-            color::Bg(color::Reset),
-            coloured_line,
-            remaining_chars
-        );
+        coloured_line = format!("{DARK_GREY_BG} {RESET_BG}  {coloured_line}{remaining_chars}");
     }
     coloured_line
 }
