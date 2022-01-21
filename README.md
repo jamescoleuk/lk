@@ -1,7 +1,6 @@
 # lk
 
 
-[![GitHub Actions](https://github.com/jamescoleuk/lk/actions/workflows/rust.yml/badge.svg)](https://github.com/jamescoleuk/lk/actions/workflows/rust.yml/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/lk.svg)](https://crates.io/crates/lk)
 
 
