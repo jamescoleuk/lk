@@ -14,8 +14,8 @@ pub struct Config {
 
 pub struct ConfigFile {
     pub config: Config,
-    lk_dir:     String,
-    file_name:  String,
+    lk_dir: String,
+    file_name: String,
 }
 
 impl ConfigFile {
@@ -25,14 +25,16 @@ impl ConfigFile {
         if !path.exists() {
             log::info!("Creating config file at {}", path.display());
             fs::create_dir(&path.parent().expect("failed to get `.config` dir"))
-                .expect(&format!("failed to create {} directory", path.display()));
+                .unwrap_or_else(|_| panic!("failed to create {} directory", path.display()));
             match OpenOptions::new().write(true).create(true).open(&path) {
                 Ok(file) => {
                     let mut buffered = BufWriter::new(file);
-                    let default_config = Config { default_mode: "list".to_string() };
+                    let default_config = Config {
+                        default_mode: "list".to_string(),
+                    };
                     let toml = toml::to_string(&default_config).unwrap();
                     write!(buffered, "{}", toml).expect("Failed to write to file");
-                },
+                }
                 Err(e) => log::error!("Unable to create default config file: {}", e),
             }
         } else {

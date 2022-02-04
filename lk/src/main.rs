@@ -79,11 +79,7 @@ fn main() -> Result<()> {
     let executables = Executables::new(".");
     sp.stop();
 
-    let scripts: Vec<Script> = executables
-        .executables
-        .iter()
-        .map(|executable| Script::new(executable))
-        .collect();
+    let scripts: Vec<Script> = executables.executables.iter().map(Script::new).collect();
 
     // Prints all scripts
     // scripts.iter().for_each(|script| {
