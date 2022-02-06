@@ -1,3 +1,4 @@
+/// A temporary file for executing the requested function.
 use crate::script::Function;
 use crate::script::Script;
 use crate::ui::print_complete_header;

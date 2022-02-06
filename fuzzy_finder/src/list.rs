@@ -1,3 +1,4 @@
+/// The list and events for handling movement within the list. No UI.
 use super::item::Item;
 
 pub struct List<T>

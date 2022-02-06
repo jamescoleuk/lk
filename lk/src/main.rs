@@ -123,6 +123,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+/// Runs lk in 'fuzzy' mode.
 fn fuzzy(scripts: &[Script]) -> Result<()> {
     let result = FuzzyFinder::find(scripts_to_item(scripts)).unwrap();
     if let Some(function) = result {
@@ -131,6 +132,7 @@ fn fuzzy(scripts: &[Script]) -> Result<()> {
     Ok(())
 }
 
+/// Runs lk in 'list' mode.
 fn list(executables: Executables, args: Cli) -> Result<()> {
     // Did the user request a script?
     if let Some(script) = args.script {
@@ -161,6 +163,7 @@ fn list(executables: Executables, args: Cli) -> Result<()> {
     Ok(())
 }
 
+/// Convert the scripts we find to the 'item' required for fuzzy find.
 fn scripts_to_item(scripts: &[Script]) -> Vec<Item<(&Script, &Function)>> {
     let mut fuzzy_functions: Vec<Item<(&Script, &Function)>> = Vec::new();
     scripts.iter().for_each(|script| {

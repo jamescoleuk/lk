@@ -1,3 +1,4 @@
+/// Holds all the configuraion for lk.
 use serde::{Deserialize, Serialize};
 
 use std::{

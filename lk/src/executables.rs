@@ -1,3 +1,4 @@
+/// Finds executables in the current directory.
 use crate::{ui::print_root_header};
 use content_inspector::{inspect, ContentType};
 use pad::{Alignment, PadStr};

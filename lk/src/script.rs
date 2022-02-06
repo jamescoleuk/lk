@@ -1,3 +1,4 @@
+/// Parses a script file and extracts comments and functions.
 use crate::executables::Executable;
 use crate::ui::{print_no_functions_in_script_help, print_script_header};
 use pad::{Alignment, PadStr};
