@@ -1,7 +1,9 @@
 mod bash_file;
 mod config;
 mod executables;
+// mod history;
 mod script;
+mod shells;
 mod ui;
 
 use anyhow::Result;
@@ -15,11 +17,13 @@ use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
 use pastel_colours::{GREEN_FG, RED_FG, RESET_FG};
 use script::Function;
+use shells::UserShell;
 use spinners::{Spinner, Spinners};
 use structopt::StructOpt;
 use tempfile::tempdir;
 use ui::{print_bad_function_name, print_bad_script_name};
 
+// use crate::history::History;
 use crate::script::Script;
 
 /// Use lk to explore and execute scripts in your current directory,
@@ -127,6 +131,19 @@ fn main() -> Result<()> {
 fn fuzzy(scripts: &[Script]) -> Result<()> {
     let result = FuzzyFinder::find(scripts_to_item(scripts)).unwrap();
     if let Some(function) = result {
+        // We're going to write the equivelent lk command to the shell's history
+        // file, so the user can easily re-run it.
+        let history = UserShell::new();
+        match history {
+            Some(history) => {
+                let lk_command = format!("lk {} {}", function.0.file_name(), function.1.name,);
+                history.add_command(lk_command)?;
+            }
+            None => {
+                log::warn!("Unable to write to history file because we couldn't figure out what shell you're using");
+            }
+        }
+        // Finally we execute the function using a temporary bash file.
         BashFile::run(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
     }
     Ok(())
@@ -144,7 +161,7 @@ fn list(executables: Executables, args: Cli) -> Result<()> {
             if let Some(function) = args.function {
                 // Is it a function that exists in the script we found?
                 if let Some(function) = script.get(&function) {
-                    // Do our thing
+                    // Finally we execute the function using a temporary bash file.
                     BashFile::run(script.to_owned(), function.to_owned(), args.params)?;
                 } else {
                     print_bad_function_name(&script, &function);
