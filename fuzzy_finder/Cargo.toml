@@ -2,6 +2,7 @@
 name = "fuzzy_finder"
 version = "0.1.1"
 license = "MIT OR Apache-2.0"
+authors = ["James Cole <jamescole.uk@gmail.com>"]
 repository = "https://github.com/jamescoleuk/lk"
 description = "A fuzzy finding library used by lk"
 edition = "2021"
@@ -14,4 +15,4 @@ anyhow = "1.0.44"
 termion= "1.5.6"
 fuzzy-matcher = "0.3.7"
 log="0.4.14"
-pastel_colours={path="../pastel_colours"}
+pastel_colours={path="../pastel_colours", version='0.1.1'}
