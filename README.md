@@ -7,7 +7,8 @@
 A CLI frontend for your bash scripts, focused on ergonomics.
 
 `lk` searches for scripts, parses them and finds bash functions. It can then either:
-* let you explore and execute functions, rather like subcommands in git
+
+* let you explore and execute functions, rather like sub-commands in git
 * let you fuzzy find and execute functions, similar to the wonderful `fzf`'s `ctrl-r` feature. 
 
 `lk`'s list mode works like this:
@@ -27,6 +28,7 @@ I use both modes, but I default to fuzzy. You can change the default like this:
  - `lk` finds and displays comments for functions
  - `lk` ignores functions prefixed with `_`. 
  - `lk` uses a temporary file to execute the script, but you shouldn't need to worry about that
+ - If you use fuzzy mode `lk` will write the command you execute to your history
 
 ## Installation
 From [the crate](https://crates.io/crates/lk):
@@ -43,13 +45,13 @@ cargo install --force lk
 Just execute `lk` and follow the instructions. `lk --help` is also a thing you can run.
 
 ## Why?
-1. You're a polyglot engineer with package manager fatigue. Hide it all behind some bash, the lingua franca.
+1. You're a polyglot engineer with package manager fatigue. So you want to hide it all behind some bash, the lingua franca.
 2. You do a lot of devops and have a lot of bash.
 3. You have a lot of projects that you don't work on for months at a time, and you need to bring some consistency to the experience of re-visiting them.
-4. You use `make` and `PHONY` to do non-compile stuff to your project. You are like a baby to me. Just write bash and let `lk` handle the exploration and execution.
+4. You use `make` and `PHONY` to do non-compile stuff to your project. You are like little baby to me. Just write bash and let `lk` handle the exploration and execution.
 5. You ever copy and paste bash from a text file you keep somewhere.
 
-### Specific use cases
+### Use case examples
 
 1. AWS: 
    1. You need to pull down config from AWS and store it in `.env` files.
@@ -81,10 +83,11 @@ There's no configuration file for `lk`, but it does store logs in `${HOME}/.conf
 If you have any typist home key dicipline and if you flap your right hand at the keyboard there's a good chance you'll type 'lk'. So it's short, and ergonomic.
 
 ## What's to come?
-* If I end up using `lk --fuzzy` exclusively, as I expect, I'll need to add some way to configure this as a default. That'd make it more useful out-of-the-box.
 * Minor UI fixes. It doesn't always behave as I'd like it to.
-* Way huge under-the-cover improvements. I have a lot of refactoring to do.
 * Support scripts in other languages, e.g. Python, rust-script, Typescript.
+* Disable colours, for the colourblind
+* Add a count to `lk --fuzzy`
+* Move ignored files to config, i.e. `~/.config/lk/lk.toml`
 
 ## Inspiration
 
@@ -94,13 +97,4 @@ I have previously written two similar tools:
 
 `run_lib` still has its uses. I've worked in secure environments where I could not have installed a binary. `run_lib` is just a bash script.
 
-
 [fzf](https://github.com/junegunn/fzf) is wonderful. The `--fuzzy` option in `lk` comes from years of `ctrl-r` fuzzy finding through my shell history with `fzf`. I almost didn't implement this feature because I thought "why bother? fzf has already done it perfectly." Or rather I thought about piping from `lk` to `fzf`. But having the functionality implemented natively is the right thing for `lk`. But you'll notice, perhaps, that the rendering of the fuzzy search in `lk` draws a lot of visual inspiration from `fzf`. `fzf`, I love you.
-
-## Significant TODOs
-
-- [ ] Support other script types, e.g. JavaScript, Rust-Script, Python.
-- [ ] `--fuzzy` should write the `--list` command to the prompt, so what happened is in the history. Is this even possible?
-- [ ] Option to disable colours, for the colour blind.
-- [ ] Add a count to --fuzzy -- otherwise how does someone know to scroll up?
-- [ ] We ignore a bunch of stuff: this needs to be in config.
