@@ -177,7 +177,7 @@ dependencies = [
 
 [[package]]
 name = "fuzzy_finder"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "fuzzy-matcher",
@@ -272,7 +272,7 @@ checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 
 [[package]]
 name = "lk"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "content_inspector",
@@ -443,7 +443,7 @@ dependencies = [
 
 [[package]]
 name = "pastel_colours"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "termion",
 ]
