@@ -1,5 +1,9 @@
 [package]
 name = "pastel_colours"
+authors = ["James Cole <jamescole.uk@gmail.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/jamescoleuk/lk"
+description = "Pastel colours for use with termion"
 version = "0.1.1"
 edition = "2021"
 
