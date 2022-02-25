@@ -37,13 +37,12 @@ impl<T> FuzzyFinder<T>
 where
     T: Clone,
 {
-    fn new(functions: Vec<Item<T>>) -> Self {
+    fn new(functions: Vec<Item<T>>, lines_to_show: i8) -> Self {
         // We need to know where to start rendering from. We can't do this later because
         // we overwrite the cursor. Maybe we shouldn't do this? (TODO)
         let mut stdout = stdout().into_raw_mode().unwrap();
 
         write!(stdout, "{}", termion::cursor::Save).unwrap();
-        let lines_to_show: i8 = 8;
         let mut positive_space_remaining = 0;
         let console_offset = if stdout.cursor_pos().is_ok() {
             let cursor_pos_y = stdout.cursor_pos().unwrap().1;
@@ -215,8 +214,8 @@ where
     }
 
     /// The main entry point for the fuzzy finder.
-    pub fn find(items: Vec<Item<T>>) -> Result<Option<T>> {
-        let mut state = FuzzyFinder::new(items);
+    pub fn find(items: Vec<Item<T>>, lines_to_show: i8) -> Result<Option<T>> {
+        let mut state = FuzzyFinder::new(items, lines_to_show);
 
         state.update_matches();
 
