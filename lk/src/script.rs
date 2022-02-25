@@ -1,6 +1,7 @@
 /// Parses a script file and extracts comments and functions.
 use crate::executables::Executable;
 use crate::ui::{print_no_functions_in_script_help, print_script_header};
+use anyhow::Result;
 use pad::{Alignment, PadStr};
 use pastel_colours::{GREEN_FG, RESET_FG};
 use regex::bytes::Regex;
@@ -23,7 +24,7 @@ pub struct Script {
 }
 
 impl Script {
-    pub fn new(executable: &Executable) -> Self {
+    pub fn new(executable: &Executable) -> Result<Self> {
         let lines = match read_lines(&executable.path) {
             Ok(lines) => lines,
             Err(err) => {
@@ -31,7 +32,7 @@ impl Script {
                     "Unable to read executable: {}. Error was: {err}",
                     &executable.path.to_string_lossy()
                 );
-                panic!("blah:{}", err)
+                anyhow::bail!("Permissiond denied in opening script");
             }
         };
 
@@ -70,12 +71,12 @@ impl Script {
             }
         }
 
-        Self {
+        Ok(Self {
             comment: included_comments,
             functions: included_functions,
             path: executable.path.to_owned(),
             absolute_path: executable.absolute_path.to_owned(),
-        }
+        })
     }
 
     pub fn get(&self, function_name: &str) -> Option<&Function> {

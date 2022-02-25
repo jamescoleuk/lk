@@ -39,7 +39,13 @@ impl Executables {
         for result in walker.filter_entry(|e| (!is_ignored(e, &ignored))) {
             let entry = match result {
                 Ok(entry) => entry,
-                Err(_) => panic!("Couldn't read dir!"),
+                Err(e) => match e.path() {
+                    Some(p) => {
+                        log::warn!("Could not open path {}", p.to_string_lossy());
+                        continue
+                    }
+                    None => panic!("Could not read dir !"),
+                },
             };
             if should_include_file(&entry) {
                 let path = entry.into_path();

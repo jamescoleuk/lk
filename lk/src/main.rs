@@ -83,7 +83,12 @@ fn main() -> Result<()> {
     let executables = Executables::new(".");
     sp.stop();
 
-    let scripts: Vec<Script> = executables.executables.iter().map(Script::new).collect();
+    let scripts: Vec<Script> = executables
+        .executables
+        .iter()
+        .map(Script::new)
+        .filter_map(Result::ok)
+        .collect();
 
     // Prints all scripts
     // scripts.iter().for_each(|script| {
@@ -156,7 +161,7 @@ fn list(executables: Executables, args: Cli) -> Result<()> {
         // Is it a script that exists on disk?
         if let Some(executable) = executables.get(&script) {
             // Yay, confirmed script
-            let script = Script::new(executable);
+            let script = Script::new(executable)?;
             // Did the user pass a function?
             if let Some(function) = args.function {
                 // Is it a function that exists in the script we found?
