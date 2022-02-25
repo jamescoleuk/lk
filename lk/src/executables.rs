@@ -3,7 +3,12 @@ use crate::{ui::print_root_header};
 use content_inspector::{inspect, ContentType};
 use pad::{Alignment, PadStr};
 use pastel_colours::{DARK_GREEN_FG, RESET_FG};
-use std::{io::Read, os::unix::fs::PermissionsExt, path::PathBuf, fs::Permissions};
+use std::{
+    fs::Permissions,
+    io::Read,
+    os::unix::fs::PermissionsExt,
+    path::{Component, Path, PathBuf},
+};
 use walkdir::{DirEntry, WalkDir};
 
 pub struct Executable {
@@ -18,7 +23,7 @@ pub struct Executables {
 }
 
 impl Executables {
-    pub fn new(root: &str) -> Self {
+    pub fn new(root: &str, ignores: &[PathBuf]) -> Self {
         // TODO: Load this from .gitignore/other ignore files
         let ignored = vec![
             "target",
@@ -36,7 +41,7 @@ impl Executables {
         ];
         let walker = WalkDir::new(root).into_iter();
         let mut executables: Vec<Executable> = Vec::new();
-        for result in walker.filter_entry(|e| (!is_ignored(e, &ignored))) {
+        for result in walker.filter_entry(|e| !is_ignored(e.path(), &ignored, ignores)) {
             let entry = match result {
                 Ok(entry) => entry,
                 Err(e) => match e.path() {
@@ -125,17 +130,13 @@ fn has_permissions(permissions: &Permissions) -> bool {
     permissions.mode() != 33279 
 }
 
-fn is_ignored(entry: &DirEntry, ignores: &[&str]) -> bool {
-    entry
-        .file_name()
-        .to_str()
-        .map(|s| {
-            for ignored in ignores.iter() {
-                if s.contains(ignored) {
-                    return true;
-                }
-            }
-            false
+fn is_ignored(p: &Path, ignored: &[&str], ignores: &[PathBuf]) -> bool {
+    ignores.iter().any(|s| p.starts_with(s))
+        || ignored.iter().any(|i| {
+            p.components().any(|c| match c {
+                Component::Normal(c) => *c == **i,
+                _ => false,
+            })
         })
         .unwrap_or(false)
 }

@@ -6,6 +6,8 @@ mod script;
 mod shells;
 mod ui;
 
+use std::path::PathBuf;
+
 use anyhow::Result;
 use bash_file::BashFile;
 use executables::Executables;
@@ -46,6 +48,9 @@ struct Cli {
     script: Option<String>,
     /// Optional: the name of the function to run.
     function: Option<String>,
+    /// Optional: paths to ignore in the search
+    #[structopt(long, short)]
+    ignore: Vec<PathBuf>,
     /// Optional: params for the function. We're not processing them yet (e.g. validating) but
     /// they need to be permitted as a param to lk.
     #[allow(dead_code)]
@@ -80,7 +85,14 @@ fn main() -> Result<()> {
     log::info!("\n\nStarting lk...");
 
     let sp = Spinner::new(&Spinners::Line, "".to_string());
-    let executables = Executables::new(".");
+    let executables = Executables::new(
+        ".",
+        &args
+            .ignore
+            .iter()
+            .map(|p| PathBuf::from(".").join(p))
+            .collect::<Vec<_>>(),
+    );
     sp.stop();
 
     let scripts: Vec<Script> = executables
