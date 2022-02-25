@@ -50,7 +50,7 @@ There are lots of ways to write bash and to organise scripts. `lk` might not hav
 1. You're a polyglot engineer with package manager fatigue. So you want to hide it all behind some bash, the lingua franca.
 2. You do a lot of devops and have a lot of bash.
 3. You have a lot of projects that you don't work on for months at a time, and you need to bring some consistency to the experience of re-visiting them.
-4. You use `make` and `PHONY` to do non-compile stuff to your project. You are like little baby to me. Just write bash and let `lk` handle the exploration and execution.
+4. You use `make` and `PHONY` to do non-compile stuff to your project. `lk` just lets your write proper bash without all the `make` specific guff.
 5. You ever copy and paste bash from a text file you keep somewhere.
 
 ### Use case examples
