@@ -44,6 +44,8 @@ cargo install --force lk
 ## Use
 Just execute `lk` and follow the instructions. `lk --help` is also a thing you can run.
 
+There are lots of ways to write bash and to organise scripts. `lk` might not have encountered them all before. If there's a problem I implore you to raise a bug, or just email me. I will fix it.
+
 ## Why?
 1. You're a polyglot engineer with package manager fatigue. So you want to hide it all behind some bash, the lingua franca.
 2. You do a lot of devops and have a lot of bash.
