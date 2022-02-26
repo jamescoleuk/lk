@@ -18,16 +18,12 @@ impl UserShell {
     pub fn new() -> Option<Self> {
         let shells: Vec<Shell> = vec![
             Shell {
-                locations: vec!["/usr/local/bin/bash".to_string()],
+                locations: vec!["/bin/bash".to_string(), "/usr/local/bin/bash".to_string()],
                 history_file: ".bash_history".to_string(),
             },
             Shell {
                 locations: vec!["/bin/zsh".to_string(), "/usr/local/bin/zsh".to_string()],
                 history_file: ".zsh_history".to_string(),
-            },
-            Shell {
-                locations: vec!["/usr/local/bin/fish".to_string()],
-                history_file: ".config/fish/fish_history".to_string(),
             },
         ];
 
