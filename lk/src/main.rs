@@ -6,6 +6,8 @@ mod script;
 mod shells;
 mod ui;
 
+use std::path::PathBuf;
+
 use anyhow::Result;
 use bash_file::BashFile;
 use executables::Executables;
@@ -46,6 +48,12 @@ struct Cli {
     script: Option<String>,
     /// Optional: the name of the function to run.
     function: Option<String>,
+    /// Optional: paths to ignore in the search
+    #[structopt(long, short)]
+    ignore: Vec<PathBuf>,
+    /// Number of lines to show in fuzzy search
+    #[structopt(long, short = "n", default_value = "7")]
+    number: i8,
     /// Optional: params for the function. We're not processing them yet (e.g. validating) but
     /// they need to be permitted as a param to lk.
     #[allow(dead_code)]
@@ -80,10 +88,22 @@ fn main() -> Result<()> {
     log::info!("\n\nStarting lk...");
 
     let sp = Spinner::new(&Spinners::Line, "".to_string());
-    let executables = Executables::new(".");
+    let executables = Executables::new(
+        ".",
+        &args
+            .ignore
+            .iter()
+            .map(|p| PathBuf::from(".").join(p))
+            .collect::<Vec<_>>(),
+    );
     sp.stop();
 
-    let scripts: Vec<Script> = executables.executables.iter().map(Script::new).collect();
+    let scripts: Vec<Script> = executables
+        .executables
+        .iter()
+        .map(Script::new)
+        .filter_map(Result::ok)
+        .collect();
 
     // Prints all scripts
     // scripts.iter().for_each(|script| {
@@ -111,7 +131,7 @@ fn main() -> Result<()> {
             }
         }
     } else if args.fuzzy {
-        fuzzy(&scripts)?
+        fuzzy(&scripts, args.number + 1)?
     } else if args.list || args.script.is_some() {
         // If the user is specifying --list OR if there's some value for script.
         // Any value there is implicitly take as --list.
@@ -119,7 +139,7 @@ fn main() -> Result<()> {
     } else {
         // Neither requested, so fall back on the default which will always exist.
         match config_file.config.default_mode.as_str() {
-            "fuzzy" => fuzzy(&scripts)?,
+            "fuzzy" => fuzzy(&scripts, args.number + 1)?,
             "list" => list(executables, args)?,
             _ => panic!("No default mode set! Has there been a problem creating the config file?"),
         }
@@ -128,8 +148,8 @@ fn main() -> Result<()> {
 }
 
 /// Runs lk in 'fuzzy' mode.
-fn fuzzy(scripts: &[Script]) -> Result<()> {
-    let result = FuzzyFinder::find(scripts_to_item(scripts)).unwrap();
+fn fuzzy(scripts: &[Script], lines_to_show: i8) -> Result<()> {
+    let result = FuzzyFinder::find(scripts_to_item(scripts), lines_to_show).unwrap();
     if let Some(function) = result {
         // We're going to write the equivelent lk command to the shell's history
         // file, so the user can easily re-run it.
@@ -156,7 +176,7 @@ fn list(executables: Executables, args: Cli) -> Result<()> {
         // Is it a script that exists on disk?
         if let Some(executable) = executables.get(&script) {
             // Yay, confirmed script
-            let script = Script::new(executable);
+            let script = Script::new(executable)?;
             // Did the user pass a function?
             if let Some(function) = args.function {
                 // Is it a function that exists in the script we found?
