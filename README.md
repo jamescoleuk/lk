@@ -100,3 +100,9 @@ I have previously written two similar tools:
 `run_lib` still has its uses. I've worked in secure environments where I could not have installed a binary. `run_lib` is just a bash script.
 
 [fzf](https://github.com/junegunn/fzf) is wonderful. The `--fuzzy` option in `lk` comes from years of `ctrl-r` fuzzy finding through my shell history with `fzf`. I almost didn't implement this feature because I thought "why bother? fzf has already done it perfectly." Or rather I thought about piping from `lk` to `fzf`. But having the functionality implemented natively is the right thing for `lk`. But you'll notice, perhaps, that the rendering of the fuzzy search in `lk` draws a lot of visual inspiration from `fzf`. `fzf`, I love you.
+
+## Contributing
+Contributions are welcome. Thanks to the following for theirs:
+
+* [traxys](https://github.com/traxys)
+* [lmburns](https://github.com/lmburns)
