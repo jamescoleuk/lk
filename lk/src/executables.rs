@@ -138,7 +138,6 @@ fn is_ignored(p: &Path, ignored: &[&str], ignores: &[PathBuf]) -> bool {
                 _ => false,
             })
         })
-        .unwrap_or(false)
 }
 
 fn is_executable(permissions: &Permissions) -> bool {
