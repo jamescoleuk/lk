@@ -1,5 +1,5 @@
 /// Finds executables in the current directory.
-use crate::{ui::print_root_header};
+use crate::ui::print_root_header;
 use content_inspector::{inspect, ContentType};
 use pad::{Alignment, PadStr};
 use pastel_colours::{DARK_GREEN_FG, RESET_FG};
@@ -47,7 +47,7 @@ impl Executables {
                 Err(e) => match e.path() {
                     Some(p) => {
                         log::warn!("Could not open path {}", p.to_string_lossy());
-                        continue
+                        continue;
                     }
                     None => panic!("Could not read dir !"),
                 },
@@ -107,9 +107,9 @@ fn should_include_file(entry: &DirEntry) -> bool {
     // If we don't have permissions to access the file we're not going to get very far.
     if has_permissions(&permissions)
         // We're ignoring dirs, obviously
-        && !entry.file_type().is_dir() 
+        && !entry.file_type().is_dir()
         // We're including executables
-        && is_executable(&permissions) 
+        && is_executable(&permissions)
         // We're ignoring symlinks (for now)
         && !entry.path_is_symlink()
     {
@@ -127,7 +127,7 @@ fn should_include_file(entry: &DirEntry) -> bool {
 fn has_permissions(permissions: &Permissions) -> bool {
     // TODO: learn about octal representations of permissions.
     //       All I currently know is that we can't read this.
-    permissions.mode() != 33279 
+    permissions.mode() != 33279
 }
 
 fn is_ignored(p: &Path, ignored: &[&str], ignores: &[PathBuf]) -> bool {
@@ -171,7 +171,9 @@ fn is_binary(entry: &DirEntry) -> bool {
         Ok(_) => inspect(&buffer) == ContentType::BINARY,
         Err(err) => {
             if err.to_string().as_str() == "failed to fill whole buffer" {
-                log::debug!( "Found a tiny file and didn't read it all. Ignoring it. Path: {path_str}");
+                log::debug!(
+                    "Found a tiny file and didn't read it all. Ignoring it. Path: {path_str}"
+                );
             } else {
                 log::error!("Unable to read file: {path_str}. The error was: {err}");
             }
