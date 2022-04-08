@@ -77,14 +77,17 @@ impl Executables {
         print_root_header();
         // Get the longest executable name
         const INDENT: usize = 2;
-        let padding = self
-            .executables
-            .iter()
-            .max_by(|x, y| x.short_name.len().cmp(&y.short_name.len()))
-            .unwrap() // Will always be Some because the name String must exist.
-            .short_name
-            .len()
-            + INDENT;
+        let padding = if self.executables.is_empty() {
+            0 // If we don't have any executables we don't care about the padding, so just use 0.
+        } else {
+            self.executables
+                .iter()
+                .max_by(|x, y| x.short_name.len().cmp(&y.short_name.len()))
+                .unwrap() // Will always be Some because the name String must exist.
+                .short_name
+                .len()
+                + INDENT
+        };
         self.executables.iter().for_each(|executable| {
             let path = executable.path.as_os_str().to_string_lossy().to_string();
             // We'll pad right so everything aligns nicely.
