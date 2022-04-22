@@ -4,61 +4,73 @@ name: Continuous integration
 
 jobs:
   check:
-    name: Check
+    name: Check the current package and dependencies for errors
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
+      - name: cargo check
+        uses: actions-rs/cargo@v1
         with:
           command: check
 
   test:
-    name: Test Suite
+    name: Run tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
+      - name: cargo test
+        uses: actions-rs/cargo@v1
         with:
           command: test
 
   fmt:
-    name: Rustfmt
+    name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
       - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
+      - name: cargo fmt
+        uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
   clippy:
-    name: Clippy
+    name: Run clippy linting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
       - run: rustup component add clippy
-      - uses: actions-rs/cargo@v1
+      - name: cargo clippy
+        uses: actions-rs/cargo@v1
         with:
           command: clippy
           args: -- -D warnings
@@ -74,16 +86,12 @@ jobs:
             target: x86_64-unknown-linux-musl
             bin: "{{project-name}}"
             name: "{{project-name}}-Linux-x86_64.tar.gz"
-          - os: windows-latest
-            rust: stable
-            target: x86_64-pc-windows-msvc
-            bin: "{{project-name}}.exe"
-            name: "{{project-name}}-Windows-x86_64.zip"
           - os: macOS-latest
             rust: stable
             target: x86_64-apple-darwin
             bin: "{{project-name}}"
             name: "{{project-name}}-Darwin-x86_64.tar.gz"
+            # TODO: add apple silicon
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Rust
