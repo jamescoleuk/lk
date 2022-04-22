@@ -84,13 +84,13 @@ jobs:
           - os: ubuntu-latest
             rust: stable
             target: x86_64-unknown-linux-musl
-            bin: "{{project-name}}"
-            name: "{{project-name}}-Linux-x86_64.tar.gz"
+            bin: "lk"
+            name: "lk-Linux-x86_64.tar.gz"
           - os: macOS-latest
             rust: stable
             target: x86_64-apple-darwin
-            bin: "{{project-name}}"
-            name: "{{project-name}}-Darwin-x86_64.tar.gz"
+            bin: "lk"
+            name: "lk-Darwin-x86_64.tar.gz"
             # TODO: add apple silicon
     runs-on: ${{ matrix.os }}
     steps:
@@ -118,6 +118,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: "{{project-name}}*"
+          files: "lk"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
