@@ -79,7 +79,7 @@ jobs:
     needs: [test]
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [ubuntu-latest, macOS-latest]
         include:
           - os: ubuntu-latest
             rust: stable
@@ -112,12 +112,7 @@ jobs:
         run: |
           strip target/${{ matrix.target }}/release/${{ matrix.bin }}
           cd target/${{ matrix.target }}/release
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]
-          then
-            7z a ../../../${{ matrix.name }} ${{ matrix.bin }}
-          else
-            tar czvf ../../../${{ matrix.name }} ${{ matrix.bin }}
-          fi
+          tar czvf ../../../${{ matrix.name }} ${{ matrix.bin }}
           cd -
       - name: Publish
         uses: softprops/action-gh-release@v1
