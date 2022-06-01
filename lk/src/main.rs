@@ -1,22 +1,23 @@
 mod bash_file;
-mod config;
+// mod config;
 mod executables;
 // mod history;
 mod script;
 mod shells;
 mod ui;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bash_file::BashFile;
 use executables::Executables;
 use fuzzy_finder::item::Item;
 use fuzzy_finder::FuzzyFinder;
-use log::LevelFilter;
-use log4rs::append::file::FileAppender;
-use log4rs::config::{Appender, Config, Root};
-use log4rs::encode::pattern::PatternEncoder;
+use log::{debug, info, LevelFilter};
+// use log4rs::append::file::FileAppender;
+// use log4rs::config::{Appender, Config, Root};
+use config::{Config, ConfigError, Environment, File, FileFormat};
+// use log4rs::encode::pattern::PatternEncoder;
 use pastel_colours::{GREEN_FG, RED_FG, RESET_FG};
 use script::Function;
 use shells::UserShell;
@@ -24,9 +25,6 @@ use spinners::{Spinner, Spinners};
 use structopt::StructOpt;
 use tempfile::tempdir;
 use ui::{print_bad_function_name, print_bad_script_name};
-
-// use crate::history::History;
-use crate::script::Script;
 
 /// Use lk to explore and execute scripts in your current directory,
 /// and in its sub-directories. lk offers two options: 'list' or 'fuzzy'.
@@ -61,6 +59,8 @@ struct Cli {
 }
 
 fn main() -> Result<()> {
+    env_logger::init();
+
     let lk_dir = match dirs::home_dir() {
         // Use a dir in ~/.config like a good human, but then store logs in it lol.
         Some(home_dir) => format!("{}/.config/lk", home_dir.to_string_lossy()),
@@ -71,25 +71,46 @@ fn main() -> Result<()> {
         }
     };
 
-    let mut config_file = config::ConfigFile::new(&lk_dir, "lk.toml");
+    // let mut config_file = config::ConfigFile::new(&lk_dir, "lk.toml");
+
+    // let mut workspace_config_file = config::ConfigFile::new("./", "lk.toml");
 
     let args = Cli::from_args();
 
-    let log_file_path = format!("{lk_dir}/lk.log");
-    let log_file = FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
-        .build(&log_file_path)?;
+    // let log_file_path = format!("{lk_dir}/lk.log");
+    // let log_file = FileAppender::builder()
+    //     .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
+    //     .build(&log_file_path)?;
 
-    let config = Config::builder()
-        .appender(Appender::builder().build("logfile", Box::new(log_file)))
-        .build(Root::builder().appender("logfile").build(LevelFilter::Info))?;
-    log4rs::init_config(config)?;
+    // let config = Config::builder()
+    //     .appender(Appender::builder().build("logfile", Box::new(log_file)))
+    //     .build(Root::builder().appender("logfile").build(LevelFilter::Info))?;
+    // log4rs::init_config(config)?;
 
-    log::info!("\n\nStarting lk...");
+    info!("\n\nStarting lk...");
 
     let sp = Spinner::new(&Spinners::Line, "".to_string());
+
+    let mut builder = Config::builder()
+        .set_default("default_mode", "fuzzy")?
+        .set_default("scripts_dir", ".")?
+        .add_source(File::from(Path::new(&lk_dir).join("lk.toml")))
+        .add_source(File::from(Path::new(".").join("lk.toml")).required(false));
+
+    let config = builder.build()?;
+    // let config = match builder.build()?
+    //  {
+    //     Ok(config) => {
+    let scripts_dir = config.get::<String>("scripts_dir").unwrap();
+    let default_mode = config.get::<String>("default_mode").unwrap();
+
+    info!(
+        "Using default_mode {:?}  and scripts_dir {:?}",
+        default_mode, scripts_dir
+    );
+
     let executables = Executables::new(
-        ".",
+        &scripts_dir,
         &args
             .ignore
             .iter()
@@ -98,10 +119,10 @@ fn main() -> Result<()> {
     );
     sp.stop();
 
-    let scripts: Vec<Script> = executables
+    let scripts: Vec<script::Script> = executables
         .executables
         .iter()
-        .map(Script::new)
+        .map(script::Script::new)
         .filter_map(Result::ok)
         .collect();
 
@@ -112,43 +133,60 @@ fn main() -> Result<()> {
     //         .iter()
     //         .for_each(|function| println!("{} - {}", script.file_name(), function.name))
     // });
-    if let Some(default) = args.default {
-        match default.as_str() {
-            "fuzzy" => {
-                println!("Setting default mode to {GREEN_FG}fuzzy{RESET_FG}");
-                config_file.config.default_mode = "fuzzy".to_string();
-                config_file.save();
-            }
-            "list" => {
-                println!("Setting default mode to {GREEN_FG}list{RESET_FG}");
-                config_file.config.default_mode = "list".to_string();
-                config_file.save();
-            }
-            _ => {
-                println!(
-                    "{RED_FG}Unknown default!{RESET_FG} Please specify either {GREEN_FG}fuzzy{RESET_FG} or {GREEN_FG}list{RESET_FG}. You can try out either using the {GREEN_FG}--fuzzy{RESET_FG} or {GREEN_FG}--list{RESET_FG} flags.",
-                );
-            }
-        }
-    } else if args.fuzzy {
-        fuzzy(&scripts, args.number + 1)?
+    // if let Some(default) = args.default {
+    //     match default.as_str() {
+    //         "fuzzy" => {
+    //             println!("Setting default mode to {GREEN_FG}fuzzy{RESET_FG}");
+    //             config_file.config.default_mode = Some("fuzzy".to_string());
+    //             config_file.save();
+    //         }
+    //         "list" => {
+    //             println!("Setting default mode to {GREEN_FG}list{RESET_FG}");
+    //             config_file.config.default_mode = Some("list".to_string());
+    //             config_file.save();
+    //         }
+    //         _ => {
+    //             println!(
+    //             "{RED_FG}Unknown default!{RESET_FG} Please specify either {GREEN_FG}fuzzy{RESET_FG} or {GREEN_FG}list{RESET_FG}. You can try out either using the {GREEN_FG}--fuzzy{RESET_FG} or {GREEN_FG}--list{RESET_FG} flags.",
+    //         );
+    //         }
+    //     }
+    // } else
+
+    if args.fuzzy {
+        fuzzy(&scripts, args.number + 1)
     } else if args.list || args.script.is_some() {
         // If the user is specifying --list OR if there's some value for script.
         // Any value there is implicitly take as --list.
-        list(executables, args)?
+        list(executables, args)
     } else {
         // Neither requested, so fall back on the default which will always exist.
-        match config_file.config.default_mode.as_str() {
-            "fuzzy" => fuzzy(&scripts, args.number + 1)?,
-            "list" => list(executables, args)?,
+        match default_mode.as_str() {
+            "fuzzy" => fuzzy(&scripts, args.number + 1),
+            "list" => list(executables, args),
             _ => panic!("No default mode set! Has there been a problem creating the config file?"),
         }
     }
-    Ok(())
+    // Ok(())
+    // use your config
+    //     }
+    // }
+    //     Err(e) => {
+
+    //         // something went wrong
+    //     }
+    // }
+
+    // let root_script_path = if Some(config_file.) {
+    //     workspace_config_file.config.workspace_scripts_dir
+    // } else {
+    //     ".".to_string()
+    // };
+    // let config = config_file.config.scripts_dir;
 }
 
 /// Runs lk in 'fuzzy' mode.
-fn fuzzy(scripts: &[Script], lines_to_show: i8) -> Result<()> {
+fn fuzzy(scripts: &[script::Script], lines_to_show: i8) -> Result<()> {
     let result = FuzzyFinder::find(scripts_to_item(scripts), lines_to_show).unwrap();
     if let Some(function) = result {
         // We're going to write the equivelent lk command to the shell's history
@@ -176,7 +214,7 @@ fn list(executables: Executables, args: Cli) -> Result<()> {
         // Is it a script that exists on disk?
         if let Some(executable) = executables.get(&script) {
             // Yay, confirmed script
-            let script = Script::new(executable)?;
+            let script = script::Script::new(executable)?;
             // Did the user pass a function?
             if let Some(function) = args.function {
                 // Is it a function that exists in the script we found?
@@ -201,8 +239,8 @@ fn list(executables: Executables, args: Cli) -> Result<()> {
 }
 
 /// Convert the scripts we find to the 'item' required for fuzzy find.
-fn scripts_to_item(scripts: &[Script]) -> Vec<Item<(&Script, &Function)>> {
-    let mut fuzzy_functions: Vec<Item<(&Script, &Function)>> = Vec::new();
+fn scripts_to_item(scripts: &[script::Script]) -> Vec<Item<(&script::Script, &Function)>> {
+    let mut fuzzy_functions: Vec<Item<(&script::Script, &Function)>> = Vec::new();
     scripts.iter().for_each(|script| {
         script.functions.iter().for_each(|function| {
             fuzzy_functions.push(Item::new(

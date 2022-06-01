@@ -1,3 +1,4 @@
+use anyhow::bail;
 /// Holds all the configuraion for lk.
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +11,8 @@ use std::{
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     /// The default mode: fuzzy or list
-    pub default_mode: String,
+    pub default_mode: Option<String>,
+    pub scripts_dir: String,
 }
 
 pub struct ConfigFile {
@@ -31,7 +33,8 @@ impl ConfigFile {
                 Ok(file) => {
                     let mut buffered = BufWriter::new(file);
                     let default_config = Config {
-                        default_mode: "list".to_string(),
+                        default_mode: Some("fuzzy".to_string()),
+                        scripts_dir: ".".to_string(),
                     };
                     let toml = toml::to_string(&default_config).unwrap();
                     write!(buffered, "{}", toml).expect("Failed to write to file");
@@ -45,6 +48,26 @@ impl ConfigFile {
         // Load the config file
         let config_string = std::fs::read_to_string(path).expect("Couldn't read config file");
         let config = toml::from_str::<Config>(&config_string).expect("Couldn't parse config file");
+
+        // Load a workspace override config file if it exists
+        let workspace_config_string = std::fs::read_to_string("./lk.toml").unwrap_or_default();
+
+        // {
+        //     Ok(_) => println!("asdf"),
+        //     Err(_) => panic!("Failed to load workspace file"),
+        // };
+
+        let workspace_config = match toml::from_str::<Config>(&workspace_config_string) {
+            Ok(config) => config,
+            Err(e) => {
+                panic!("Failed to parse workspace file")
+            }
+            // Config {
+            //     default_mode: None,
+            //     scripts_dir: None,
+            // },
+        };
+
         Self {
             config,
             lk_dir: lk_dir.to_string(),
