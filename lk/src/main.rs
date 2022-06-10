@@ -1,7 +1,5 @@
 mod bash_file;
-// mod config;
 mod executables;
-// mod history;
 mod script;
 mod shells;
 mod ui;
@@ -10,15 +8,12 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bash_file::BashFile;
+use config::{Config, File};
+use env_logger::Builder;
 use executables::Executables;
 use fuzzy_finder::item::Item;
 use fuzzy_finder::FuzzyFinder;
-use log::{debug, info, LevelFilter};
-// use log4rs::append::file::FileAppender;
-// use log4rs::config::{Appender, Config, Root};
-use config::{Config, ConfigError, Environment, File, FileFormat};
-// use log4rs::encode::pattern::PatternEncoder;
-use pastel_colours::{GREEN_FG, RED_FG, RESET_FG};
+use log::{info, LevelFilter};
 use script::Function;
 use shells::UserShell;
 use spinners::{Spinner, Spinners};
@@ -33,9 +28,6 @@ use ui::{print_bad_function_name, print_bad_script_name};
 /// scripts and functions found by lk.
 #[derive(StructOpt)]
 struct Cli {
-    /// Set the default mode: fuzzy or list
-    #[structopt(long, short)]
-    default: Option<String>,
     /// Fuzzy search for available scripts and functions.
     #[structopt(long, short)]
     fuzzy: bool,
@@ -59,7 +51,20 @@ struct Cli {
 }
 
 fn main() -> Result<()> {
-    env_logger::init();
+    // env_logger::init();
+    // Builder::from_default_env().init();
+
+    let mut builder = Builder::from_default_env();
+    // builder.format_timestamp();
+    builder.build();
+    // builder.init();
+
+    // log_builder.
+    // builder
+    //     .default_format()
+    //     // .format(|buf, record| writeln!(buf, "{} - {}", record.level(), record.args()))
+    //     // .filter(None, LevelFilter::Info)
+    //     .init();
 
     let lk_dir = match dirs::home_dir() {
         // Use a dir in ~/.config like a good human, but then store logs in it lol.
@@ -71,36 +76,19 @@ fn main() -> Result<()> {
         }
     };
 
-    // let mut config_file = config::ConfigFile::new(&lk_dir, "lk.toml");
-
-    // let mut workspace_config_file = config::ConfigFile::new("./", "lk.toml");
-
     let args = Cli::from_args();
-
-    // let log_file_path = format!("{lk_dir}/lk.log");
-    // let log_file = FileAppender::builder()
-    //     .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
-    //     .build(&log_file_path)?;
-
-    // let config = Config::builder()
-    //     .appender(Appender::builder().build("logfile", Box::new(log_file)))
-    //     .build(Root::builder().appender("logfile").build(LevelFilter::Info))?;
-    // log4rs::init_config(config)?;
 
     info!("\n\nStarting lk...");
 
     let sp = Spinner::new(&Spinners::Line, "".to_string());
 
-    let mut builder = Config::builder()
+    let builder = Config::builder()
         .set_default("default_mode", "fuzzy")?
         .set_default("scripts_dir", ".")?
         .add_source(File::from(Path::new(&lk_dir).join("lk.toml")))
         .add_source(File::from(Path::new(".").join("lk.toml")).required(false));
 
     let config = builder.build()?;
-    // let config = match builder.build()?
-    //  {
-    //     Ok(config) => {
     let scripts_dir = config.get::<String>("scripts_dir").unwrap();
     let default_mode = config.get::<String>("default_mode").unwrap();
 

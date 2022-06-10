@@ -1,2 +1,4 @@
+# Example workspace configuration toml file
+
 # scripts_dir = "./lk/tests/depends_on_file/"
-default_mode = "list"
+#default_mode = "list"
