@@ -4,19 +4,20 @@ mod script;
 mod shells;
 mod ui;
 
-use std::path::{Path, PathBuf};
-
 use anyhow::Result;
 use bash_file::BashFile;
 use config::{Config, File};
-use env_logger::Builder;
 use executables::Executables;
 use fuzzy_finder::item::Item;
 use fuzzy_finder::FuzzyFinder;
 use log::{info, LevelFilter};
+use log4rs::append::file::FileAppender;
+use log4rs::config::{Appender, Root};
+use log4rs::encode::pattern::PatternEncoder;
 use script::Function;
 use shells::UserShell;
 use spinners::{Spinner, Spinners};
+use std::path::{Path, PathBuf};
 use structopt::StructOpt;
 use tempfile::tempdir;
 use ui::{print_bad_function_name, print_bad_script_name};
@@ -51,21 +52,7 @@ struct Cli {
 }
 
 fn main() -> Result<()> {
-    // env_logger::init();
-    // Builder::from_default_env().init();
-
-    let mut builder = Builder::from_default_env();
-    // builder.format_timestamp();
-    builder.build();
-    // builder.init();
-
-    // log_builder.
-    // builder
-    //     .default_format()
-    //     // .format(|buf, record| writeln!(buf, "{} - {}", record.level(), record.args()))
-    //     // .filter(None, LevelFilter::Info)
-    //     .init();
-
+    // We will use the home directory to store lk configuration and log files.
     let lk_dir = match dirs::home_dir() {
         // Use a dir in ~/.config like a good human, but then store logs in it lol.
         Some(home_dir) => format!("{}/.config/lk", home_dir.to_string_lossy()),
@@ -76,19 +63,33 @@ fn main() -> Result<()> {
         }
     };
 
-    let args = Cli::from_args();
+    // Configure logging
+    let log_file_path = format!("{lk_dir}/lk.log");
+    let log_file = FileAppender::builder()
+        .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
+        .build(&log_file_path)?;
+
+    let config = log4rs::config::Config::builder()
+        .appender(Appender::builder().build("logfile", Box::new(log_file)))
+        .build(Root::builder().appender("logfile").build(LevelFilter::Info))?;
+    log4rs::init_config(config)?;
 
     info!("\n\nStarting lk...");
 
-    let sp = Spinner::new(&Spinners::Line, "".to_string());
+    let args = Cli::from_args();
 
+    let mut sp = Spinner::new(Spinners::Line, "".to_string());
+
+    // Set configuration defaults, then load the user config followed by a workspace if they exist.
+    // Configurations in later files override earlier ones. However, command line configuration overrides these
     let builder = Config::builder()
         .set_default("default_mode", "fuzzy")?
         .set_default("scripts_dir", ".")?
-        .add_source(File::from(Path::new(&lk_dir).join("lk.toml")))
+        .add_source(File::from(Path::new(&lk_dir).join("lk.toml")).required(false))
         .add_source(File::from(Path::new(".").join("lk.toml")).required(false));
 
     let config = builder.build()?;
+
     let scripts_dir = config.get::<String>("scripts_dir").unwrap();
     let default_mode = config.get::<String>("default_mode").unwrap();
 
@@ -97,6 +98,7 @@ fn main() -> Result<()> {
         default_mode, scripts_dir
     );
 
+    // What executable scripts are available in the configuration directory?
     let executables = Executables::new(
         &scripts_dir,
         &args
@@ -107,6 +109,7 @@ fn main() -> Result<()> {
     );
     sp.stop();
 
+    // What functions do these executables contain?
     let scripts: Vec<script::Script> = executables
         .executables
         .iter()
@@ -114,33 +117,7 @@ fn main() -> Result<()> {
         .filter_map(Result::ok)
         .collect();
 
-    // Prints all scripts
-    // scripts.iter().for_each(|script| {
-    //     script
-    //         .functions
-    //         .iter()
-    //         .for_each(|function| println!("{} - {}", script.file_name(), function.name))
-    // });
-    // if let Some(default) = args.default {
-    //     match default.as_str() {
-    //         "fuzzy" => {
-    //             println!("Setting default mode to {GREEN_FG}fuzzy{RESET_FG}");
-    //             config_file.config.default_mode = Some("fuzzy".to_string());
-    //             config_file.save();
-    //         }
-    //         "list" => {
-    //             println!("Setting default mode to {GREEN_FG}list{RESET_FG}");
-    //             config_file.config.default_mode = Some("list".to_string());
-    //             config_file.save();
-    //         }
-    //         _ => {
-    //             println!(
-    //             "{RED_FG}Unknown default!{RESET_FG} Please specify either {GREEN_FG}fuzzy{RESET_FG} or {GREEN_FG}list{RESET_FG}. You can try out either using the {GREEN_FG}--fuzzy{RESET_FG} or {GREEN_FG}--list{RESET_FG} flags.",
-    //         );
-    //         }
-    //     }
-    // } else
-
+    // Command line rules ok?
     if args.fuzzy {
         fuzzy(&scripts, args.number + 1)
     } else if args.list || args.script.is_some() {
@@ -148,29 +125,13 @@ fn main() -> Result<()> {
         // Any value there is implicitly take as --list.
         list(executables, args)
     } else {
-        // Neither requested, so fall back on the default which will always exist.
+        // Neither requested, so fall back on the configuration
         match default_mode.as_str() {
             "fuzzy" => fuzzy(&scripts, args.number + 1),
             "list" => list(executables, args),
             _ => panic!("No default mode set! Has there been a problem creating the config file?"),
         }
     }
-    // Ok(())
-    // use your config
-    //     }
-    // }
-    //     Err(e) => {
-
-    //         // something went wrong
-    //     }
-    // }
-
-    // let root_script_path = if Some(config_file.) {
-    //     workspace_config_file.config.workspace_scripts_dir
-    // } else {
-    //     ".".to_string()
-    // };
-    // let config = config_file.config.scripts_dir;
 }
 
 /// Runs lk in 'fuzzy' mode.
