@@ -13,7 +13,7 @@ edition = "2021"
 [dependencies]
 # To handle lk arguments.
 structopt = "0.3.13"
-regex = "1.5.4"
+regex = "1.5.5"
 # To display script and function names in center justified fashion.
 pad = "0.1.6"
 walkdir = "2.3.2"
