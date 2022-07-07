@@ -1,15 +1,11 @@
 /// Finds executables in the current directory.
 use crate::ui::print_root_header;
 use content_inspector::{inspect, ContentType};
+use glob::glob;
+use log::{debug, error, info};
 use pad::{Alignment, PadStr};
 use pastel_colours::{DARK_GREEN_FG, RESET_FG};
-use std::{
-    fs::Permissions,
-    io::Read,
-    os::unix::fs::PermissionsExt,
-    path::{Component, Path, PathBuf},
-};
-use walkdir::{DirEntry, WalkDir};
+use std::{fs::Permissions, io::Read, os::unix::fs::PermissionsExt, path::PathBuf};
 
 pub struct Executable {
     pub short_name: String,
@@ -23,45 +19,58 @@ pub struct Executables {
 }
 
 impl Executables {
-    pub fn new(root: &str, ignores: &[PathBuf]) -> Self {
-        // TODO: Load this from .gitignore/other ignore files
-        let ignored = vec![
-            "target",
-            ".github",
-            ".vscode",
-            ".git",
-            "node_modules",
-            ".nvm",
-            ".Trash",
-            ".npm",
-            ".cache",
-            "Library",
-            ".cargo",
-            ".sock",
-        ];
-        let walker = WalkDir::new(root).into_iter();
-        let mut executables: Vec<Executable> = Vec::new();
-        for result in walker.filter_entry(|e| !is_ignored(e.path(), &ignored, ignores)) {
-            let entry = match result {
-                Ok(entry) => entry,
-                Err(e) => match e.path() {
-                    Some(p) => {
-                        log::warn!("Could not open path {}", p.to_string_lossy());
-                        continue;
-                    }
-                    None => panic!("Could not read dir !"),
-                },
-            };
-            if should_include_file(&entry) {
-                let path = entry.into_path();
-                let absolute_path = std::fs::canonicalize(&path).unwrap();
-                executables.push(Executable {
-                    short_name: path.file_name().unwrap().to_string_lossy().to_string(),
-                    path,
-                    absolute_path,
-                })
+    pub fn new(_root: &str, includes: &[String], excludes: &[String]) -> Self {
+        // Get all the excluded files
+        let mut files_to_exclude: Vec<PathBuf> = Vec::new();
+        for exclude in excludes {
+            for entry in glob(exclude).expect("Failed to read glob pattern") {
+                match entry {
+                    Ok(path) => files_to_exclude.push(path),
+                    Err(e) => info!("{:?}", e),
+                }
             }
         }
+
+        // Get all the included files but not the included ones.
+        let mut files_to_include: Vec<PathBuf> = Vec::new();
+        for include in includes {
+            for entry in glob(include).expect("Failed to read glob pattern") {
+                match entry {
+                    Ok(path) => {
+                        // Exclude subpaths and full paths that are in the excludes list.
+                        let is_subpath = files_to_exclude
+                            .iter()
+                            .any(|exclude| path.starts_with(exclude));
+
+                        if !files_to_exclude.contains(&path)
+                            && !is_subpath
+                            && should_include_file(&path)
+                        {
+                            files_to_include.push(path);
+                        }
+                    }
+                    Err(e) => error!("{:?}", e),
+                }
+            }
+        }
+        debug!("Excluding {:?}", files_to_exclude);
+        debug!("Including {:?}", files_to_include);
+
+        let executables: Vec<Executable> = files_to_include
+            .into_iter()
+            .map(|include| {
+                let path = include.to_str().unwrap();
+                let absolute_path = include.clone();
+                let short_name = path.split('/').last().unwrap().to_string();
+
+                Executable {
+                    short_name,
+                    path: include,
+                    absolute_path,
+                }
+            })
+            .collect();
+
         Self { executables }
     }
 
@@ -100,25 +109,25 @@ impl Executables {
 }
 
 /// Determines whether or not we should include this entry in our search results
-fn should_include_file(entry: &DirEntry) -> bool {
+fn should_include_file(path: &PathBuf) -> bool {
     // We'll need to check file permissions
-    let permissions = match entry.metadata() {
+    let permissions = match path.metadata() {
         Ok(metadata) => metadata.permissions(),
-        Err(_) => panic!("Couldn't get file metadata for {:?}!", entry.path()),
+        Err(_) => panic!("Couldn't get file metadata for {:?}!", path),
     };
 
     // If we don't have permissions to access the file we're not going to get very far.
     if has_permissions(&permissions)
         // We're ignoring dirs, obviously
-        && !entry.file_type().is_dir()
+        && !path.is_dir()
         // We're including executables
         && is_executable(&permissions)
         // We're ignoring symlinks (for now)
-        && !entry.path_is_symlink()
+        && !path.is_symlink()
     {
         // This involves reading the first few bytes if the file, and for performance reasons
         // we want to do this as little as possible. So it's the last thing we check.
-        if !is_binary(entry)
+        if !is_binary(path)
         // We're ignoring binary files
         {
             return true;
@@ -133,22 +142,12 @@ fn has_permissions(permissions: &Permissions) -> bool {
     permissions.mode() != 33279
 }
 
-fn is_ignored(p: &Path, ignored: &[&str], ignores: &[PathBuf]) -> bool {
-    ignores.iter().any(|s| p.starts_with(s))
-        || ignored.iter().any(|i| {
-            p.components().any(|c| match c {
-                Component::Normal(c) => *c == **i,
-                _ => false,
-            })
-        })
-}
-
 fn is_executable(permissions: &Permissions) -> bool {
     permissions.mode() & 0o111 != 0
 }
 
-fn is_binary(entry: &DirEntry) -> bool {
-    let path = entry.path();
+fn is_binary(path: &PathBuf) -> bool {
+    // let path = entry.path();
     let path_str = path.to_string_lossy();
 
     // We're testing for executable permissions before we check for binary or text

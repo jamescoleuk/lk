@@ -16,7 +16,6 @@ structopt = "0.3.13"
 regex = "1.5.4"
 # To display script and function names in center justified fashion.
 pad = "0.1.6"
-walkdir = "2.3.2"
 # Anyhow makes application error handling easier.
 # If I was writing a library I'd use thiserror.
 anyhow = "1.0.44"
@@ -36,5 +35,7 @@ serde="1.0.132"
 spinners="4.0.0"
 fuzzy_finder={path="../fuzzy_finder", version="0.1.1"}
 pastel_colours={path="../pastel_colours", version="0.1.1"}
+# Config-rs reads from config from files or environment
 config = "0.13.1"
-# fuzzy_finder="0.1.0"
+# We want include and exclude to use proper pattern matching
+glob = "0.3.0"
