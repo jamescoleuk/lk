@@ -1,7 +1,5 @@
 [workspace]
 
 members = [
-    "fuzzy_finder",
-    "lk",
-    "pastel_colours"
+  "lk",
 ]
