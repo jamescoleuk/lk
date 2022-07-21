@@ -95,11 +95,11 @@ fn main() -> Result<()> {
     // Configurations in later files override earlier ones. However, command line configuration overrides these
     let builder = Config::builder()
         .set_default("default_mode", "fuzzy")?
-        .set_default("includes", vec!["*".to_string()])?
+        .set_default("includes", vec!["**/*.*".to_string()])?
         .set_default(
             "excludes",
             vec![
-                // TODO: list the default includes in help
+                // TODO: list the default excludes in help
                 "target".to_string(),
                 ".github".to_string(),
                 ".vscode".to_string(),
@@ -147,7 +147,7 @@ fn main() -> Result<()> {
 
     //TODO: what should the root be and how does it overlap with the defaults or user specified includes?
     // What executable scripts are available in the configuration directory?
-    let executables = Executables::new(".", &includes, &excludes);
+    let executables = Executables::new(&includes, &excludes);
 
     sp.stop();
 

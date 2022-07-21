@@ -19,7 +19,7 @@ pub struct Executables {
 }
 
 impl Executables {
-    pub fn new(_root: &str, includes: &[String], excludes: &[String]) -> Self {
+    pub fn new(includes: &[String], excludes: &[String]) -> Self {
         // Get all the excluded files
         let mut files_to_exclude: Vec<PathBuf> = Vec::new();
         for exclude in excludes {
@@ -193,8 +193,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn should_include_all_files() {
-        let executables = Executables::new("", &vec!["**/tests/**/*.*".to_string()], &vec![]);
+    fn default_should_include_all_files() {
+        let executables = Executables::new(&vec!["**/*.*".to_string()], &vec![]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert_eq!(executables.len(), 10);
     }
@@ -202,7 +202,6 @@ mod tests {
     #[test]
     fn should_include_only_specific_folder() {
         let executables = Executables::new(
-            "",
             &vec!["**/tests/executables_tests/**/*.*".to_string()],
             &vec![],
         );
@@ -210,14 +209,35 @@ mod tests {
         assert_eq!(executables.len(), 4);
     }
 
-    fn should_include_specific_folders() {
-        assert!(true);
+    #[test]
+    fn should_include_multiple_specific_folders() {
+        let executables = Executables::new(
+            &vec![
+                "**/tests/executables_tests/**/*.*".to_string(),
+                "**/tests/depends_on_file/**/*.*".to_string(),
+            ],
+            &vec![],
+        );
+        // This depends on the number of scripts in the tests directory - so please take care when changing those files.
+        assert_eq!(executables.len(), 6);
+    }
+
+    #[test]
+    fn should_exclude_multiple_specific_folders() {
+        let executables = Executables::new(
+            &vec!["**/*.*".to_string()],
+            &vec![
+                "**/tests/depends_on_file/**/*.*".to_string(),
+                "**/tests/executables_tests/**/*.*".to_string(),
+            ],
+        );
+        // This depends on the number of scripts in the tests directory - so please take care when changing those files.
+        assert_eq!(executables.len(), 4);
     }
 
     #[test]
     fn should_exclude_by_file_folder() {
         let executables = Executables::new(
-            "",
             &vec!["**/tests/**/*.*".to_string()],
             &vec!["*/**/exclude_me".to_string()],
         );
@@ -228,7 +248,6 @@ mod tests {
     #[test]
     fn should_exclude_by_file_name() {
         let executables = Executables::new(
-            "",
             &vec!["**/tests/**/*.*".to_string()],
             &vec!["*/**/exclude_me/should_not_be_included.sh".to_string()],
         );

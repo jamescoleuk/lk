@@ -4,6 +4,8 @@ includes = [
     "./lk/tests/**/*",
 ]
 
-excludes = ["*/**/exclude_me"]
+excludes = [
+    "*/**/exclude_me",
+]
 
 # default_mode = "list"
