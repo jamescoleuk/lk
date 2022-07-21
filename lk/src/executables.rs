@@ -31,7 +31,7 @@ impl Executables {
             }
         }
 
-        // Get all the included files but not the included ones.
+        // Get all the included files but not the excluded ones.
         let mut files_to_include: Vec<PathBuf> = Vec::new();
         for include in includes {
             for entry in glob(include).expect("Failed to read glob pattern") {
@@ -78,6 +78,10 @@ impl Executables {
         self.executables
             .iter()
             .find(|&executable| executable.short_name == name)
+    }
+
+    pub fn len(&self) -> usize {
+        self.executables.len()
     }
 
     /// Pretty-prints the executables we found on the path, so the
@@ -181,5 +185,54 @@ fn is_binary(path: &PathBuf) -> bool {
             }
             false
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_include_all_files() {
+        let executables = Executables::new("", &vec!["**/tests/**/*.*".to_string()], &vec![]);
+        // This depends on the number of scripts in the tests directory - so please take care when changing those files.
+        assert_eq!(executables.len(), 10);
+    }
+
+    #[test]
+    fn should_include_only_specific_folder() {
+        let executables = Executables::new(
+            "",
+            &vec!["**/tests/executables_tests/**/*.*".to_string()],
+            &vec![],
+        );
+        // This depends on the number of scripts in the tests directory - so please take care when changing those files.
+        assert_eq!(executables.len(), 4);
+    }
+
+    fn should_include_specific_folders() {
+        assert!(true);
+    }
+
+    #[test]
+    fn should_exclude_by_file_folder() {
+        let executables = Executables::new(
+            "",
+            &vec!["**/tests/**/*.*".to_string()],
+            &vec!["*/**/exclude_me".to_string()],
+        );
+        // This depends on the number of scripts in the tests directory - so please take care when changing those files.
+        assert_eq!(executables.len(), 9);
+    }
+
+    #[test]
+    fn should_exclude_by_file_name() {
+        let executables = Executables::new(
+            "",
+            &vec!["**/tests/**/*.*".to_string()],
+            &vec!["*/**/exclude_me/should_not_be_included.sh".to_string()],
+        );
+        // This depends on the number of scripts in the tests directory - so please take care when changing those files.
+        assert_eq!(executables.len(), 9);
     }
 }
