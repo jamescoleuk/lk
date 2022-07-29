@@ -10,6 +10,7 @@ use config::{Config, File};
 use executables::Executables;
 use fuzzy_finder::item::Item;
 use fuzzy_finder::FuzzyFinder;
+
 use log::{info, LevelFilter};
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
@@ -17,7 +18,7 @@ use log4rs::encode::pattern::PatternEncoder;
 use script::Function;
 use shells::UserShell;
 use spinners::{Spinner, Spinners};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use structopt::StructOpt;
 use tempfile::tempdir;
 use ui::{print_bad_function_name, print_bad_script_name};
@@ -32,19 +33,29 @@ struct Cli {
     /// Fuzzy search for available scripts and functions.
     #[structopt(long, short)]
     fuzzy: bool,
+
     /// List available scripts and functions.
     #[structopt(long, short)]
     list: bool,
+
     /// Optional: the name of a script to explore or use
     script: Option<String>,
+
     /// Optional: the name of the function to run.
     function: Option<String>,
-    /// Optional: paths to ignore in the search
+
+    /// Optional: paths to include in the search, as a UNIX glob pattern.
     #[structopt(long, short)]
-    ignore: Vec<PathBuf>,
-    /// Number of lines to show in fuzzy search
+    includes: Vec<String>,
+
+    /// Optional: paths to exclude in the search, as a UNIX glob pattern.
+    #[structopt(long, short)]
+    excludes: Vec<String>,
+
+    /// Number of lines to show in fuzzy search.
     #[structopt(long, short = "n", default_value = "7")]
     number: i8,
+
     /// Optional: params for the function. We're not processing them yet (e.g. validating) but
     /// they need to be permitted as a param to lk.
     #[allow(dead_code)]
@@ -84,29 +95,60 @@ fn main() -> Result<()> {
     // Configurations in later files override earlier ones. However, command line configuration overrides these
     let builder = Config::builder()
         .set_default("default_mode", "fuzzy")?
-        .set_default("scripts_dir", ".")?
+        .set_default("includes", vec!["**/*.*".to_string()])?
+        .set_default(
+            "excludes",
+            vec![
+                // TODO: list the default excludes in help
+                "target".to_string(),
+                ".github".to_string(),
+                ".vscode".to_string(),
+                ".git".to_string(),
+                "node_modules".to_string(),
+                ".nvm".to_string(),
+                ".Trash".to_string(),
+                ".npm".to_string(),
+                ".cache".to_string(),
+                "Library".to_string(),
+                ".cargo".to_string(),
+                ".sock".to_string(),
+            ] as Vec<String>,
+        )?
         .add_source(File::from(Path::new(&lk_dir).join("lk.toml")).required(false))
         .add_source(File::from(Path::new(".").join("lk.toml")).required(false));
 
     let config = builder.build()?;
 
-    let scripts_dir = config.get::<String>("scripts_dir").unwrap();
+    // Extract the config file includes and excludes
+    let config_includes = config.get::<Vec<String>>("includes").unwrap();
+    let config_excludes = config.get::<Vec<String>>("excludes").unwrap();
+
+    // Merge the command line includes and excludes with the config file includes and excludes
+    let includes: Vec<String> = args
+        .includes
+        .clone()
+        .into_iter()
+        .chain(config_includes.into_iter())
+        .collect();
+
+    let excludes: Vec<String> = args
+        .excludes
+        .clone()
+        .into_iter()
+        .chain(config_excludes.into_iter())
+        .collect();
+
     let default_mode = config.get::<String>("default_mode").unwrap();
 
     info!(
-        "Using default_mode {:?}  and scripts_dir {:?}",
-        default_mode, scripts_dir
+        "Using default_mode {:?}, includes {:?} and excludes {:?}",
+        default_mode, includes, excludes
     );
 
+    //TODO: what should the root be and how does it overlap with the defaults or user specified includes?
     // What executable scripts are available in the configuration directory?
-    let executables = Executables::new(
-        &scripts_dir,
-        &args
-            .ignore
-            .iter()
-            .map(|p| PathBuf::from(".").join(p))
-            .collect::<Vec<_>>(),
-    );
+    let executables = Executables::new(&includes, &excludes);
+
     sp.stop();
 
     // What functions do these executables contain?

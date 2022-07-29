@@ -1,4 +1,11 @@
-# Example workspace configuration toml file
+# Example workspace configuration TOML file
 
-# scripts_dir = "./lk/tests/depends_on_file/"
+includes = [
+    "./lk/tests/**/*",
+]
+
+excludes = [
+    "*/**/exclude_me",
+]
+
 # default_mode = "list"
