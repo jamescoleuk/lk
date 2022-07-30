@@ -80,10 +80,6 @@ impl Executables {
             .find(|&executable| executable.short_name == name)
     }
 
-    pub fn len(&self) -> usize {
-        self.executables.len()
-    }
-
     /// Pretty-prints the executables we found on the path, so the
     /// user can select one to run.
     pub fn pretty_print(&self) {
