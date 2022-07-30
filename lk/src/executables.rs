@@ -250,6 +250,12 @@ mod tests {
 
     #[test]
     fn should_include_all() {
+        // Should this default to including everything?
+        // If not, it will never find anything so perhaops it should throw an error because it's mis-configured.
+        // This would mean the return type changes from Vec<Executables> to Result<Vec<Executables>>.
+        // I think this is fine and probably sensible anyway.
+        // Maybe, if nothing is found, the user should be warned about checking their includes/excludes? But this
+        // is probably something that should happen in `main.rs`.
         let executables = Executables::new(&[], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert!(!executables.executables.is_empty());
@@ -257,6 +263,8 @@ mod tests {
 
     #[test]
     fn should_include_scripts_in_pwd() {
+        // Should include everything in the current dir.
+        // FIXME: this fails when run, but passes when debugged!
         let executables = Executables::new(&["*".to_string()], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert!(!executables.executables.is_empty());
