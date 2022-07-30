@@ -99,7 +99,8 @@ fn main() -> Result<()> {
         .set_default(
             "excludes",
             vec![
-                // TODO: list the default excludes in help
+                // TODO: List these in help
+                // TODO: write these to global config if there's no exclude section already
                 "target".to_string(),
                 ".github".to_string(),
                 ".vscode".to_string(),
