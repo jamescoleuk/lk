@@ -1,11 +1,12 @@
 # Example workspace configuration TOML file
 
 includes = [
-    "./lk/tests/**/*",
+  "./lk/tests/**/*",
+  "*",
 ]
 
 excludes = [
-    "*/**/exclude_me",
+  "*/**/exclude_me",
 ]
 
 # default_mode = "list"
