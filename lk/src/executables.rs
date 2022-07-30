@@ -192,7 +192,7 @@ mod tests {
     fn default_should_include_all_files() {
         let executables = Executables::new(&vec!["**/*.*".to_string()], &vec![]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.len(), 10);
+        assert_eq!(executables.executables.len(), 10);
     }
 
     #[test]
@@ -202,7 +202,7 @@ mod tests {
             &vec![],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.len(), 4);
+        assert_eq!(executables.executables.len(), 4);
     }
 
     #[test]
@@ -215,7 +215,7 @@ mod tests {
             &vec![],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.len(), 6);
+        assert_eq!(executables.executables.len(), 6);
     }
 
     #[test]
@@ -228,7 +228,7 @@ mod tests {
             ],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.len(), 4);
+        assert_eq!(executables.executables.len(), 4);
     }
 
     #[test]
@@ -238,7 +238,7 @@ mod tests {
             &vec!["*/**/exclude_me".to_string()],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.len(), 9);
+        assert_eq!(executables.executables.len(), 9);
     }
 
     #[test]
@@ -248,6 +248,6 @@ mod tests {
             &vec!["*/**/exclude_me/should_not_be_included.sh".to_string()],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.len(), 9);
+        assert_eq!(executables.executables.len(), 9);
     }
 }
