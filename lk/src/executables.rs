@@ -201,14 +201,14 @@ mod tests {
 
     #[test]
     fn default_should_include_all_files() {
-        let executables = Executables::new(&["**/*.*".to_string()], &[]);
+        let executables = Executables::new(&["**/*".to_string()], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert_eq!(executables.unwrap().executables.len(), 10);
     }
 
     #[test]
     fn should_include_only_specific_folder() {
-        let executables = Executables::new(&["**/tests/executables_tests/**/*.*".to_string()], &[]);
+        let executables = Executables::new(&["**/tests/executables_tests/**/*".to_string()], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert_eq!(executables.unwrap().executables.len(), 4);
     }
@@ -217,8 +217,8 @@ mod tests {
     fn should_include_multiple_specific_folders() {
         let executables = Executables::new(
             &[
-                "**/tests/executables_tests/**/*.*".to_string(),
-                "**/tests/depends_on_file/**/*.*".to_string(),
+                "**/tests/executables_tests/**/*".to_string(),
+                "**/tests/depends_on_file/**/*".to_string(),
             ],
             &[],
         );
@@ -231,8 +231,8 @@ mod tests {
         let executables = Executables::new(
             &["**/*.*".to_string()],
             &[
-                "**/tests/depends_on_file/**/*.*".to_string(),
-                "**/tests/executables_tests/**/*.*".to_string(),
+                "**/tests/depends_on_file/**/*".to_string(),
+                "**/tests/executables_tests/**/*".to_string(),
             ],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
@@ -252,7 +252,7 @@ mod tests {
     #[test]
     fn should_exclude_by_file_name() {
         let executables = Executables::new(
-            &["**/tests/**/*.*".to_string()],
+            &["**/tests/**/*".to_string()],
             &["*/**/exclude_me/should_not_be_included.sh".to_string()],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
