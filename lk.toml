@@ -1,0 +1,10 @@
+# Example workspace configuration TOML file
+
+includes = [
+  "./lk/tests/**/*",
+  "*",
+]
+
+excludes = [
+  "**/exclude_me",
+]

@@ -1,39 +1,33 @@
 [package]
-name = "lk"
-version = "0.2.1"
 authors = ["James Cole <jamescole.uk@gmail.com>"]
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/jamescoleuk/lk"
-description = "A cli frontend for your bash scripts"
-readme = "README.md"
-keywords = ["bash", "cli"]
 categories = ["command-line-interface", "command-line-utilities"]
+description = "A cli frontend for your bash scripts"
 edition = "2021"
+keywords = ["bash", "cli"]
+license = "MIT OR Apache-2.0"
+name = "lk"
+readme = "README.md"
+repository = "https://github.com/jamescoleuk/lk"
+version = "0.3.0"
 
 [dependencies]
-# To handle lk arguments.
-structopt = "0.3.13"
-regex = "1.5.5"
-# To display script and function names in center justified fashion.
-pad = "0.1.6"
+anyhow = "1.0.44" # Anyhow makes application error handling easier. If I was writing a library I'd use thiserror.
+config = "0.13.1" # Config-rs reads from config from files or environment
+content_inspector = "0.2.4" # To detect and ignore binary executables.
+dirs = "4.0.0" 
+fuzzy-matcher = "0.3.7" 
+fuzzy_finder = "0.1.2" 
+glob = "0.3.0" # We want include and exclude to use proper pattern matching
+log = "0.4.14" 
+log4rs = "1.0.0" 
+nanoid = "0.4.0" # To generate unique suffixes for the lk file.
+pad = "0.1.6" # To display script and function names in center justified fashion.
+pastel_colours = "0.1.3" 
+regex = "1.5.4" 
+serde = "1.0.132" 
+spinners = "4.0.0" 
+structopt = "0.3.13" # To handle lk arguments.
+tempfile = "3.2.0" # Somewhere to store lk's temp file
+termion = "1.5.6" 
+toml = "0.5.8" 
 walkdir = "2.3.2"
-# Anyhow makes application error handling easier.
-# If I was writing a library I'd use thiserror.
-anyhow = "1.0.44"
-# To detect and ignore binary executables.
-content_inspector = "0.2.4"
-# To generate unique suffixes for the lk file.
-nanoid = "0.4.0"
-# Somewhere to store lk's temp file
-tempfile = "3.2.0"
-termion= "1.5.6"
-fuzzy-matcher = "0.3.7"
-log4rs="1.0.0"
-log="0.4.14"
-dirs="4.0.0"
-toml="0.5.8"
-serde="1.0.132"
-spinners="2.0.0"
-fuzzy_finder={path="../fuzzy_finder", version="0.1.1"}
-pastel_colours={path="../pastel_colours", version="0.1.1"}
-# fuzzy_finder="0.1.0"
