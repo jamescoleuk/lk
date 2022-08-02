@@ -74,13 +74,13 @@ impl Executables {
         let executables: Vec<Executable> = files_to_include
             .into_iter()
             .map(|include| {
-                let path = include.to_str().unwrap();
-                let absolute_path = include.clone();
-                let short_name = path.split('/').last().unwrap().to_string();
+                let path = include.into_boxed_path();
+                let absolute_path = path.canonicalize().unwrap();
+                let short_name = path.file_name().unwrap().to_string_lossy().to_string();
 
                 Executable {
                     short_name,
-                    path: include,
+                    path: path.into_path_buf(),
                     absolute_path,
                 }
             })

@@ -11,7 +11,7 @@ use executables::Executables;
 use fuzzy_finder::item::Item;
 use fuzzy_finder::FuzzyFinder;
 
-use log::{info, LevelFilter};
+use log::{debug, info, LevelFilter};
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Root};
 use log4rs::encode::pattern::PatternEncoder;
@@ -160,6 +160,8 @@ fn main() -> Result<()> {
         .filter_map(Result::ok)
         .collect();
 
+    debug!("Found the following scripts {:#?}", scripts);
+
     // Command line rules ok?
     if args.fuzzy {
         fuzzy(&scripts, args.number + 1)
@@ -236,12 +238,7 @@ fn scripts_to_item(scripts: &[script::Script]) -> Vec<Item<(&script::Script, &Fu
     scripts.iter().for_each(|script| {
         script.functions.iter().for_each(|function| {
             fuzzy_functions.push(Item::new(
-                format!(
-                    "{}/{} - {}",
-                    script.path(),
-                    script.file_name(),
-                    function.name
-                ),
+                format!("{} - {}", script.path(), function.name),
                 (script, function),
             ))
         })

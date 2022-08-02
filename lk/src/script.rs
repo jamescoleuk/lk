@@ -93,7 +93,6 @@ impl Script {
 
     pub fn path(&self) -> String {
         let mut path = self.path.clone();
-        path.pop();
         return path.as_os_str().to_string_lossy().to_string();
     }
 
