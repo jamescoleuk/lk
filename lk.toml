@@ -6,7 +6,5 @@ includes = [
 ]
 
 excludes = [
-  "*/**/exclude_me",
+  "**/exclude_me",
 ]
-
-# default_mode = "list"

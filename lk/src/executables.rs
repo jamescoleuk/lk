@@ -3,6 +3,7 @@ use crate::ui::print_root_header;
 use anyhow::{bail, Result};
 use content_inspector::{inspect, ContentType};
 use glob::glob;
+use log::info;
 #[cfg(not(test))]
 use log::{debug, error};
 use pad::{Alignment, PadStr};
@@ -33,6 +34,7 @@ impl Executables {
         // Get all the excluded files
         let mut files_to_exclude: Vec<PathBuf> = Vec::new();
         for exclude in excludes {
+            debug!("Excluding: {}", exclude);
             for entry in glob(exclude)? {
                 match entry {
                     Ok(path) => files_to_exclude.push(path),
@@ -44,9 +46,11 @@ impl Executables {
         // Get all the included files but not the excluded ones.
         let mut files_to_include: Vec<PathBuf> = Vec::new();
         for include in includes {
+            debug!("Including: {}", include);
             for entry in glob(include)? {
                 match entry {
                     Ok(path) => {
+                        debug!("Checking path: {:?}", path);
                         // Exclude subpaths and full paths that are in the excludes list.
                         let is_subpath = files_to_exclude
                             .iter()
@@ -56,6 +60,7 @@ impl Executables {
                             && !is_subpath
                             && should_include_file(&path)
                         {
+                            debug!("Including {:?}", path);
                             files_to_include.push(path);
                         }
                     }
@@ -63,8 +68,8 @@ impl Executables {
                 }
             }
         }
-        debug!("Excluding {:?}", files_to_exclude);
-        debug!("Including {:?}", files_to_include);
+        info!("Excluding {:?}", files_to_exclude);
+        info!("Including {:?}", files_to_include);
 
         let executables: Vec<Executable> = files_to_include
             .into_iter()

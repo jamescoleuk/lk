@@ -95,7 +95,7 @@ fn main() -> Result<()> {
     // Configurations in later files override earlier ones. However, command line configuration overrides these
     let builder = Config::builder()
         .set_default("default_mode", "fuzzy")?
-        .set_default("includes", vec!["**/*.*".to_string(), "*".to_string()])?
+        .set_default("includes", vec!["**/*".to_string(), "*".to_string()])?
         .set_default(
             "excludes",
             vec![

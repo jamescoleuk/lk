@@ -12,7 +12,6 @@
 # Build and install locally, in "${HOME}/.local/bin"
 # Needs sudo.
 install() {
-    cargo clean
     cargo build --release
     rm -f "${HOME}/.local/bin/lk"
     cp target/release/lk "${HOME}/.local/bin"
