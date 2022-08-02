@@ -148,7 +148,7 @@ fn main() -> Result<()> {
 
     //TODO: what should the root be and how does it overlap with the defaults or user specified includes?
     // What executable scripts are available in the configuration directory?
-    let executables = Executables::new(&includes, &excludes);
+    let executables = Executables::new(&includes, &excludes)?;
 
     sp.stop();
 

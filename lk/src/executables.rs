@@ -1,8 +1,9 @@
 /// Finds executables in the current directory.
 use crate::ui::print_root_header;
+use anyhow::{bail, Result};
 use content_inspector::{inspect, ContentType};
 use glob::glob;
-use log::{debug, error, info};
+use log::{debug, error};
 use pad::{Alignment, PadStr};
 use pastel_colours::{DARK_GREEN_FG, RESET_FG};
 use std::{fs::Permissions, io::Read, os::unix::fs::PermissionsExt, path::PathBuf};
@@ -19,14 +20,19 @@ pub struct Executables {
 }
 
 impl Executables {
-    pub fn new(includes: &[String], excludes: &[String]) -> Self {
+    pub fn new(includes: &[String], excludes: &[String]) -> Result<Self> {
+        // Validate to ensure there is at least on include.
+        if includes.is_empty() {
+            bail!("No includes specified.");
+        }
+
         // Get all the excluded files
         let mut files_to_exclude: Vec<PathBuf> = Vec::new();
         for exclude in excludes {
-            for entry in glob(exclude).expect("Failed to read glob pattern") {
+            for entry in glob(exclude)? {
                 match entry {
                     Ok(path) => files_to_exclude.push(path),
-                    Err(e) => info!("{:?}", e),
+                    Err(e) => error!("{:?}", e),
                 }
             }
         }
@@ -34,7 +40,7 @@ impl Executables {
         // Get all the included files but not the excluded ones.
         let mut files_to_include: Vec<PathBuf> = Vec::new();
         for include in includes {
-            for entry in glob(include).expect("Failed to read glob pattern") {
+            for entry in glob(include)? {
                 match entry {
                     Ok(path) => {
                         // Exclude subpaths and full paths that are in the excludes list.
@@ -71,7 +77,7 @@ impl Executables {
             })
             .collect();
 
-        Self { executables }
+        Ok(Self { executables })
     }
 
     pub fn get(&self, name: &str) -> Option<&Executable> {
@@ -192,14 +198,14 @@ mod tests {
     fn default_should_include_all_files() {
         let executables = Executables::new(&["**/*.*".to_string()], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.executables.len(), 10);
+        assert_eq!(executables.unwrap().executables.len(), 10);
     }
 
     #[test]
     fn should_include_only_specific_folder() {
         let executables = Executables::new(&["**/tests/executables_tests/**/*.*".to_string()], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.executables.len(), 4);
+        assert_eq!(executables.unwrap().executables.len(), 4);
     }
 
     #[test]
@@ -212,7 +218,7 @@ mod tests {
             &[],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.executables.len(), 6);
+        assert_eq!(executables.unwrap().executables.len(), 6);
     }
 
     #[test]
@@ -225,7 +231,7 @@ mod tests {
             ],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.executables.len(), 4);
+        assert_eq!(executables.unwrap().executables.len(), 4);
     }
 
     #[test]
@@ -235,7 +241,7 @@ mod tests {
             &["*/**/exclude_me".to_string()],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.executables.len(), 9);
+        assert_eq!(executables.unwrap().executables.len(), 9);
     }
 
     #[test]
@@ -245,20 +251,13 @@ mod tests {
             &["*/**/exclude_me/should_not_be_included.sh".to_string()],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert_eq!(executables.executables.len(), 9);
+        assert_eq!(executables.unwrap().executables.len(), 9);
     }
 
     #[test]
-    fn should_include_all() {
-        // Should this default to including everything?
-        // If not, it will never find anything so perhaops it should throw an error because it's mis-configured.
-        // This would mean the return type changes from Vec<Executables> to Result<Vec<Executables>>.
-        // I think this is fine and probably sensible anyway.
-        // Maybe, if nothing is found, the user should be warned about checking their includes/excludes? But this
-        // is probably something that should happen in `main.rs`.
+    fn should_fail_when_no_includes() {
         let executables = Executables::new(&[], &[]);
-        // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert!(!executables.executables.is_empty());
+        assert!(executables.is_err());
     }
 
     #[test]
@@ -267,6 +266,6 @@ mod tests {
         // FIXME: this fails when run, but passes when debugged!
         let executables = Executables::new(&["*".to_string()], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
-        assert!(!executables.executables.is_empty());
+        assert_eq!(!executables.unwrap().executables.len(), 1);
     }
 }
