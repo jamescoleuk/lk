@@ -248,6 +248,7 @@ mod tests {
     fn should_exclude_by_file_folder() {
         let executables = Executables::new(
             &["**/tests/**/*.*".to_string()],
+            // FIXME: this feels like an invalid glob. When this was in the excludes in lk.toml the whole thing hung. That' needs fixing.
             &["*/**/exclude_me".to_string()],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
