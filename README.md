@@ -153,5 +153,6 @@ I have previously written two similar tools:
 ## Contributing
 Contributions are welcome. Thanks to the following for theirs:
 
+* [lagoa89](https://github.com/lagoa89)
 * [traxys](https://github.com/traxys)
 * [lmburns](https://github.com/lmburns)
