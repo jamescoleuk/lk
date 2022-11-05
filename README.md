@@ -56,7 +56,7 @@ It executes these functions by sourcing the file, and then running the function.
 . my_file.sh
 be_glorious
 ```
-This means anything outside a function will be executed. This is handy if you want to source other files, or set environment variables, because they'll be available to your functiosn. For example:
+This means anything outside a function will be executed. This is handy if you want to source other files, or set environment variables, because they'll be available to your functions. For example:
 
 ```bash
 #!/usr/bin/env bash
