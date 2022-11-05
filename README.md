@@ -134,11 +134,15 @@ cargo install --force lk
 If you have any typist home key dicipline and if you flap your right hand at the keyboard there's a good chance you'll type 'lk'. So it's short, and ergonomic.
 
 ## What could be improved?
+
 * Minor UI improvements?
 * Support scripts in other languages, e.g. Python, rust-script, Typescript.
 * Disable colours, for the colourblind
 * Add a count to `lk --fuzzy`
 * Sensible default ignores
+* Make it installable via other routes, e.g. `brew`.
+
+Contributions make my heart grow warm. I'm happy to support anyone who wants to contribute. Also, if you're new to Rust then I'd be happy to deepen that support to whatever extent you need. 
 
 ## Inspiration
 
