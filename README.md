@@ -4,31 +4,104 @@
 [![Crates.io](https://img.shields.io/crates/v/lk.svg)](https://crates.io/crates/lk)
 
 
-A CLI frontend for your bash scripts, focused on ergonomics.
+A command palette for your bash functions. Install with `cargo install lk`.
 
-`lk` searches for scripts, parses them and finds bash functions. It can then either:
+`lk` searches for scripts, examines them and finds bash functions. Then it lets you run the functions through a consistant interface. 
 
-* let you explore and execute functions, rather like sub-commands in git
-* let you fuzzy find and execute functions, similar to the wonderful `fzf`'s `ctrl-r` feature. 
+If you run `lk` you might see something like this:
+![](./docs/demo_01.png)
 
-`lk`'s list mode works like this:
+You can start typing and it'll search through file names and function names:
+![](./docs/demo_02.png)
 
-![A CLI recording showing how you can use lk's list feature](./docs/how_to_list.svg)
+It'll also do [fuzzy find](https://github.com/jamescoleuk/fuzzy_finder):
+![](./docs/demo_03.png)
 
-`lk'`s fuzzy mode works like this:
-![A CLI recording showing how you can use lk's fuzzy feature](./docs/how_to_fuzzy.svg)
+Use the arrow keys to make a selection:
+![](./docs/demo_04.png)
 
-I use both modes, but I default to fuzzy. You can change the default like this:
+And  hit enter to run the function:
+![](./docs/demo_05.png)
 
-![A CLI recording showing how you can change lk's default to either list or fuzzy](./docs/how_to_change_default.svg)
+You can also explore bash files via `--list`, like this:
 
-## Features 
- - `lk` finds executable non-binary files in the current directory and any sub-directory
- - `lk` finds and displays comment headers from your scripts 
- - `lk` finds and displays comments for functions
- - `lk` ignores functions prefixed with `_`. 
- - `lk` uses a temporary file to execute the script, but you shouldn't need to worry about that
- - If you use fuzzy mode `lk` will write the command you execute to your history
+![](./docs/demo_06.png)
+
+You can drill into those files to see what functions they have. Notice that you don't need `--list` now:
+
+![](./docs/demo_07.png)
+
+You can execute the functions them by passing the function name:
+
+![](./docs/demo_08.png)
+
+This means you can write scripts that use `lk`, if you want to. If you prefer this `list` mode then you can make it the default by editing `lk`'s config file, which lives at `~/.config/lk/lk.toml`:
+
+![](./docs/demo_09.png)
+
+The log file lives in that directory, if you're interested or maybe want to contribute to `lk`'s development. You can see all of `lk`'s options by running `lk --help`, obviously.
+
+## How to write bash files so they work with `lk`
+`lk` executes bash functions. This sort of thing:
+```bash
+# A glorious function that does all the things
+be_glorious() {
+    echo "Ta da!"
+} 
+```
+
+It executes these functions by sourcing the file, and then running the function. The equivelant of this:
+
+```bash
+. my_file.sh
+be_glorious
+```
+This means anything outside a function will be executed. This is handy if you want to source other files, or set environment variables, because they'll be available to your functiosn. For example:
+
+```bash
+#!/usr/bin/env bash
+#
+# Some comments.
+
+. "~/scripts/lib.sh"
+readonly DATABASE_USER="johnsmith"
+
+# A glorious function that does all the things
+be_glorious() {
+    echo "Database user is ${DATABASE_USER}"
+} 
+```
+
+But this does mean most of the functional stuff in your script needs to be in functions. I appreciate this may not be how everyone wants to work, but it's fine for many use cases. The last thing I want to do is tell people how to write their scripts.
+
+Incidentally, the comments in the scripts above will appear in `--list` mode, like this:
+
+![](./docs/demo_10.png)
+
+So `--list` mode allows you explore and discover your scripts, and `--fuzzy` mode lets you get to functions you are perhaps already more familiar with.
+
+If you use `--fuzzy` then `lk` will write the command you executed to your bash history, so you can use `ctrl-r` to re-execute it. Obviously if you used `--list` it will already be there.
+
+## Ignoring files
+`lk` supports glob-based excludes and includes, using [toml](https://toml.io/en/). For example:
+```toml
+excludes = [
+  "**/exclude_me",
+  "target",
+  ".git",
+]
+```
+
+You can make this global by putting it in `~/.config/lk/lk.toml`, or local by creating a `lk.toml` file in, say, a project directory. If the `lk.toml` file is in the same directory from which you execute `lk` then it'll find and use it. You can also add includes and excludes as a switch. See `lk --help` for details.
+
+
+## Ignoring functions
+ If you prepend a function with an underscore it will be ignored by `lk`:
+ ```bash
+ _my_ignored_function() {
+    echo "not happening"
+ }
+ ```
 
 ## Installation
 From [the crate](https://crates.io/crates/lk):
@@ -41,12 +114,7 @@ cargo install lk
 cargo install --force lk
 ```
 
-## Use
-Just execute `lk` and follow the instructions. `lk --help` is also a thing you can run.
-
-There are lots of ways to write bash and to organise scripts. `lk` might not have encountered them all before. If there's a problem I implore you to raise a bug, or just email me. I will fix it.
-
-## Why?
+## Why use `lk`?
 1. You're a polyglot engineer with package manager fatigue. So you want to hide it all behind some bash, the lingua franca.
 2. You do a lot of devops and have a lot of bash.
 3. You have a lot of projects that you don't work on for months at a time, and you need to bring some consistency to the experience of re-visiting them.
@@ -61,35 +129,16 @@ There are lots of ways to write bash and to organise scripts. `lk` might not hav
 2. You need to build and deploy many services, and want to hide the edge cases. E.g. for compiling, building, and deploying you might have `lk my_service jfdi`.
 3. You regularly need to set up SSH tunneling and can't remember the commands.
 
-## How to write your bash files so they work with lk
-Big design goal: you shouldn't have to. But there are many styles of bash, and if `lk` doesn't work with how you write your bash then please let me know and I'll be all over fixing it.
-
-Having said that `lk` does support comments. `lk` will extract comments from file and function headers, if it finds any, and display them alongside all your runnable functions. At the moment it relies on these comments following the form in the [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html#s4.1-file-header). I.e. like this:
-```bash
-#!/usr/bin/env bash
-#
-# Some comments.
-# And some more.
-
-
-# A glorious function that does all the things
-be_glorious() {
-    echo "Ta da!"
-}
-```
-
-## Configuration and logging
-There's no configuration file for `lk`, but it does store logs in `${HOME}/.config/lk`.
 
 ## Why the name "lk"?
 If you have any typist home key dicipline and if you flap your right hand at the keyboard there's a good chance you'll type 'lk'. So it's short, and ergonomic.
 
-## What's to come?
-* Minor UI fixes. It doesn't always behave as I'd like it to.
+## What could be improved?
+* Minor UI improvements?
 * Support scripts in other languages, e.g. Python, rust-script, Typescript.
 * Disable colours, for the colourblind
 * Add a count to `lk --fuzzy`
-* Move ignored files to config, i.e. `~/.config/lk/lk.toml`
+* Sensible default ignores
 
 ## Inspiration
 

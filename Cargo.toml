@@ -1,7 +1,7 @@
 [package]
 authors = ["James Cole <jamescole.uk@gmail.com>"]
 categories = ["command-line-interface", "command-line-utilities"]
-description = "A cli frontend for your bash scripts"
+description = "A command palette for your bash functions."
 edition = "2021"
 keywords = ["bash", "cli"]
 license = "MIT OR Apache-2.0"

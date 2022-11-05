@@ -1,10 +1,7 @@
-# Example workspace configuration TOML file
-
-includes = [
-  "./lk/tests/**/*",
-  "*",
-]
+# # Example workspace configuration TOML file
 
 excludes = [
   "**/exclude_me",
+  "target",
+  ".git",
 ]
