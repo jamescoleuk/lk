@@ -271,9 +271,9 @@ dependencies = [
 
 [[package]]
 name = "fuzzy_finder"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3595ce8148852ebe0503526e8e020b54064134a47b22464d981bf475796b7794"
+checksum = "55a87f38c4def8f01978fd468611d86b08570e7f7b878f52d236c7ad5fd51e87"
 dependencies = [
  "anyhow",
  "csv",
@@ -417,7 +417,7 @@ checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 
 [[package]]
 name = "lk"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "anyhow",
  "config",
