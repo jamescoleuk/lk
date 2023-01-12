@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 name = "lk"
 readme = "README.md"
 repository = "https://github.com/jamescoleuk/lk"
-version = "0.3.3"
+version = "0.3.4"
 
 [dependencies]
 anyhow = "1.0.44" # Anyhow makes application error handling easier. If I was writing a library I'd use thiserror.
@@ -16,7 +16,7 @@ config = "0.13.1" # Config-rs reads from config from files or environment
 content_inspector = "0.2.4" # To detect and ignore binary executables.
 dirs = "4.0.0" 
 fuzzy-matcher = "0.3.7" 
-fuzzy_finder = "0.3.1" 
+fuzzy_finder = "0.3.2" 
 glob = "0.3.0" # We want include and exclude to use proper pattern matching
 log = "0.4.14" 
 log4rs = "1.0.0" 
