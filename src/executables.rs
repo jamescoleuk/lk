@@ -206,14 +206,14 @@ mod tests {
 
     #[test]
     fn default_should_include_all_files() {
-        let executables = Executables::new(&["**/*".to_string()], &[]);
+        let executables = Executables::new(&["tests/**/*".to_string()], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert_eq!(executables.unwrap().executables.len(), 10);
     }
 
     #[test]
     fn should_include_only_specific_folder() {
-        let executables = Executables::new(&["**/tests/executables_tests/**/*".to_string()], &[]);
+        let executables = Executables::new(&["tests/executables_tests/**/*".to_string()], &[]);
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert_eq!(executables.unwrap().executables.len(), 4);
     }
@@ -222,8 +222,8 @@ mod tests {
     fn should_include_multiple_specific_folders() {
         let executables = Executables::new(
             &[
-                "**/tests/executables_tests/**/*".to_string(),
-                "**/tests/depends_on_file/**/*".to_string(),
+                "tests/executables_tests/**/*".to_string(),
+                "tests/depends_on_file/**/*".to_string(),
             ],
             &[],
         );
@@ -234,10 +234,10 @@ mod tests {
     #[test]
     fn should_exclude_multiple_specific_folders() {
         let executables = Executables::new(
-            &["**/*.*".to_string()],
+            &["tests/**/*.*".to_string()],
             &[
-                "**/tests/depends_on_file/**/*".to_string(),
-                "**/tests/executables_tests/**/*".to_string(),
+                "tests/depends_on_file/**/*".to_string(),
+                "tests/executables_tests/**/*".to_string(),
             ],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
@@ -247,9 +247,9 @@ mod tests {
     #[test]
     fn should_exclude_by_file_folder() {
         let executables = Executables::new(
-            &["**/tests/**/*.*".to_string()],
+            &["tests/**/*.*".to_string()],
             // FIXME: this feels like an invalid glob. When this was in the excludes in lk.toml the whole thing hung. That' needs fixing.
-            &["*/**/exclude_me".to_string()],
+            &["tests/**/exclude_me".to_string()],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert_eq!(executables.unwrap().executables.len(), 9);
@@ -258,8 +258,8 @@ mod tests {
     #[test]
     fn should_exclude_by_file_name() {
         let executables = Executables::new(
-            &["**/tests/**/*".to_string()],
-            &["*/**/exclude_me/should_not_be_included.sh".to_string()],
+            &["tests/**/*".to_string()],
+            &["tests/**/exclude_me/should_not_be_included.sh".to_string()],
         );
         // This depends on the number of scripts in the tests directory - so please take care when changing those files.
         assert_eq!(executables.unwrap().executables.len(), 9);
@@ -271,13 +271,12 @@ mod tests {
         assert!(executables.is_err());
     }
 
-    //FIXME: uncomment when workspace has been removed.
-    // #[test]
-    // fn should_include_scripts_in_pwd() {
-    //     // Should include everything in the current dir.
-    //     let executables = Executables::new(&["*".to_string()], &[]);
-    //     // This depends on the number of scripts in the tests directory - so please take care when changing those files.
+    #[test]
+    fn should_include_scripts_in_pwd() {
+        // Should include everything in the current dir.
+        let executables = Executables::new(&["*".to_string()], &[]);
+        // This depends on the number of scripts in the tests directory - so please take care when changing those files.
 
-    //     assert!(!executables.unwrap().executables.is_empty());
-    // }
+        assert!(!executables.unwrap().executables.is_empty());
+    }
 }
