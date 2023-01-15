@@ -78,7 +78,7 @@ fn main() -> Result<()> {
     let log_file_path = format!("{lk_dir}/lk.log");
     let log_file = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
-        .build(&log_file_path)?;
+        .build(log_file_path)?;
 
     let config = log4rs::config::Config::builder()
         .appender(Appender::builder().build("logfile", Box::new(log_file)))

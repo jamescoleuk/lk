@@ -25,7 +25,7 @@ impl BashFile {
     pub fn new(script: Script, function: Function, params: Vec<String>) -> Self {
         let dir = tempfile::tempdir().unwrap();
         let file_name = format!("./~lk_{}", nanoid!(10));
-        let full_path = dir.path().join(&file_name);
+        let full_path = dir.path().join(file_name);
         Self {
             dir,
             full_path,
