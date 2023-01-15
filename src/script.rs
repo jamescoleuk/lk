@@ -9,13 +9,13 @@ use std::io::BufRead;
 use std::{fs::File, path::Path};
 
 /// Everything we need to know about a function in a script
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Function {
     pub name: String,
     pub comment: Vec<String>,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Script {
     pub path: std::path::PathBuf,
     pub absolute_path: std::path::PathBuf,
