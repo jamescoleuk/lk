@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/lk.svg)](https://crates.io/crates/lk)
 
 
-A command palette for your bash functions. Install with `cargo install lk`.
+A command palette for your bash functions. 
 
 `lk` searches for scripts, examines them and finds bash functions. Then it lets you run the functions through a consistant interface. 
 
@@ -40,6 +40,21 @@ This means you can write scripts that use `lk`, if you want to. If you prefer th
 ![](./docs/demo_09.png)
 
 The log file lives in that directory, if you're interested or maybe want to contribute to `lk`'s development. You can see all of `lk`'s options by running `lk --help`, obviously.
+
+## Installing
+
+### Homebrew
+
+```shell
+brew tap jamescoleuk/taps
+brew install lk
+```
+
+### Cargo
+
+```shell
+cargo install lk
+```
 
 ## How to write bash files so they work with `lk`
 `lk` executes bash functions. This sort of thing:
