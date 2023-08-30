@@ -183,7 +183,7 @@ fn main() -> Result<()> {
 fn fuzzy(scripts: &[script::Script], lines_to_show: i8) -> Result<()> {
     let result = FuzzyFinder::find(scripts_to_item(scripts), lines_to_show).unwrap();
     if let Some(function) = result {
-        // We're going to write the equivelent lk command to the shell's history
+        // We're going to write the equivalent lk command to the shell's history
         // file, so the user can easily re-run it.
         let history = UserShell::new();
         match history {
