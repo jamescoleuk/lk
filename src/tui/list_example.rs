@@ -86,7 +86,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     // Create two chunks with equal horizontal screen space
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(2), Constraint::Percentage(50)].as_ref())
+        .constraints([Constraint::Length(1), Constraint::Percentage(50)].as_ref())
         .split(f.size());
 
     // Iterate through all elements in the `items` app and append some debug text to it.
@@ -112,7 +112,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 
     // We can now render the item list
     f.render_stateful_widget(items, chunks[1], &mut app.filtered_items.state);
-    let block = Block::new().borders(Borders::TOP);
+    let block = Block::new().borders(Borders::NONE);
     let para = Paragraph::new(format!("> {}", app.search_term.as_str()))
         .style(Style::new().white().on_black())
         .alignment(Alignment::Left)
