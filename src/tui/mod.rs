@@ -1,2 +1,2 @@
-pub(crate) mod list_example;
+pub(crate) mod list;
 pub(crate) mod state;

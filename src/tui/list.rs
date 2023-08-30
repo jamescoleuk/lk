@@ -15,7 +15,7 @@ use crate::script::{self, Function, Script};
 
 use super::state::App;
 
-pub fn show(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
+pub fn find(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
     // setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -26,7 +26,7 @@ pub fn show(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
     // create app and run it
     let tick_rate = Duration::from_millis(250);
     let app = App::from(scripts);
-    let res = run_app(&mut terminal, app, tick_rate);
+    let res = find_loop(&mut terminal, app, tick_rate);
 
     // restore terminal
     disable_raw_mode()?;
@@ -40,7 +40,7 @@ pub fn show(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
     res
 }
 
-fn run_app<B: Backend>(
+fn find_loop<B: Backend>(
     terminal: &mut Terminal<B>,
     mut app: App,
     tick_rate: Duration,

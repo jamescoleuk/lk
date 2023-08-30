@@ -189,7 +189,7 @@ fn main() -> Result<()> {
 // Runs lk in 'tui' mode.
 fn tui(scripts: &[script::Script]) -> Result<()> {
     println!("Running lk in tui mode");
-    let result = tui::list_example::show(scripts)?;
+    let result = tui::list::find(scripts)?;
     if let Some(function) = result {
         // We're going to write the equivalent lk command to the shell's history
         // file, so the user can easily re-run it.
