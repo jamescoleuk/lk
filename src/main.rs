@@ -23,6 +23,7 @@ use structopt::StructOpt;
 use tempfile::tempdir;
 use ui::{print_bad_function_name, print_bad_script_name};
 
+mod tui;
 /// Use lk to explore and execute scripts in your current directory,
 /// and in its sub-directories. lk offers two options: 'list' or 'fuzzy'.
 /// 'list' lets you explore your scripts and their functions in a
@@ -37,6 +38,10 @@ struct Cli {
     /// List available scripts and functions.
     #[structopt(long, short)]
     list: bool,
+
+    /// Show a full screen UI with lots of details
+    #[structopt(long, short)]
+    tui: bool,
 
     /// Optional: the name of a script to explore or use
     script: Option<String>,
@@ -129,14 +134,14 @@ fn main() -> Result<()> {
         .includes
         .clone()
         .into_iter()
-        .chain(config_includes.into_iter())
+        .chain(config_includes)
         .collect();
 
     let excludes: Vec<String> = args
         .excludes
         .clone()
         .into_iter()
-        .chain(config_excludes.into_iter())
+        .chain(config_excludes)
         .collect();
 
     let default_mode = config.get::<String>("default_mode").unwrap();
@@ -169,6 +174,9 @@ fn main() -> Result<()> {
         // If the user is specifying --list OR if there's some value for script.
         // Any value there is implicitly take as --list.
         list(executables, args)
+    } else if args.tui {
+        // TODO: Implement ratatui
+        tui(&scripts)
     } else {
         // Neither requested, so fall back on the configuration
         match default_mode.as_str() {
@@ -177,6 +185,13 @@ fn main() -> Result<()> {
             _ => panic!("No default mode set! Has there been a problem creating the config file?"),
         }
     }
+}
+
+// Runs lk in 'tui' mode.
+fn tui(scripts: &[script::Script]) -> Result<()> {
+    println!("Running lk in tui mode");
+    tui::list_example::show(scripts);
+    Ok(())
 }
 
 /// Runs lk in 'fuzzy' mode.
