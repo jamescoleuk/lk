@@ -82,12 +82,19 @@ fn find_loop<B: Backend>(
     }
 }
 
+// This allow makes it neater to compose the UI
+#[allow(clippy::vec_init_then_push)]
 fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
-    // Create two chunks with equal horizontal screen space
-    let chunks = Layout::default()
+    // The search bar on top, the other stuff below
+    let all = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(1), Constraint::Percentage(50)].as_ref())
+        .constraints([Constraint::Length(1), Constraint::Percentage(5)].as_ref())
         .split(f.size());
+    // The other stuff
+    let chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(40), Constraint::Percentage(60)].as_ref())
+        .split(all[1]);
 
     // Iterate through all elements in the `items` app and append some debug text to it.
     let items: Vec<ListItem> = app
@@ -110,11 +117,59 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         );
 
     // We can now render the item list
-    f.render_stateful_widget(items, chunks[1], &mut app.filtered_items.state);
+    f.render_stateful_widget(items, chunks[0], &mut app.filtered_items.state);
     let block = Block::new().borders(Borders::NONE);
     let para = Paragraph::new(format!("> {}", app.search_term.as_str()))
         .style(Style::new().white().on_black())
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true });
-    f.render_widget(para.clone().block(block), chunks[0]);
+    f.render_widget(para.clone().block(block), all[0]);
+
+    // TODO: path to script, function name, function description, maybe the code.
+    let selected = app.get_selected();
+    if let Some(selected) = selected {
+        // First we need to set up the text we're going to display
+        let relative_path = selected.source.0.path();
+        let _absolute_path = selected
+            .source
+            .0
+            .absolute_path
+            .to_string_lossy()
+            .to_string();
+        let mut file_comments: Vec<Line> = selected
+            .source
+            .0
+            .comment
+            .iter()
+            .map(|c| Line::from(c.clone()))
+            .collect();
+        let _script_name = selected.source.0.file_name();
+        let mut function_comments: Vec<Line> = selected
+            .source
+            .1
+            .comment
+            .iter()
+            .map(|c| Line::from(c.clone()))
+            .collect();
+
+        let mut text = Vec::new();
+        text.push(Line::from("Location".on_blue()));
+        text.push(Line::from(relative_path));
+        text.push(Line::from(""));
+        text.push(Line::from("File comments".on_blue()));
+        text.append(&mut file_comments);
+        text.push(Line::from(""));
+        text.push(Line::from("Function comments".on_blue()));
+        text.append(&mut function_comments);
+
+        // Finally we can create the paragraph and render it
+        let para = Paragraph::new(text)
+            .style(Style::new().white().on_black())
+            .alignment(Alignment::Left)
+            .wrap(Wrap { trim: true });
+        f.render_widget(
+            para.clone().block(Block::new().borders(Borders::ALL)),
+            chunks[1],
+        );
+    }
 }
