@@ -189,7 +189,23 @@ fn main() -> Result<()> {
 // Runs lk in 'tui' mode.
 fn tui(scripts: &[script::Script]) -> Result<()> {
     println!("Running lk in tui mode");
-    tui::list_example::show(scripts);
+    let result = tui::list_example::show(scripts)?;
+    if let Some(function) = result {
+        // We're going to write the equivalent lk command to the shell's history
+        // file, so the user can easily re-run it.
+        let history = UserShell::new();
+        match history {
+            Some(history) => {
+                let lk_command = format!("lk {} {}", function.0.file_name(), function.1.name,);
+                history.add_command(lk_command)?;
+            }
+            None => {
+                log::warn!("Unable to write to history file because we couldn't figure out what shell you're using");
+            }
+        }
+        // Finally we execute the function using a temporary bash file.
+        BashFile::run(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
+    }
     Ok(())
 }
 

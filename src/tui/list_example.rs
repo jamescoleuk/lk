@@ -1,5 +1,5 @@
+use anyhow::Result;
 use std::{
-    error::Error,
     io,
     time::{Duration, Instant},
 };
@@ -11,11 +11,11 @@ use crossterm::{
 };
 use ratatui::{prelude::*, widgets::*};
 
-use crate::script;
+use crate::script::{self, Function, Script};
 
 use super::state::App;
 
-pub fn show(scripts: &[script::Script]) -> Result<(), Box<dyn Error>> {
+pub fn show(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
     // setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -37,18 +37,14 @@ pub fn show(scripts: &[script::Script]) -> Result<(), Box<dyn Error>> {
     )?;
     terminal.show_cursor()?;
 
-    if let Err(err) = res {
-        println!("{err:?}");
-    }
-
-    Ok(())
+    res
 }
 
 fn run_app<B: Backend>(
     terminal: &mut Terminal<B>,
     mut app: App,
     tick_rate: Duration,
-) -> io::Result<()> {
+) -> Result<Option<(Script, Function)>> {
     let last_tick = Instant::now();
     loop {
         terminal.draw(|f| ui(f, &mut app))?;
@@ -65,14 +61,18 @@ fn run_app<B: Backend>(
                         KeyCode::Left => app.filtered_items.unselect(),
                         KeyCode::Down => app.filtered_items.next(),
                         KeyCode::Up => app.filtered_items.previous(),
-                        KeyCode::Esc => return Ok(()),
+                        KeyCode::Esc => return Ok(None),
                         KeyCode::Char(c) => {
                             app.update_search_term(c.to_string().as_str());
                         }
                         KeyCode::Delete => app.delete_search_term_char(),
                         KeyCode::Backspace => app.delete_search_term_char(),
                         KeyCode::Enter => {
-                            println!("TODO: execute script");
+                            let selected = app.get_selected();
+                            match selected {
+                                Some(selected) => return Ok(Some(selected.source.clone())),
+                                None => return Ok(None),
+                            }
                         }
                         _ => {}
                     }

@@ -1,7 +1,7 @@
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use ratatui::widgets::*;
 
-use crate::script;
+use crate::script::{self, Function, Script};
 
 pub(crate) struct StatefulList<T> {
     pub(crate) state: ListState,
@@ -52,6 +52,7 @@ impl<T> StatefulList<T> {
 #[derive(Debug, Clone)]
 pub(crate) struct Item {
     pub(crate) name: String,
+    pub(crate) source: (Script, Function),
     pub(crate) score: Option<(i64, Vec<usize>)>,
 }
 
@@ -75,6 +76,7 @@ impl App {
                 items.push(Item {
                     name: function.name.clone(),
                     score: None,
+                    source: (script.clone(), function.clone()),
                 })
             })
         });
@@ -124,5 +126,12 @@ impl App {
 
         // We also need to update our selection, othewise if we go from a short list
         // to a long list we might lose out selection somewhere below in a non-visible area.
+    }
+
+    pub fn get_selected(&self) -> Option<&Item> {
+        match self.filtered_items.state.selected() {
+            Some(i) => self.filtered_items.items.get(i),
+            None => None,
+        }
     }
 }
