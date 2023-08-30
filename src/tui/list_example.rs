@@ -13,79 +13,7 @@ use ratatui::{prelude::*, widgets::*};
 
 use crate::script;
 
-struct StatefulList<T> {
-    state: ListState,
-    items: Vec<T>,
-}
-
-impl<T> StatefulList<T> {
-    fn with_items(items: Vec<T>) -> StatefulList<T> {
-        StatefulList {
-            state: ListState::default(),
-            items,
-        }
-    }
-
-    fn next(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.items.len() - 1 {
-                    0
-                } else {
-                    i + 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
-    }
-
-    fn previous(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.items.len() - 1
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
-    }
-
-    fn unselect(&mut self) {
-        self.state.select(None);
-    }
-}
-struct Item {
-    name: String,
-}
-/// This struct holds the current state of the app. In particular, it has the `items` field which is
-/// a wrapper around `ListState`. Keeping track of the items state let us render the associated
-/// widget with its state and have access to features such as natural scrolling.
-///
-/// Check the event handling at the bottom to see how to change the state on incoming events.
-/// Check the drawing logic for items on how to specify the highlighting style for selected items.
-struct App {
-    items: StatefulList<Item>,
-}
-
-impl App {
-    fn from(scripts: &[script::Script]) -> App {
-        let mut items: Vec<Item> = Vec::new();
-        scripts.iter().for_each(|script| {
-            script.functions.iter().for_each(|function| {
-                items.push(Item {
-                    name: function.name.clone(),
-                })
-            })
-        });
-        App {
-            items: StatefulList::with_items(items),
-        }
-    }
-}
+use super::state::App;
 
 pub fn show(scripts: &[script::Script]) -> Result<(), Box<dyn Error>> {
     // setup terminal
@@ -128,14 +56,24 @@ fn run_app<B: Backend>(
         let timeout = tick_rate
             .checked_sub(last_tick.elapsed())
             .unwrap_or_else(|| Duration::from_secs(0));
+
+        // Read input loop
         if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
                     match key.code {
-                        KeyCode::Char('q') => return Ok(()),
-                        KeyCode::Left => app.items.unselect(),
-                        KeyCode::Down => app.items.next(),
-                        KeyCode::Up => app.items.previous(),
+                        KeyCode::Left => app.filtered_items.unselect(),
+                        KeyCode::Down => app.filtered_items.next(),
+                        KeyCode::Up => app.filtered_items.previous(),
+                        KeyCode::Esc => return Ok(()),
+                        KeyCode::Char(c) => {
+                            app.update_search_term(c.to_string().as_str());
+                        }
+                        KeyCode::Delete => app.delete_search_term_char(),
+                        KeyCode::Backspace => app.delete_search_term_char(),
+                        KeyCode::Enter => {
+                            println!("TODO: execute script");
+                        }
                         _ => {}
                     }
                 }
@@ -147,18 +85,18 @@ fn run_app<B: Backend>(
 fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     // Create two chunks with equal horizontal screen space
     let chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(2), Constraint::Percentage(50)].as_ref())
         .split(f.size());
 
     // Iterate through all elements in the `items` app and append some debug text to it.
     let items: Vec<ListItem> = app
+        .filtered_items
         .items
-        .items
-        .iter()
+        .iter_mut()
         .map(|i| {
             let lines = vec![Line::from(i.name.as_str())];
-            ListItem::new(lines).style(Style::default().fg(Color::Black).bg(Color::White))
+            ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Black))
         })
         .collect();
 
@@ -173,5 +111,11 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .highlight_symbol(">> ");
 
     // We can now render the item list
-    f.render_stateful_widget(items, chunks[0], &mut app.items.state);
+    f.render_stateful_widget(items, chunks[1], &mut app.filtered_items.state);
+    let block = Block::new().borders(Borders::TOP);
+    let para = Paragraph::new(format!("> {}", app.search_term.as_str()))
+        .style(Style::new().white().on_black())
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true });
+    f.render_widget(para.clone().block(block), chunks[0]);
 }

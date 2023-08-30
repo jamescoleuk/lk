@@ -175,7 +175,6 @@ fn main() -> Result<()> {
         // Any value there is implicitly take as --list.
         list(executables, args)
     } else if args.tui {
-        // TODO: Implement ratatui
         tui(&scripts)
     } else {
         // Neither requested, so fall back on the configuration
