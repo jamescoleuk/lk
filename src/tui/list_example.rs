@@ -107,8 +107,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
             Style::default()
                 .bg(Color::LightGreen)
                 .add_modifier(Modifier::BOLD),
-        )
-        .highlight_symbol(">> ");
+        );
 
     // We can now render the item list
     f.render_stateful_widget(items, chunks[1], &mut app.filtered_items.state);
