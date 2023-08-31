@@ -46,6 +46,7 @@ fn find_loop<B: Backend>(
     tick_rate: Duration,
 ) -> Result<Option<(Script, Function)>> {
     let last_tick = Instant::now();
+    app.filtered_items.next();
     loop {
         terminal.draw(|f| ui(f, &mut app))?;
 
@@ -93,7 +94,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     // The other stuff
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(40), Constraint::Percentage(60)].as_ref())
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
         .split(all[1]);
 
     // Iterate through all elements in the `items` app and append some debug text to it.
@@ -103,24 +104,20 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .iter_mut()
         .map(|i| {
             let lines = vec![Line::from(i.name.as_str())];
-            ListItem::new(lines).style(Style::default().fg(Color::White).bg(Color::Black))
+            ListItem::new(lines).style(Style::default().fg(Color::White))
         })
         .collect();
 
     // Create a List from all list items and highlight the currently selected one
     let items = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title("Functions"))
-        .highlight_style(
-            Style::default()
-                .bg(Color::LightGreen)
-                .add_modifier(Modifier::BOLD),
-        );
+        .block(Block::default().borders(Borders::RIGHT))
+        .highlight_style(Style::default().fg(Color::Black).bg(Color::LightBlue));
 
     // We can now render the item list
     f.render_stateful_widget(items, chunks[0], &mut app.filtered_items.state);
     let block = Block::new().borders(Borders::NONE);
     let para = Paragraph::new(format!("> {}", app.search_term.as_str()))
-        .style(Style::new().white().on_black())
+        .style(Style::new().white())
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true });
     f.render_widget(para.clone().block(block), all[0]);
@@ -153,22 +150,22 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
             .collect();
 
         let mut text = Vec::new();
-        text.push(Line::from("Location".on_blue()));
+        text.push(Line::from("Location".black().on_blue()));
         text.push(Line::from(relative_path));
         text.push(Line::from(""));
-        text.push(Line::from("File comments".on_blue()));
+        text.push(Line::from("File comments".black().on_blue()));
         text.append(&mut file_comments);
         text.push(Line::from(""));
-        text.push(Line::from("Function comments".on_blue()));
+        text.push(Line::from("Function comments".black().on_blue()));
         text.append(&mut function_comments);
 
         // Finally we can create the paragraph and render it
         let para = Paragraph::new(text)
-            .style(Style::new().white().on_black())
+            .style(Style::new().white())
             .alignment(Alignment::Left)
             .wrap(Wrap { trim: true });
         f.render_widget(
-            para.clone().block(Block::new().borders(Borders::ALL)),
+            para.clone().block(Block::new().borders(Borders::NONE)),
             chunks[1],
         );
     }

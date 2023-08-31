@@ -73,8 +73,9 @@ impl App {
         let mut items: Vec<Item> = Vec::new();
         scripts.iter().for_each(|script| {
             script.functions.iter().for_each(|function| {
+                let name = format!("{}/{}", script.path.to_string_lossy(), function.name);
                 items.push(Item {
-                    name: function.name.clone(),
+                    name,
                     score: None,
                     source: (script.clone(), function.clone()),
                 })
