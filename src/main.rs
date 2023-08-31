@@ -181,6 +181,7 @@ fn main() -> Result<()> {
         match default_mode.as_str() {
             "fuzzy" => fuzzy(&scripts, args.number + 1),
             "list" => list(executables, args),
+            "tui" => tui(&scripts),
             _ => panic!("No default mode set! Has there been a problem creating the config file?"),
         }
     }
