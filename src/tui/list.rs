@@ -65,6 +65,7 @@ fn find_loop<B: Backend>(
                         KeyCode::Esc => return Ok(None),
                         KeyCode::Char(c) => {
                             app.update_search_term(c.to_string().as_str());
+                            app.filtered_items.next();
                         }
                         KeyCode::Delete => app.delete_search_term_char(),
                         KeyCode::Backspace => app.delete_search_term_char(),
