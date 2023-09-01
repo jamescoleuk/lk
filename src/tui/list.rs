@@ -87,6 +87,7 @@ fn find_loop<B: Backend>(
 // This allow makes it neater to compose the UI
 #[allow(clippy::vec_init_then_push)]
 fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+    // -------------------------- LAYOUT --------------------------
     // The search bar on top, the other stuff below
     let all = Layout::default()
         .direction(Direction::Vertical)
@@ -98,6 +99,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
         .split(all[1]);
 
+    // -------------------------- RENDERING - LIST --------------------------
     // Iterate through all elements in the `items` app and append some debug text to it.
     let items: Vec<ListItem> = app
         .filtered_items
@@ -113,9 +115,10 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let items = List::new(items)
         .block(Block::default().borders(Borders::RIGHT))
         .highlight_style(Style::default().fg(Color::Black).bg(Color::LightBlue));
-
-    // We can now render the item list
     f.render_stateful_widget(items, chunks[0], &mut app.filtered_items.state);
+
+    // -------------------------- RENDERING - PROMPT --------------------------
+    // We can now render the item list
     let block = Block::new().borders(Borders::NONE);
     let para = Paragraph::new(format!("> {}", app.search_term.as_str()))
         .style(Style::new().white())
@@ -123,7 +126,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .wrap(Wrap { trim: true });
     f.render_widget(para.clone().block(block), all[0]);
 
-    // TODO: path to script, function name, function description, maybe the code.
+    // -------------------------- RENDERING - DETAILS --------------------------
     let selected = app.get_selected();
     if let Some(selected) = selected {
         // First we need to set up the text we're going to display
