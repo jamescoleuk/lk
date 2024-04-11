@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use super::state::App;
+use super::state::{App, Item};
 use crate::script::{self, Function, Script};
 
 pub fn find(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
@@ -114,60 +114,64 @@ fn ui(f: &mut Frame, app: &mut App) {
 
     f.render_stateful_widget(items, chunks[0], &mut app.filtered_items.state.clone());
 
-    // -------------------------- RENDERING - PROMPT --------------------------
-    // We can now render the item list
-    let block = Block::new().borders(Borders::NONE);
-    let para = Paragraph::new(format!("> {}", app.search_term.as_str()))
+    f.render_widget(prompt(&app.search_term), all[0]);
+
+    if let Some(selected) = app.get_selected() {
+        f.render_widget(details(selected), chunks[1]);
+    }
+}
+
+/// Build the UI for the search prompt
+fn prompt(search_term: &str) -> Paragraph<'static> {
+    let para = Paragraph::new(format!("> {search_term}"))
         .style(Style::new().white())
         .alignment(Alignment::Left)
         .wrap(Wrap { trim: true });
-    f.render_widget(para.clone().block(block), all[0]);
+    let block = Block::new().borders(Borders::NONE);
+    para.block(block)
+}
 
-    // -------------------------- RENDERING - DETAILS --------------------------
-    let selected = app.get_selected();
-    if let Some(selected) = selected {
-        // First we need to set up the text we're going to display
-        let relative_path = selected.source.0.path();
-        let _absolute_path = selected
-            .source
-            .0
-            .absolute_path
-            .to_string_lossy()
-            .to_string();
-        let mut file_comments: Vec<Line> = selected
-            .source
-            .0
-            .comment
-            .iter()
-            .map(|c| Line::from(c.clone()))
-            .collect();
-        let _script_name = selected.source.0.file_name();
-        let mut function_comments: Vec<Line> = selected
-            .source
-            .1
-            .comment
-            .iter()
-            .map(|c| Line::from(c.clone()))
-            .collect();
+/// Build the UI for the details view
+fn details(selected: &Item) -> Paragraph<'static> {
+    // First we need to set up the text we're going to display
+    let relative_path = selected.source.0.path();
+    let _absolute_path = selected
+        .source
+        .0
+        .absolute_path
+        .to_string_lossy()
+        .to_string();
+    let mut file_comments: Vec<Line> = selected
+        .source
+        .0
+        .comment
+        .iter()
+        .map(|c| Line::from(c.clone()))
+        .collect();
+    let _script_name = selected.source.0.file_name();
+    let mut function_comments: Vec<Line> = selected
+        .source
+        .1
+        .comment
+        .iter()
+        .map(|c| Line::from(c.clone()))
+        .collect();
 
-        let mut text = Vec::new();
-        text.push(Line::from("Location".black().on_blue()));
-        text.push(Line::from(relative_path));
-        text.push(Line::from(""));
-        text.push(Line::from("File comments".black().on_blue()));
-        text.append(&mut file_comments);
-        text.push(Line::from(""));
-        text.push(Line::from("Function comments".black().on_blue()));
-        text.append(&mut function_comments);
+    let mut text = vec![
+        Line::from("Location".black().on_blue()),
+        Line::from(relative_path),
+        Line::from(""),
+        Line::from("File comments".black().on_blue()),
+    ];
+    text.append(&mut file_comments);
+    text.push(Line::from(""));
+    text.push(Line::from("Function comments".black().on_blue()));
+    text.append(&mut function_comments);
 
-        // Finally we can create the paragraph and render it
-        let para = Paragraph::new(text)
-            .style(Style::new().white())
-            .alignment(Alignment::Left)
-            .wrap(Wrap { trim: true });
-        f.render_widget(
-            para.clone().block(Block::new().borders(Borders::NONE)),
-            chunks[1],
-        );
-    }
+    // Finally we can create the paragraph and render it
+    let para = Paragraph::new(text)
+        .style(Style::new().white())
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true });
+    para.clone().block(Block::new().borders(Borders::NONE))
 }

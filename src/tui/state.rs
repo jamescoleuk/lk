@@ -76,26 +76,15 @@ impl Item {
         let mut start = 0;
         if let Some(score) = &self.score {
             for i in &score.1 {
-                let part = text_vec[start..*i]
-                    .iter()
-                    .cloned()
-                    .collect::<String>()
-                    .clone();
-                let matching_char = text_vec[*i..*i + 1]
-                    .iter()
-                    .cloned()
-                    .collect::<String>()
-                    .clone();
-                let part_span = Span::from(part);
-                let matching_char_span = Span::from(matching_char).fg(Color::Red);
-                spans.push(part_span);
-                spans.push(matching_char_span);
+                let part = text_vec[start..*i].iter().collect::<String>().clone();
+                let matching_char = text_vec[*i..*i + 1].iter().collect::<String>().clone();
+                spans.push(Span::from(part));
+                spans.push(Span::from(matching_char).fg(Color::Red));
                 start = i + 1;
             }
         };
         let remaining_chars = text_vec[start..text.chars().count()]
             .iter()
-            .cloned()
             .collect::<String>();
 
         spans.push(Span::from(remaining_chars));
