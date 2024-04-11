@@ -12,7 +12,7 @@ version = "0.4.1"
 
 [dependencies]
 anyhow = "1.0.44" # Anyhow makes application error handling easier. If I was writing a library I'd use thiserror.
-config = "0.13.1" # Config-rs reads from config from files or environment
+config = "0.14.0" # Config-rs reads from config from files or environment
 content_inspector = "0.2.4" # To detect and ignore binary executables.
 crossterm = "0.27.0"
 dirs = "5.0.1" 
@@ -30,6 +30,6 @@ serde = "1.0.132"
 spinners = "4.0.0" 
 structopt = "0.3.13" # To handle lk arguments.
 tempfile = "3.2.0" # Somewhere to store lk's temp file
-termion = "2.0.1" 
-toml = "0.7.6" 
-walkdir = "2.3.2"
+termion = "3.0.0" 
+toml = "0.8.12" 
+walkdir = "2.5.0"
