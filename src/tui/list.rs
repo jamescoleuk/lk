@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use super::state::{App, Item};
+use super::state::{App, Item, StatefulList};
 use crate::script::{self, Function, Script};
 
 pub fn find(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
@@ -85,6 +85,8 @@ fn find_loop<B: Backend>(
 // This allow makes it neater to compose the UI
 #[allow(clippy::vec_init_then_push)]
 fn ui(f: &mut Frame, app: &mut App) {
+    let prompt = prompt(&app.search_term);
+    let item_list = item_list(&app.filtered_items);
     // -------------------------- LAYOUT --------------------------
     // The search bar on top, the other stuff below
     let all = Layout::default()
@@ -97,25 +99,8 @@ fn ui(f: &mut Frame, app: &mut App) {
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
         .split(all[1]);
 
-    // -------------------------- RENDERING - LIST --------------------------
-    // Iterate through all elements in the `items` app and append some debug text to it.
-    let list_items: Vec<ListItem> = app
-        .filtered_items
-        .get_as_coloured()
-        .iter()
-        .map(|line| Line::from(line.to_owned()))
-        .map(ListItem::new)
-        .collect();
-
-    // Create a List from all list items and highlight the currently selected one
-    let items = List::new(list_items)
-        .block(Block::default().borders(Borders::RIGHT))
-        .highlight_style(Style::default().bg(Color::DarkGray));
-
-    f.render_stateful_widget(items, chunks[0], &mut app.filtered_items.state.clone());
-
-    f.render_widget(prompt(&app.search_term), all[0]);
-
+    f.render_stateful_widget(item_list, chunks[0], &mut app.filtered_items.state.clone());
+    f.render_widget(prompt, all[0]);
     if let Some(selected) = app.get_selected() {
         f.render_widget(details(selected), chunks[1]);
     }
@@ -129,6 +114,21 @@ fn prompt(search_term: &str) -> Paragraph<'static> {
         .wrap(Wrap { trim: true });
     let block = Block::new().borders(Borders::NONE);
     para.block(block)
+}
+
+fn item_list(filtered_items: &StatefulList) -> List {
+    let list_items: Vec<ListItem> = filtered_items
+        .get_as_coloured()
+        .iter()
+        .map(|line| Line::from(line.to_owned()))
+        .map(ListItem::new)
+        .collect();
+
+    // Create a List from all list items and highlight the currently selected one
+    let items = List::new(list_items)
+        .block(Block::default().borders(Borders::RIGHT))
+        .highlight_style(Style::default().bg(Color::DarkGray));
+    items
 }
 
 /// Build the UI for the details view
