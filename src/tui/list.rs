@@ -65,8 +65,14 @@ fn find_loop<B: Backend>(
                             app.update_search_term(c.to_string().as_str());
                             app.filtered_items.next();
                         }
-                        KeyCode::Delete => app.delete_search_term_char(),
-                        KeyCode::Backspace => app.delete_search_term_char(),
+                        KeyCode::Delete => {
+                            app.delete_search_term_char();
+                            app.filtered_items.next();
+                        }
+                        KeyCode::Backspace => {
+                            app.delete_search_term_char();
+                            app.filtered_items.next();
+                        }
                         KeyCode::Enter => {
                             let selected = app.get_selected();
                             match selected {
