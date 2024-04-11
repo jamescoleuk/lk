@@ -1,19 +1,17 @@
 use anyhow::Result;
-use std::{
-    io,
-    time::{Duration, Instant},
-};
-
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{prelude::*, widgets::*};
-
-use crate::script::{self, Function, Script};
+use std::{
+    io,
+    time::{Duration, Instant},
+};
 
 use super::state::App;
+use crate::script::{self, Function, Script};
 
 pub fn find(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
     // setup terminal
@@ -86,12 +84,12 @@ fn find_loop<B: Backend>(
 
 // This allow makes it neater to compose the UI
 #[allow(clippy::vec_init_then_push)]
-fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+fn ui(f: &mut Frame, app: &mut App) {
     // -------------------------- LAYOUT --------------------------
     // The search bar on top, the other stuff below
     let all = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(1), Constraint::Percentage(5)].as_ref())
+        .constraints([Constraint::Length(1), Constraint::Percentage(100)].as_ref())
         .split(f.size());
     // The other stuff
     let chunks = Layout::default()
@@ -101,21 +99,20 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 
     // -------------------------- RENDERING - LIST --------------------------
     // Iterate through all elements in the `items` app and append some debug text to it.
-    let items: Vec<ListItem> = app
+    let list_items: Vec<ListItem> = app
         .filtered_items
-        .items
-        .iter_mut()
-        .map(|i| {
-            let lines = vec![Line::from(i.name.as_str())];
-            ListItem::new(lines).style(Style::default().fg(Color::White))
-        })
+        .get_as_coloured()
+        .iter()
+        .map(|line| Line::from(line.to_owned()))
+        .map(ListItem::new)
         .collect();
 
     // Create a List from all list items and highlight the currently selected one
-    let items = List::new(items)
+    let items = List::new(list_items)
         .block(Block::default().borders(Borders::RIGHT))
-        .highlight_style(Style::default().fg(Color::Black).bg(Color::LightBlue));
-    f.render_stateful_widget(items, chunks[0], &mut app.filtered_items.state);
+        .highlight_style(Style::default().bg(Color::DarkGray));
+
+    f.render_stateful_widget(items, chunks[0], &mut app.filtered_items.state.clone());
 
     // -------------------------- RENDERING - PROMPT --------------------------
     // We can now render the item list

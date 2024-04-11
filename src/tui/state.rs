@@ -1,15 +1,17 @@
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
+use ratatui::style::Stylize as _;
 use ratatui::widgets::*;
+use ratatui::{style::Color, text::Span};
 
 use crate::script::{self, Function, Script};
 
-pub(crate) struct StatefulList<T> {
+pub(crate) struct StatefulList {
     pub(crate) state: ListState,
-    pub(crate) items: Vec<T>,
+    pub(crate) items: Vec<Item>,
 }
 
-impl<T> StatefulList<T> {
-    fn with_items(items: Vec<T>) -> StatefulList<T> {
+impl StatefulList {
+    fn with_items(items: Vec<Item>) -> StatefulList {
         StatefulList {
             state: ListState::default(),
             items,
@@ -47,13 +49,58 @@ impl<T> StatefulList<T> {
     pub fn unselect(&mut self) {
         self.state.select(None);
     }
+
+    pub fn get_as_coloured(&self) -> Vec<Vec<Span<'_>>> {
+        self.items
+            .iter()
+            .enumerate()
+            .map(|(_, item)| item.coloured())
+            .collect()
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Item {
     pub(crate) name: String,
     pub(crate) source: (Script, Function),
     pub(crate) score: Option<(i64, Vec<usize>)>,
+}
+
+impl Item {
+    /// Highlights the line. Will highlight matching search items, and also indicate
+    /// if it's a selected item.
+    pub fn coloured(&self) -> Vec<Span<'_>> {
+        let mut spans: Vec<Span> = vec![];
+        let text = self.name.clone();
+        let text_vec = text.chars().collect::<Vec<_>>();
+        let mut start = 0;
+        if let Some(score) = &self.score {
+            for i in &score.1 {
+                let part = text_vec[start..*i]
+                    .iter()
+                    .cloned()
+                    .collect::<String>()
+                    .clone();
+                let matching_char = text_vec[*i..*i + 1]
+                    .iter()
+                    .cloned()
+                    .collect::<String>()
+                    .clone();
+                let part_span = Span::from(part);
+                let matching_char_span = Span::from(matching_char).fg(Color::Red);
+                spans.push(part_span);
+                spans.push(matching_char_span);
+                start = i + 1;
+            }
+        };
+        let remaining_chars = text_vec[start..text.chars().count()]
+            .iter()
+            .cloned()
+            .collect::<String>();
+
+        spans.push(Span::from(remaining_chars));
+        spans
+    }
 }
 
 /// This struct holds the current state of the app. In particular, it has the `items` field which is
@@ -63,8 +110,8 @@ pub(crate) struct Item {
 /// Check the event handling at the bottom to see how to change the state on incoming events.
 /// Check the drawing logic for items on how to specify the highlighting style for selected items.
 pub(crate) struct App {
-    items: StatefulList<Item>,
-    pub(crate) filtered_items: StatefulList<Item>,
+    items: StatefulList,
+    pub(crate) filtered_items: StatefulList,
     pub(crate) search_term: String,
 }
 
@@ -129,7 +176,7 @@ impl App {
         // to a long list we might lose out selection somewhere below in a non-visible area.
     }
 
-    pub fn get_selected(&self) -> Option<&Item> {
+    pub fn get_selected(&mut self) -> Option<&Item> {
         match self.filtered_items.state.selected() {
             Some(i) => self.filtered_items.items.get(i),
             None => None,
