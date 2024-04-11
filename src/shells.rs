@@ -72,11 +72,9 @@ impl UserShell {
 
     pub fn add_command(&self, command: String) -> Result<()> {
         log::info!("Adding command to history: {}", command);
-        // let history_file: String = self.history_file();
         log::info!("History file: {}", &self.history_file);
         // TODO Don't fail if the file doesn't exist
         let mut file = OpenOptions::new()
-            .write(true)
             .append(true)
             .open(&self.history_file)
             .unwrap();

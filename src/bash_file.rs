@@ -48,6 +48,7 @@ impl BashFile {
     pub fn write(&self) -> Result<()> {
         let mut file = std::fs::OpenOptions::new()
             .create(true)
+            .truncate(true)
             .write(true)
             .mode(0o700)
             .open(&self.full_path)?;

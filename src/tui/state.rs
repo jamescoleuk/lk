@@ -5,6 +5,7 @@ use ratatui::{style::Color, text::Span};
 
 use crate::script::{self, Function, Script};
 
+/// This struct holds the state of a list widget.
 pub(crate) struct StatefulList {
     pub(crate) state: ListState,
     pub(crate) items: Vec<Item>,
@@ -59,6 +60,8 @@ impl StatefulList {
     }
 }
 
+/// An item represents an individual function in a script which we want to display in our list.
+/// So it contains everything we need to know about this function.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Item {
     pub(crate) name: String,
@@ -67,8 +70,7 @@ pub(crate) struct Item {
 }
 
 impl Item {
-    /// Highlights the line. Will highlight matching search items, and also indicate
-    /// if it's a selected item.
+    /// Highlights the line for this function. Will highlight matching characters in the search.
     pub fn coloured(&self) -> Vec<Span<'_>> {
         let mut spans: Vec<Span> = vec![];
         let text = self.name.clone();
@@ -165,9 +167,12 @@ impl App {
         // to a long list we might lose out selection somewhere below in a non-visible area.
     }
 
-    pub fn get_selected(&mut self) -> Option<&Item> {
+    pub fn get_selected(&self) -> Option<&Item> {
         match self.filtered_items.state.selected() {
-            Some(i) => self.filtered_items.items.get(i),
+            Some(i) => {
+                let thing = self.filtered_items.items.get(i);
+                thing
+            }
             None => None,
         }
     }

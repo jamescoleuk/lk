@@ -41,7 +41,7 @@ impl Script {
         let mut included_comments: Vec<String> = Vec::new();
         let mut included_functions: Vec<Function> = Vec::new();
         let mut in_header_comments: bool = false;
-        for line in lines.flatten() {
+        for line in lines.map_while(Result::ok) {
             // Find lines that are part of the same comment block
             if line.starts_with('#') {
                 // Are we dealing with a hashbang line? If so, then we expect
