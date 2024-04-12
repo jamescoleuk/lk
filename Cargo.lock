@@ -398,15 +398,15 @@ dependencies = [
 
 [[package]]
 name = "fuzzy_finder"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "358e46feafb85c257c336555e47dfa1d1639b55691e43717285fba345c77ee6d"
+checksum = "c655c2b767e2474cd0211472a2d276b0c5b8ba98ad0a68b5964789d4ebfbf319"
 dependencies = [
  "anyhow",
  "csv",
  "fuzzy-matcher",
  "log",
- "pastel_colours",
+ "pastel_colours 0.2.0",
  "termion 3.0.0",
 ]
 
@@ -601,7 +601,7 @@ dependencies = [
  "log4rs",
  "nanoid",
  "pad",
- "pastel_colours",
+ "pastel_colours 0.1.3",
  "ratatui",
  "regex",
  "serde",
@@ -858,6 +858,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3464b718516786e43e954a06d45e3fb9e221211aeb991740164f88f96f70d759"
 dependencies = [
  "termion 1.5.6",
+]
+
+[[package]]
+name = "pastel_colours"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39639afc571c9856c509a2b3b5f47201134adb9df48055b0aec4334a674b29bf"
+dependencies = [
+ "termion 3.0.0",
 ]
 
 [[package]]
