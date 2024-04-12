@@ -23,6 +23,7 @@ use structopt::StructOpt;
 use tempfile::tempdir;
 use ui::{print_bad_function_name, print_bad_script_name};
 
+mod tui;
 /// Use lk to explore and execute scripts in your current directory,
 /// and in its sub-directories. lk offers two options: 'list' or 'fuzzy'.
 /// 'list' lets you explore your scripts and their functions in a
@@ -37,6 +38,10 @@ struct Cli {
     /// List available scripts and functions.
     #[structopt(long, short)]
     list: bool,
+
+    /// Show a full screen UI with lots of details
+    #[structopt(long, short)]
+    tui: bool,
 
     /// Optional: the name of a script to explore or use
     script: Option<String>,
@@ -129,14 +134,14 @@ fn main() -> Result<()> {
         .includes
         .clone()
         .into_iter()
-        .chain(config_includes.into_iter())
+        .chain(config_includes)
         .collect();
 
     let excludes: Vec<String> = args
         .excludes
         .clone()
         .into_iter()
-        .chain(config_excludes.into_iter())
+        .chain(config_excludes)
         .collect();
 
     let default_mode = config.get::<String>("default_mode").unwrap();
@@ -169,21 +174,47 @@ fn main() -> Result<()> {
         // If the user is specifying --list OR if there's some value for script.
         // Any value there is implicitly take as --list.
         list(executables, args)
+    } else if args.tui {
+        tui(&scripts)
     } else {
         // Neither requested, so fall back on the configuration
         match default_mode.as_str() {
             "fuzzy" => fuzzy(&scripts, args.number + 1),
             "list" => list(executables, args),
+            "tui" => tui(&scripts),
             _ => panic!("No default mode set! Has there been a problem creating the config file?"),
         }
     }
+}
+
+// Runs lk in 'tui' mode.
+fn tui(scripts: &[script::Script]) -> Result<()> {
+    println!("Running lk in tui mode");
+    let result = tui::list::find(scripts)?;
+    if let Some(function) = result {
+        // We're going to write the equivalent lk command to the shell's history
+        // file, so the user can easily re-run it.
+        let history = UserShell::new();
+        match history {
+            Some(history) => {
+                let lk_command = format!("lk {} {}", function.0.file_name(), function.1.name,);
+                history.add_command(lk_command)?;
+            }
+            None => {
+                log::warn!("Unable to write to history file because we couldn't figure out what shell you're using");
+            }
+        }
+        // Finally we execute the function using a temporary bash file.
+        BashFile::run(function.0.to_owned(), function.1.to_owned(), [].to_vec())?;
+    }
+    Ok(())
 }
 
 /// Runs lk in 'fuzzy' mode.
 fn fuzzy(scripts: &[script::Script], lines_to_show: i8) -> Result<()> {
     let result = FuzzyFinder::find(scripts_to_item(scripts), lines_to_show).unwrap();
     if let Some(function) = result {
-        // We're going to write the equivelent lk command to the shell's history
+        // We're going to write the equivalent lk command to the shell's history
         // file, so the user can easily re-run it.
         let history = UserShell::new();
         match history {

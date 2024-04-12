@@ -68,6 +68,9 @@ impl Executables {
                 }
             }
         }
+
+        files_to_include.sort();
+        files_to_include.dedup();
         info!("Excluding {:?}", files_to_exclude);
         info!("Including {:?}", files_to_include);
 
