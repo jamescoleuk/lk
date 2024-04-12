@@ -406,8 +406,8 @@ dependencies = [
  "csv",
  "fuzzy-matcher",
  "log",
- "pastel_colours 0.2.0",
- "termion 3.0.0",
+ "pastel_colours",
+ "termion",
 ]
 
 [[package]]
@@ -587,7 +587,7 @@ checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 
 [[package]]
 name = "lk"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "anyhow",
  "config",
@@ -601,14 +601,14 @@ dependencies = [
  "log4rs",
  "nanoid",
  "pad",
- "pastel_colours 0.1.3",
+ "pastel_colours",
  "ratatui",
  "regex",
  "serde",
  "spinners",
  "structopt",
  "tempfile",
- "termion 3.0.0",
+ "termion",
  "toml",
 ]
 
@@ -853,20 +853,11 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
 name = "pastel_colours"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3464b718516786e43e954a06d45e3fb9e221211aeb991740164f88f96f70d759"
-dependencies = [
- "termion 1.5.6",
-]
-
-[[package]]
-name = "pastel_colours"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39639afc571c9856c509a2b3b5f47201134adb9df48055b0aec4334a674b29bf"
 dependencies = [
- "termion 3.0.0",
+ "termion",
 ]
 
 [[package]]
@@ -1023,7 +1014,7 @@ dependencies = [
  "paste",
  "stability",
  "strum 0.26.2",
- "termion 3.0.0",
+ "termion",
  "time 0.3.28",
  "unicode-segmentation",
  "unicode-width",
@@ -1394,18 +1385,6 @@ dependencies = [
  "redox_syscall 0.2.10",
  "remove_dir_all",
  "winapi",
-]
-
-[[package]]
-name = "termion"
-version = "1.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "077185e2eac69c3f8379a4298e1e07cd36beb962290d4a51199acf0fdc10607e"
-dependencies = [
- "libc",
- "numtoa",
- "redox_syscall 0.2.10",
- "redox_termios",
 ]
 
 [[package]]
