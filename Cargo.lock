@@ -398,16 +398,16 @@ dependencies = [
 
 [[package]]
 name = "fuzzy_finder"
-version = "0.3.2"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1cfdbbb717be5ad3b7b2e2f3d5b2fa654563f0df3da7d8028eb1de30c3a6caf"
+checksum = "358e46feafb85c257c336555e47dfa1d1639b55691e43717285fba345c77ee6d"
 dependencies = [
  "anyhow",
  "csv",
  "fuzzy-matcher",
  "log",
  "pastel_colours",
- "termion 1.5.6",
+ "termion 3.0.0",
 ]
 
 [[package]]
@@ -587,7 +587,7 @@ checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 
 [[package]]
 name = "lk"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "config",
