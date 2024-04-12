@@ -1,29 +1,50 @@
 # lk
 
-
 [![Crates.io](https://img.shields.io/crates/v/lk.svg)](https://crates.io/crates/lk)
 
+## Overview
 
-A command palette for your bash functions. 
+A command palette for your bash functions. Run in a dir with lots of bash files, fuzzy find a function, and run it. It looks like this:
 
-`lk` searches for scripts, examines them and finds bash functions. Then it lets you run the functions through a consistant interface. 
+![](assets/2024-04-12-12-00-12-image.png)
 
-If you run `lk` you might see something like this:
+## Modes
+
+You can explore your bash functions in three different ways:
+
+1. The Terminal User Interface (TUI), which takes up the whole terminal window
+
+2. An `fzf` style inline search
+
+3. By printing out lists of functions.
+
+### TUI
+
+The default mode (`--tui` or `-t`).
+
+Here's `lk` run on it's own repo.
+
+![](assets/2024-04-12-11-59-23-image.png) 
+
+It has fuzzy find::
+
+![](assets/2024-04-12-12-00-12-image.png)
+
+You hit enter to run the functioun.
+
+### Inline fuzzy find
+
+The old default (`--fuzzy` or `-f`):
+
 ![](./docs/demo_01.png)
 
-You can start typing and it'll search through file names and function names:
+This also has fuzzy find, obviously:
+
 ![](./docs/demo_02.png)
 
-It'll also do [fuzzy find](https://github.com/jamescoleuk/fuzzy_finder):
-![](./docs/demo_03.png)
+### Lists
 
-Use the arrow keys to make a selection:
-![](./docs/demo_04.png)
-
-And  hit enter to run the function:
-![](./docs/demo_05.png)
-
-You can also explore bash files via `--list`, like this:
+You can also explore bash files via the *List* mode (`--list`), like this:
 
 ![](./docs/demo_06.png)
 
@@ -35,11 +56,23 @@ You can execute the functions them by passing the function name:
 
 ![](./docs/demo_08.png)
 
-This means you can write scripts that use `lk`, if you want to. If you prefer this `list` mode then you can make it the default by editing `lk`'s config file, which lives at `~/.config/lk/lk.toml`:
+This means you can write scripts that use `lk`, if you want to. 
+
+### Changing the default mode
+
+You can change the default mode by editing `lk`'s config file, which lives at `~/.config/lk/lk.toml`:
 
 ![](./docs/demo_09.png)
 
 The log file lives in that directory, if you're interested or maybe want to contribute to `lk`'s development. You can see all of `lk`'s options by running `lk --help`, obviously.
+
+## Why use `lk`?
+
+1. You're a polyglot engineer with package manager fatigue. So you want to hide it all behind some bash, the lingua franca.
+2. You do a lot of devops and have a lot of bash.
+3. You have a lot of projects that you don't work on for months at a time, and you need to bring some consistency to the experience of re-visiting them.
+4. You use `make` and `PHONY` to do non-compile stuff to your project. `lk` just lets your write proper bash without all the `make` specific guff.
+5. You ever copy and paste bash from a text file you keep somewhere.
 
 ## Installing
 
@@ -57,7 +90,9 @@ cargo install lk
 ```
 
 ## How to write bash files so they work with `lk`
+
 `lk` executes bash functions. This sort of thing:
+
 ```bash
 # A glorious function that does all the things
 be_glorious() {
@@ -71,6 +106,7 @@ It executes these functions by sourcing the file, and then running the function.
 . my_file.sh
 be_glorious
 ```
+
 This means anything outside a function will be executed. This is handy if you want to source other files, or set environment variables, because they'll be available to your functions. For example:
 
 ```bash
@@ -98,7 +134,9 @@ So `--list` mode allows you explore and discover your scripts, and `--fuzzy` mod
 If you use `--fuzzy` then `lk` will write the command you executed to your bash history, so you can use `ctrl-r` to re-execute it. Obviously if you used `--list` it will already be there.
 
 ## Ignoring files
+
 `lk` supports glob-based excludes and includes, using [toml](https://toml.io/en/). For example:
+
 ```toml
 excludes = [
   "**/exclude_me",
@@ -109,34 +147,33 @@ excludes = [
 
 You can make this global by putting it in `~/.config/lk/lk.toml`, or local by creating a `lk.toml` file in, say, a project directory. If the `lk.toml` file is in the same directory from which you execute `lk` then it'll find and use it. You can also add includes and excludes as a switch. See `lk --help` for details.
 
-
 ## Ignoring functions
+
  If you prepend a function with an underscore it will be ignored by `lk`:
- ```bash
- _my_ignored_function() {
-    echo "not happening"
- }
- ```
+
+```bash
+_my_ignored_function() {
+   echo "not happening"
+}
+```
 
 ## Installation
+
 From [the crate](https://crates.io/crates/lk):
+
 ```bash
 cargo install lk
 ```
 
 ## Update
+
 ```bash
 cargo install --force lk
 ```
 
-## Why use `lk`?
-1. You're a polyglot engineer with package manager fatigue. So you want to hide it all behind some bash, the lingua franca.
-2. You do a lot of devops and have a lot of bash.
-3. You have a lot of projects that you don't work on for months at a time, and you need to bring some consistency to the experience of re-visiting them.
-4. You use `make` and `PHONY` to do non-compile stuff to your project. `lk` just lets your write proper bash without all the `make` specific guff.
-5. You ever copy and paste bash from a text file you keep somewhere.
+# 
 
-### Use case examples
+## Use case examples
 
 1. AWS: 
    1. You need to pull down config from AWS and store it in `.env` files.
@@ -144,8 +181,8 @@ cargo install --force lk
 2. You need to build and deploy many services, and want to hide the edge cases. E.g. for compiling, building, and deploying you might have `lk my_service jfdi`.
 3. You regularly need to set up SSH tunneling and can't remember the commands.
 
-
 ## Why the name "lk"?
+
 If you have any typist home key dicipline and if you flap your right hand at the keyboard there's a good chance you'll type 'lk'. So it's short, and ergonomic.
 
 ## What could be improved?
@@ -162,6 +199,7 @@ Contributions make my heart grow warm. I'm happy to support anyone who wants to 
 ## Inspiration
 
 I have previously written two similar tools: 
+
 * [run_lib](https://github.com/jamescoleuk/run_lib) - my first draft and written in bash
 * [runsh](https://github.com/jamescoleuk/runsh) - my second draft and written in Rust
 
@@ -170,6 +208,7 @@ I have previously written two similar tools:
 [fzf](https://github.com/junegunn/fzf) is wonderful. The `--fuzzy` option in `lk` comes from years of `ctrl-r` fuzzy finding through my shell history with `fzf`. I almost didn't implement this feature because I thought "why bother? fzf has already done it perfectly." Or rather I thought about piping from `lk` to `fzf`. But having the functionality implemented natively is the right thing for `lk`. But you'll notice, perhaps, that the rendering of the fuzzy search in `lk` draws a lot of visual inspiration from `fzf`. `fzf`, I love you.
 
 ## Contributing
+
 Contributions are welcome. Thanks to the following for theirs:
 
 * [lagoa89](https://github.com/lagoa89)
