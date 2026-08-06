@@ -4,13 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [2026-08-06] - 0.6.0
+## [2026-08-06] - 0.7.0
+
+### Removed
+
+- The `--fuzzy` mode and its `--number` option. It confused things: the TUI
+  has the same fuzzy search plus details, and it's the default. If your
+  `lk.toml` still says `default_mode = "fuzzy"` you'll get the TUI and a
+  polite nudge to update it
 
 ### Changed
 
 - Modernised the codebase: Rust edition 2024 and updated all dependencies
 - Replaced the deprecated `structopt` with `clap` 4 (adds `--version`/`-V`)
-- Upgraded `ratatui` to 0.30 and dropped the direct `crossterm`/`termion` dependencies
+- Upgraded `ratatui` to 0.30 and dropped the direct `crossterm`/`termion`/`fuzzy_finder` dependencies
 - Replaced `log4rs` with `simplelog`, and removed the unused `toml`, `serde`, `pad` and `nanoid` dependencies
 - Log timestamps are now RFC 3339
 - The config directory can be overridden with the `LK_CONFIG_DIR` environment variable

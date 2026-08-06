@@ -10,13 +10,11 @@ A command palette for your bash functions. Run in a dir with lots of bash files,
 
 ## Modes
 
-You can explore your bash functions in three different ways:
+You can explore your bash functions in two different ways:
 
 1. The Terminal User Interface (TUI), which takes up the whole terminal window
 
-2. An `fzf` style inline search
-
-3. By printing out lists of functions.
+2. By printing out lists of functions.
 
 ### TUI
 
@@ -26,21 +24,11 @@ Here's `lk` run on it's own repo.
 
 ![](assets/2024-04-12-11-59-23-image.png) 
 
-It has fuzzy find::
+It has fuzzy find:
 
 ![](assets/2024-04-12-12-00-12-image.png)
 
-You hit enter to run the functioun.
-
-### Inline fuzzy find
-
-The old default (`--fuzzy` or `-f`):
-
-![](./docs/demo_01.png)
-
-This also has fuzzy find, obviously:
-
-![](./docs/demo_02.png)
+You hit enter to run the function.
 
 ### Lists
 
@@ -129,9 +117,9 @@ Incidentally, the comments in the scripts above will appear in `--list` mode, li
 
 ![](./docs/demo_10.png)
 
-So `--list` mode allows you explore and discover your scripts, and `--fuzzy` mode lets you get to functions you are perhaps already more familiar with.
+So `--list` mode allows you explore and discover your scripts, and the TUI's fuzzy search lets you get to functions you are perhaps already more familiar with.
 
-If you use `--fuzzy` then `lk` will write the command you executed to your bash history, so you can use `ctrl-r` to re-execute it. Obviously if you used `--list` it will already be there.
+If you run a function from the TUI then `lk` will write the equivalent command to your shell history, so you can use `ctrl-r` to re-execute it. Obviously if you used `--list` it will already be there.
 
 ## Ignoring files
 
@@ -190,7 +178,6 @@ If you have any typist home key dicipline and if you flap your right hand at the
 * Minor UI improvements?
 * Support scripts in other languages, e.g. Python, rust-script, Typescript.
 * Disable colours, for the colourblind
-* Add a count to `lk --fuzzy`
 * Sensible default ignores
 * Make it installable via other routes, e.g. `brew`.
 
@@ -205,7 +192,7 @@ I have previously written two similar tools:
 
 `run_lib` still has its uses. I've worked in secure environments where I could not have installed a binary. `run_lib` is just a bash script.
 
-[fzf](https://github.com/junegunn/fzf) is wonderful. The `--fuzzy` option in `lk` comes from years of `ctrl-r` fuzzy finding through my shell history with `fzf`. I almost didn't implement this feature because I thought "why bother? fzf has already done it perfectly." Or rather I thought about piping from `lk` to `fzf`. But having the functionality implemented natively is the right thing for `lk`. But you'll notice, perhaps, that the rendering of the fuzzy search in `lk` draws a lot of visual inspiration from `fzf`. `fzf`, I love you.
+[fzf](https://github.com/junegunn/fzf) is wonderful. The fuzzy search in `lk` comes from years of `ctrl-r` fuzzy finding through my shell history with `fzf`. I almost didn't implement this feature because I thought "why bother? fzf has already done it perfectly." Or rather I thought about piping from `lk` to `fzf`. But having the functionality implemented natively is the right thing for `lk`. But you'll notice, perhaps, that the rendering of the fuzzy search in `lk` draws a lot of visual inspiration from `fzf`. `fzf`, I love you.
 
 ## Contributing
 

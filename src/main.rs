@@ -10,8 +10,6 @@ use bash_file::BashFile;
 use clap::Parser;
 use config::{Config, File};
 use executables::Executables;
-use fuzzy_finder::FuzzyFinder;
-use fuzzy_finder::item::Item;
 use log::{LevelFilter, debug, info};
 use script::{Function, Script};
 use shells::UserShell;
@@ -19,18 +17,12 @@ use spinners::{Spinner, Spinners};
 use std::path::{Path, PathBuf};
 
 /// Use lk to explore and execute scripts in your current directory,
-/// and in its sub-directories. lk offers three options: 'tui', 'list'
-/// or 'fuzzy'. 'tui' shows a full-screen UI. 'list' lets you explore
-/// your scripts and their functions in a hierarchical way. 'fuzzy'
-/// lets you do a fuzzy search over all the scripts and functions
-/// found by lk.
+/// and in its sub-directories. lk offers two options: 'tui' or 'list'.
+/// 'tui' shows a full-screen UI with a fuzzy search. 'list' lets you
+/// explore your scripts and their functions in a hierarchical way.
 #[derive(Parser)]
 #[command(version, about)]
 struct Cli {
-    /// Fuzzy search for available scripts and functions.
-    #[arg(long, short)]
-    fuzzy: bool,
-
     /// List available scripts and functions.
     #[arg(long, short)]
     list: bool,
@@ -57,10 +49,6 @@ struct Cli {
     /// Optional: paths to exclude in the search, as a UNIX glob pattern.
     #[arg(long, short)]
     excludes: Vec<String>,
-
-    /// Number of lines to show in fuzzy search.
-    #[arg(long, short = 'n', default_value_t = 7)]
-    number: i8,
 }
 
 /// The directory where lk keeps its configuration and log file.
@@ -171,9 +159,7 @@ fn main() -> Result<()> {
     debug!("Found the following scripts {scripts:#?}");
 
     // Command line rules ok?
-    if args.fuzzy {
-        fuzzy(&scripts, args.number + 1)
-    } else if args.list || args.script.is_some() {
+    if args.list || args.script.is_some() {
         // If the user is specifying --list OR if there's some value for script.
         // Any value there is implicitly taken as --list.
         list(executables, args)
@@ -182,12 +168,20 @@ fn main() -> Result<()> {
     } else {
         // Neither requested, so fall back on the configuration
         match default_mode.as_str() {
-            "fuzzy" => fuzzy(&scripts, args.number + 1),
             "list" => list(executables, args),
             "tui" => tui(&scripts),
-            other => bail!(
-                "Unknown default_mode {other:?} in lk.toml. Expected \"tui\", \"fuzzy\" or \"list\"."
-            ),
+            // The fuzzy mode was removed in 0.7.0. Its search lives on in
+            // the TUI, so send anyone with an old config there.
+            "fuzzy" => {
+                println!(
+                    "The fuzzy mode was removed in lk 0.7.0 — its search lives on in the TUI."
+                );
+                println!("Please update default_mode in your lk.toml.");
+                tui(&scripts)
+            }
+            other => {
+                bail!("Unknown default_mode {other:?} in lk.toml. Expected \"tui\" or \"list\".")
+            }
         }
     }
 }
@@ -214,15 +208,6 @@ fn execute(script: &Script, function: &Function) -> Result<()> {
 fn tui(scripts: &[Script]) -> Result<()> {
     if let Some((script, function)) = tui::list::find(scripts)? {
         execute(&script, &function)?;
-    }
-    Ok(())
-}
-
-/// Runs lk in 'fuzzy' mode.
-fn fuzzy(scripts: &[Script], lines_to_show: i8) -> Result<()> {
-    let result = FuzzyFinder::find(scripts_to_item(scripts), lines_to_show)?;
-    if let Some((script, function)) = result {
-        execute(script, function)?;
     }
     Ok(())
 }
@@ -256,19 +241,4 @@ fn list(executables: Executables, args: Cli) -> Result<()> {
         executables.pretty_print();
     }
     Ok(())
-}
-
-/// Convert the scripts we find to the 'item' required for fuzzy find.
-fn scripts_to_item(scripts: &[Script]) -> Vec<Item<(&Script, &Function)>> {
-    scripts
-        .iter()
-        .flat_map(|script| {
-            script.functions.iter().map(move |function| {
-                Item::new(
-                    format!("{} - {}", script.path(), function.name),
-                    (script, function),
-                )
-            })
-        })
-        .collect()
 }
