@@ -1,40 +1,36 @@
-// /// Tests lk's behaviour when the user asks for a script
-// use std::process::{Command, Output};
+//! Tests lk's behaviour when the user asks for a script
+mod common;
 
-// fn run_with_function(script_name: &str) -> Output {
-//     Command::new("cargo")
-//         .arg("run")
-//         .arg(script_name)
-//         .output()
-//         .expect("failed to execute process")
-// }
+use common::{run_lk, stdout};
 
-// #[test]
-// fn test_no_function() {
-//     // When...
-//     let output = run_with_function("script.sh");
-//     let stdout = String::from_utf8(output.stdout).unwrap();
+#[test]
+fn test_no_function() {
+    // When...
+    let output = run_lk(&["script.sh"]);
+    let stdout = stdout(&output);
 
-//     // Then...
-//     assert_eq!(output.status.success(), true);
-//     assert_eq!(stdout.contains("script.sh"), true);
-//     assert_eq!(stdout.contains("First line of file header comment"), true);
-//     assert_eq!(stdout.contains("Second line of file header comment"), true);
-//     assert_eq!(stdout.contains("some_function This function"), true);
-//     assert_eq!(stdout.contains("This function is very clever and"), true);
-//     assert_eq!(stdout.contains("And here is some more detailed"), true);
-//     assert_eq!(stdout.contains("some_function"), true);
-//     assert_eq!(stdout.contains("another_function"), true);
-//     assert_eq!(stdout.contains("yet_more_functions"), true);
-// }
+    // Then...
+    assert!(output.status.success());
+    assert!(stdout.contains("script.sh"));
+    assert!(stdout.contains("First line of file header comment"));
+    assert!(stdout.contains("Second line of file header comment"));
+    // There's an ANSI colour reset between the function name and its comment,
+    // so we assert on the two parts separately.
+    assert!(stdout.contains("This function is very clever and"));
+    assert!(stdout.contains("some_function"));
+    assert!(stdout.contains("another_function"));
+    assert!(stdout.contains("yet_more_functions"));
+    // Private functions are hidden
+    assert!(!stdout.contains("_hidden_function"));
+}
 
-// #[test]
-// fn test_with_empty_script() {
-//     // When...
-//     let output = run_with_function("empty_script.sh");
-//     let stdout = String::from_utf8(output.stdout).unwrap();
+#[test]
+fn test_with_empty_script() {
+    // When...
+    let output = run_lk(&["empty_script.sh"]);
+    let stdout = stdout(&output);
 
-//     // Then...
-//     assert_eq!(output.status.success(), true);
-//     assert_eq!(stdout.contains("Could not find any functions!"), true);
-// }
+    // Then...
+    assert!(output.status.success());
+    assert!(stdout.contains("Could not find any functions!"));
+}

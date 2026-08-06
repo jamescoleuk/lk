@@ -1,14 +1,18 @@
 /// Finds executables in the current directory.
 use crate::ui::print_root_header;
-use anyhow::{bail, Result};
-use content_inspector::{inspect, ContentType};
+use anyhow::{Result, bail};
+use content_inspector::{ContentType, inspect};
 use glob::glob;
 use log::info;
 #[cfg(not(test))]
 use log::{debug, error};
-use pad::{Alignment, PadStr};
 use pastel_colours::{DARK_GREEN_FG, RESET_FG};
-use std::{fs::Permissions, io::Read, os::unix::fs::PermissionsExt, path::PathBuf};
+use std::{
+    fs::Permissions,
+    io::Read,
+    os::unix::fs::PermissionsExt,
+    path::{Path, PathBuf},
+};
 #[cfg(test)]
 use std::{println as debug, println as error}; //
 
@@ -76,16 +80,21 @@ impl Executables {
 
         let executables: Vec<Executable> = files_to_include
             .into_iter()
-            .map(|include| {
-                let path = include.into_boxed_path();
-                let absolute_path = path.canonicalize().unwrap();
-                let short_name = path.file_name().unwrap().to_string_lossy().to_string();
+            .filter_map(|path| {
+                let absolute_path = match path.canonicalize() {
+                    Ok(absolute_path) => absolute_path,
+                    Err(err) => {
+                        error!("Unable to canonicalise {path:?}, skipping it: {err}");
+                        return None;
+                    }
+                };
+                let short_name = path.file_name()?.to_string_lossy().to_string();
 
-                Executable {
+                Some(Executable {
                     short_name,
-                    path: path.into_path_buf(),
+                    path,
                     absolute_path,
-                }
+                })
             })
             .collect();
 
@@ -105,34 +114,30 @@ impl Executables {
         print_root_header();
         // Get the longest executable name
         const INDENT: usize = 2;
-        let padding = if self.executables.is_empty() {
-            0 // If we don't have any executables we don't care about the padding, so just use 0.
-        } else {
-            self.executables
-                .iter()
-                .max_by(|x, y| x.short_name.len().cmp(&y.short_name.len()))
-                .unwrap() // Will always be Some because the name String must exist.
-                .short_name
-                .len()
-                + INDENT
-        };
-        self.executables.iter().for_each(|executable| {
-            let path = executable.path.as_os_str().to_string_lossy().to_string();
-            // We'll pad right so everything aligns nicely.
-            let to_print = executable
-                .short_name
-                .pad_to_width_with_alignment(padding, Alignment::Right);
-            println!("{DARK_GREEN_FG}{to_print}{RESET_FG} - {path}");
-        });
+        let padding = self
+            .executables
+            .iter()
+            .map(|executable| executable.short_name.len())
+            .max()
+            .map_or(0, |longest| longest + INDENT);
+        for executable in &self.executables {
+            let path = executable.path.display();
+            // We'll pad left so everything aligns nicely.
+            let name = &executable.short_name;
+            println!("{DARK_GREEN_FG}{name:>padding$}{RESET_FG} - {path}");
+        }
     }
 }
 
 /// Determines whether or not we should include this entry in our search results
-fn should_include_file(path: &PathBuf) -> bool {
+fn should_include_file(path: &Path) -> bool {
     // We'll need to check file permissions
     let permissions = match path.metadata() {
         Ok(metadata) => metadata.permissions(),
-        Err(_) => panic!("Couldn't get file metadata for {:?}!", path),
+        Err(err) => {
+            error!("Couldn't get file metadata for {path:?}, skipping it: {err}");
+            return false;
+        }
     };
 
     // If we don't have permissions to access the file we're not going to get very far.
@@ -165,8 +170,7 @@ fn is_executable(permissions: &Permissions) -> bool {
     permissions.mode() & 0o111 != 0
 }
 
-fn is_binary(path: &PathBuf) -> bool {
-    // let path = entry.path();
+fn is_binary(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
 
     // We're testing for executable permissions before we check for binary or text

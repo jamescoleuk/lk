@@ -9,19 +9,14 @@ pub fn print_root_header() {
 }
 
 pub fn print_script_header(script: &Script) {
-    let script_path = script
-        .path
-        .to_owned()
-        .into_os_string()
-        .into_string()
-        .unwrap();
+    let script_path = script.path.display();
     println!("{DARK_BLUE_BG}lk: {script_path}{RESET_BG}");
 }
 
 pub fn print_complete_header(script: &Script, function: &Function, params: &[String]) {
     println!(
         "{DARK_BLUE_BG}lk: {} -> {} ({}){RESET_BG}",
-        script.path.as_os_str().to_string_lossy(),
+        script.path.display(),
         function.name,
         params.join(" ")
     );
@@ -37,7 +32,7 @@ blow_mind() {
     println!("{GREEN_FG}{example_function}{RESET_FG}");
 }
 
-pub fn print_bad_script_name(script: &str, executables: Executables) {
+pub fn print_bad_script_name(script: &str, executables: &Executables) {
     println!("{RED_FG}Didn't find a script with name {BLUE_FG}{script}!{RESET_FG}\n");
     executables.pretty_print();
 }

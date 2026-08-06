@@ -2,11 +2,15 @@
 use crate::executables::Executable;
 use crate::ui::{print_no_functions_in_script_help, print_script_header};
 use anyhow::Result;
-use pad::{Alignment, PadStr};
 use pastel_colours::{GREEN_FG, RESET_FG};
-use regex::bytes::Regex;
+use regex::Regex;
 use std::io::BufRead;
+use std::sync::LazyLock;
 use std::{fs::File, path::Path};
+
+/// Matches lines like `some_function() {`, i.e. the start of a bash function.
+static FUNCTION_HEADER: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^.*\(\).*\{$").expect("function header regex is valid"));
 
 /// Everything we need to know about a function in a script
 #[derive(PartialEq, Eq, Debug, Clone)]
@@ -32,7 +36,7 @@ impl Script {
                     "Unable to read executable: {}. Error was: {err}",
                     &executable.path.to_string_lossy()
                 );
-                anyhow::bail!("Permissiond denied in opening script");
+                anyhow::bail!("Permission denied in opening script");
             }
         };
 
@@ -60,11 +64,10 @@ impl Script {
                 } else {
                     comments.push(clean_comment_line(&line));
                 }
-            } else if !line.starts_with('#') {
+            } else {
                 // Find lines that start a function
                 if is_function_header_line(&line) {
-                    let function = get_function(line, &comments);
-                    included_functions.push(function);
+                    included_functions.push(get_function(&line, &comments));
                 }
                 comments.clear();
                 in_header_comments = false;
@@ -84,22 +87,21 @@ impl Script {
     }
 
     pub fn file_name(&self) -> String {
-        if self.path.file_name().is_some() {
-            self.path.file_name().unwrap().to_string_lossy().to_string()
-        } else {
-            panic!("File has no name!")
-        }
+        self.path
+            .file_name()
+            .expect("script path always ends in a file name")
+            .to_string_lossy()
+            .to_string()
     }
 
     pub fn path(&self) -> String {
-        let path = self.path.clone();
-        return path.as_os_str().to_string_lossy().to_string();
+        self.path.to_string_lossy().to_string()
     }
 
     pub fn working_dir_absolute(&self) -> String {
         let mut path = self.absolute_path.clone();
         path.pop();
-        return path.as_os_str().to_string_lossy().to_string();
+        path.to_string_lossy().to_string()
     }
 
     pub fn pretty_print(&self) {
@@ -116,18 +118,14 @@ impl Script {
             let padding = self
                 .functions
                 .iter()
-                .max_by(|x, y| x.name.len().cmp(&y.name.len()))
-                .unwrap() // Will always be Some because the name String must exist.
-                .name
-                .len()
-                + INDENT;
+                .map(|function| function.name.len())
+                .max()
+                .map_or(0, |longest| longest + INDENT);
             for function in &self.functions {
-                // We'll pad right so everything aligns nicely.
+                // We'll pad left so everything aligns nicely.
                 // First print the function name
-                let to_print = function
-                    .name
-                    .pad_to_width_with_alignment(padding, Alignment::Right);
-                let coloured_to_print = format!("{GREEN_FG}{to_print}{RESET_FG}");
+                let name = &function.name;
+                let coloured_to_print = format!("{GREEN_FG}{name:>padding$}{RESET_FG}");
                 if !function.comment.is_empty() {
                     print!("{coloured_to_print}");
                 } else {
@@ -135,35 +133,25 @@ impl Script {
                 }
 
                 // Then follow up with the comment lines
-                function.comment.iter().enumerate().for_each(|(i, line)| {
+                for (i, line) in function.comment.iter().enumerate() {
                     if i == 0 {
                         println!(" {line}");
                     } else {
-                        println!(
-                            "{} {line}",
-                            "".pad_to_width_with_alignment(padding, Alignment::Right)
-                        );
+                        println!("{:>padding$} {line}", "");
                     }
-                });
+                }
             }
         }
     }
 }
 
 /// Gets a `Function` from a line that contains a function name. Uses accumulated comments.
-fn get_function(line: String, comments_found_so_far: &[String]) -> Function {
-    let name = line.split("()").next();
-    match name {
-        Some(actual_name) => Function {
-            name: String::from(actual_name.trim()),
-            comment: comments_found_so_far
-                .iter()
-                .map(|comment| comment.to_owned())
-                .collect(),
-        },
-        None => {
-            panic!("There is some kind of formatting error with the name of this function:");
-        }
+fn get_function(line: &str, comments_found_so_far: &[String]) -> Function {
+    // `split` always yields at least one item, even for an empty string.
+    let name = line.split("()").next().unwrap_or_default();
+    Function {
+        name: name.trim().to_owned(),
+        comment: comments_found_so_far.to_vec(),
     }
 }
 
@@ -179,13 +167,8 @@ where
 }
 
 fn is_function_header_line(line: &str) -> bool {
-    if line.trim().starts_with('_') {
-        false
-    } else {
-        Regex::new(r"^.*\(\).*\{$")
-            .unwrap()
-            .is_match(line.as_bytes())
-    }
+    // Functions starting with an underscore are treated as private and ignored.
+    !line.trim().starts_with('_') && FUNCTION_HEADER.is_match(line)
 }
 
 fn clean_comment_line(line: &str) -> String {
@@ -215,7 +198,7 @@ mod tests {
     #[test]
     fn test_get_function() {
         // Given
-        let line = String::from("some_function(){");
+        let line = "some_function(){";
         let comments = vec![String::from("First line"), String::from("Second line")];
 
         // When
@@ -229,7 +212,7 @@ mod tests {
     #[test]
     fn test_get_function_edge() {
         // Given
-        let line = String::from("   some_function   ()   {");
+        let line = "   some_function   ()   {";
         let comments = vec![String::from("First line"), String::from("Second # line")];
 
         // When
@@ -242,15 +225,11 @@ mod tests {
 
     #[test]
     fn test_is_function_header_line() {
-        assert!(is_function_header_line(&String::from("some_function(){")));
-        assert!(is_function_header_line(&String::from(
-            "some_function    () {"
-        )));
-        assert!(is_function_header_line(&String::from(
-            "some_function    ()     {"
-        )));
-        assert!(is_function_header_line(&String::from(
-            "    some_function    ()     {"
-        )));
+        assert!(is_function_header_line("some_function(){"));
+        assert!(is_function_header_line("some_function    () {"));
+        assert!(is_function_header_line("some_function    ()     {"));
+        assert!(is_function_header_line("    some_function    ()     {"));
+        assert!(!is_function_header_line("_private_function() {"));
+        assert!(!is_function_header_line("echo \"not a function\""));
     }
 }

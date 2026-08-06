@@ -2,8 +2,7 @@
 use crate::script::Function;
 use crate::script::Script;
 use crate::ui::print_complete_header;
-use anyhow::Result;
-use nanoid::nanoid;
+use anyhow::{Context, Result};
 use std::io::Write;
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::PathBuf;
@@ -12,7 +11,7 @@ use std::process::Stdio;
 use tempfile::TempDir;
 
 pub struct BashFile {
-    // This isn't read but if the TempDir goes out-of-scope it might get deleted by the operating system.
+    // This isn't read but if the TempDir goes out-of-scope the directory gets deleted.
     #[allow(dead_code)]
     dir: TempDir,
     full_path: PathBuf,
@@ -22,21 +21,21 @@ pub struct BashFile {
 }
 
 impl BashFile {
-    pub fn new(script: Script, function: Function, params: Vec<String>) -> Self {
-        let dir = tempfile::tempdir().unwrap();
-        let file_name = format!("./~lk_{}", nanoid!(10));
-        let full_path = dir.path().join(file_name);
-        Self {
+    pub fn new(script: Script, function: Function, params: Vec<String>) -> Result<Self> {
+        // The temp dir is unique per invocation, so a fixed file name is fine.
+        let dir = tempfile::tempdir().context("Unable to create a temporary directory")?;
+        let full_path = dir.path().join("lk_run.sh");
+        Ok(Self {
             dir,
             full_path,
             script,
             function,
             params,
-        }
+        })
     }
 
     pub fn run(script: Script, function: Function, params: Vec<String>) -> Result<()> {
-        let bash_file = BashFile::new(script, function, params);
+        let bash_file = BashFile::new(script, function, params)?;
         bash_file.write()?;
         bash_file.execute()
     }
@@ -55,11 +54,11 @@ impl BashFile {
 
         // Write the file header
         let bash_file = r#"#!/usr/bin/env bash
-# 
+#
 # Temporary lk file used to execute functions in scripts.
 # If you see it here you can delete it and/or gitignore it.
 "#;
-        writeln!(file, "{}", bash_file)?;
+        writeln!(file, "{bash_file}")?;
 
         // CD to the scripts dir. This is an assumption we're making here,
         // but we can't avoid making an assumption, and this is safer than
@@ -67,10 +66,10 @@ impl BashFile {
         // although that should be possible in a well written-script.
         let script_file_name = self.script.file_name();
         let script_path = self.script.working_dir_absolute();
-        writeln!(file, "cd {script_path}")?;
+        writeln!(file, "cd \"{script_path}\"")?;
 
         // Source the script so we can access its functions
-        writeln!(file, "source ./{script_file_name}")?;
+        writeln!(file, "source \"./{script_file_name}\"")?;
 
         // Call the function the user asked for
         writeln!(file, "{} {}", self.function.name, self.params.join(" "))?;
@@ -78,7 +77,7 @@ impl BashFile {
         Ok(())
     }
 
-    /// This executes the lk file, and then removes it.
+    /// This executes the lk file. The temp dir (and so the file) is removed when `self` drops.
     pub fn execute(&self) -> Result<()> {
         print_complete_header(&self.script, &self.function, &self.params);
 
@@ -86,7 +85,7 @@ impl BashFile {
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .spawn()
-            .unwrap()
+            .with_context(|| format!("Unable to execute {:?}", self.full_path))?
             .wait()?;
         Ok(())
     }

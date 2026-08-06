@@ -1,6 +1,6 @@
-use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
+use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use ratatui::style::Stylize as _;
-use ratatui::widgets::*;
+use ratatui::widgets::ListState;
 use ratatui::{style::Color, text::Span};
 
 use crate::script::{self, Function, Script};
@@ -20,29 +20,26 @@ impl StatefulList {
     }
 
     pub fn next(&mut self) {
+        if self.items.is_empty() {
+            self.state.select(None);
+            return;
+        }
         let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.items.len() - 1 {
-                    0
-                } else {
-                    i + 1
-                }
-            }
+            Some(i) if i >= self.items.len() - 1 => 0,
+            Some(i) => i + 1,
             None => 0,
         };
         self.state.select(Some(i));
     }
 
     pub fn previous(&mut self) {
+        if self.items.is_empty() {
+            self.state.select(None);
+            return;
+        }
         let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.items.len() - 1
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
+            Some(0) | None => self.items.len() - 1,
+            Some(i) => i - 1,
         };
         self.state.select(Some(i));
     }
@@ -52,11 +49,7 @@ impl StatefulList {
     }
 
     pub fn get_as_coloured(&self) -> Vec<Vec<Span<'_>>> {
-        self.items
-            .iter()
-            .enumerate()
-            .map(|(_, item)| item.coloured())
-            .collect()
+        self.items.iter().map(Item::coloured).collect()
     }
 }
 
@@ -108,20 +101,19 @@ pub(crate) struct App {
 
 impl App {
     pub fn from(scripts: &[script::Script]) -> App {
-        let mut items: Vec<Item> = Vec::new();
-        scripts.iter().for_each(|script| {
-            script.functions.iter().for_each(|function| {
-                let name = format!("{}/{}", script.path.to_string_lossy(), function.name);
-                items.push(Item {
-                    name,
+        let items: Vec<Item> = scripts
+            .iter()
+            .flat_map(|script| {
+                script.functions.iter().map(move |function| Item {
+                    name: format!("{}/{}", script.path.display(), function.name),
                     score: None,
                     source: (script.clone(), function.clone()),
                 })
             })
-        });
+            .collect();
         App {
             items: StatefulList::with_items(items.clone()),
-            filtered_items: StatefulList::with_items(items.clone()),
+            filtered_items: StatefulList::with_items(items),
             search_term: String::new(),
         }
     }
@@ -168,12 +160,9 @@ impl App {
     }
 
     pub fn get_selected(&self) -> Option<&Item> {
-        match self.filtered_items.state.selected() {
-            Some(i) => {
-                let thing = self.filtered_items.items.get(i);
-                thing
-            }
-            None => None,
-        }
+        self.filtered_items
+            .state
+            .selected()
+            .and_then(|i| self.filtered_items.items.get(i))
     }
 }

@@ -1,25 +1,19 @@
 use anyhow::Result;
-use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-use ratatui::{prelude::*, widgets::*};
-use std::{
-    io,
-    time::{Duration, Instant},
-};
+use ratatui::crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use ratatui::layout::{Alignment, Constraint, Direction, Layout};
+use ratatui::style::{Color, Style, Stylize};
+use ratatui::text::Line;
+use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
+use ratatui::{DefaultTerminal, Frame};
+use std::time::{Duration, Instant};
 
 use super::state::App;
 use crate::script::{self, Function, Script};
 
 pub fn find(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
-    // setup terminal
-    enable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
+    // Sets up the terminal (raw mode, alternate screen) and installs a
+    // panic hook that restores it, so a crash doesn't wreck the terminal.
+    let mut terminal = ratatui::init();
 
     // create app and run it
     let tick_rate = Duration::from_millis(250);
@@ -27,19 +21,13 @@ pub fn find(scripts: &[script::Script]) -> Result<Option<(Script, Function)>> {
     let res = find_loop(&mut terminal, app, tick_rate);
 
     // restore terminal
-    disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-    terminal.show_cursor()?;
+    ratatui::restore();
 
     res
 }
 
-fn find_loop<B: Backend>(
-    terminal: &mut Terminal<B>,
+fn find_loop(
+    terminal: &mut DefaultTerminal,
     mut app: App,
     tick_rate: Duration,
 ) -> Result<Option<(Script, Function)>> {
@@ -53,7 +41,7 @@ fn find_loop<B: Backend>(
             .unwrap_or_else(|| Duration::from_secs(0));
 
         // Read input loop
-        if crossterm::event::poll(timeout)? {
+        if event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
                     match key.code {
@@ -99,12 +87,12 @@ fn ui(f: &mut Frame, app: &mut App) {
     // The search bar on top, the other stuff below
     let all = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(1), Constraint::Percentage(100)].as_ref())
-        .split(f.size());
+        .constraints([Constraint::Length(1), Constraint::Percentage(100)])
+        .split(f.area());
     // The other stuff
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(all[1]);
 
     // Add the components to the UI
@@ -127,7 +115,7 @@ impl App {
         para.block(block)
     }
 
-    fn item_list(&self) -> List {
+    fn item_list(&self) -> List<'_> {
         let list_items: Vec<ListItem> = self
             .filtered_items
             .get_as_coloured()
@@ -137,10 +125,9 @@ impl App {
             .collect();
 
         // Create a List from all list items and highlight the currently selected one
-        let items = List::new(list_items)
+        List::new(list_items)
             .block(Block::default().borders(Borders::RIGHT))
-            .highlight_style(Style::default().bg(Color::DarkGray));
-        items
+            .highlight_style(Style::default().bg(Color::DarkGray))
     }
 
     /// Build the UI for the details view
